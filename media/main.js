@@ -29,6 +29,15 @@ let runConfirmState = {
   resolvedCommand: '',
 };
 
+let variableInputState = {
+  commandId: null,
+  action: null,
+  missingVariables: [],
+  inputValues: {},
+  rememberFlags: {},
+  returnToRunConfirm: false,
+};
+
 let deleteConfirmState = {
   type: null,
   id: null,
@@ -210,6 +219,7 @@ function render() {
       ${uiState.activeTab === 'manage' ? renderManageTab() : ''}
       ${uiState.activeTab === 'commands' ? renderCommandsTab(selectedCategory) : ''}
       ${uiState.activeTab === 'edit' ? renderEditTab() : ''}
+      ${renderVariableInputModal()}
       ${renderRunConfirmModal()}
       ${renderDeleteConfirmModal()}
     </div>
@@ -441,9 +451,18 @@ function renderEditTab() {
 }
 
 function renderRunConfirmModal() {
-  if (!runConfirmState.commandId) {
+  // Hide run confirm modal while variable input modal is open (returning to run confirm)
+  if (!runConfirmState.commandId || (variableInputState.commandId && variableInputState.returnToRunConfirm)) {
     return '';
   }
+
+  const command = (state.data.commands || []).find(function (item) {
+    return item.id === runConfirmState.commandId;
+  });
+
+  const hasVariables = command ? collectVariables([command.command]).some(function (name) {
+    return name !== 'workspaceFolder';
+  }) : false;
 
   return `
     <div class="modal-overlay" id="run-confirm-overlay">
@@ -453,6 +472,57 @@ function renderRunConfirmModal() {
         <div class="row">
           <button class="btn primary min-w70" id="btn-confirm-run-yes">Yes</button>
           <button class="btn secondary action min-w70" id="btn-confirm-run-no">No</button>
+          ${hasVariables ? `<button class="btn secondary min-w70" id="btn-confirm-run-variables" style="margin-left:auto">Variables</button>` : ''}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderVariableInputModal() {
+  if (!variableInputState.commandId) {
+    return '';
+  }
+
+  const vars = variableInputState.missingVariables;
+
+  return `
+    <div class="modal-overlay" id="variable-input-overlay">
+      <div class="modal-box">
+        <h3>Enter Variable Values</h3>
+        <div class="variables-list">
+          ${vars.map(function (name) {
+    const currentValue = variableInputState.inputValues[name] !== undefined
+      ? variableInputState.inputValues[name]
+      : (getCommandDraft(variableInputState.commandId)[name] || '');
+    const rememberChecked = variableInputState.rememberFlags[name] !== undefined
+      ? Boolean(variableInputState.rememberFlags[name])
+      : Boolean((uiState.commandRemember[variableInputState.commandId] || {})[name]);
+    return `
+              <div class="variable-row">
+                <label class="variable-name">\${${escapeHtml(name)}}</label>
+                <input
+                  class="input variable-modal-input"
+                  data-variable-name="${escapeAttr(name)}"
+                  value="${escapeAttr(currentValue)}"
+                  placeholder="Enter value..."
+                />
+                <label class="remember-wrap">
+                  <input
+                    type="checkbox"
+                    class="variable-modal-remember"
+                    data-variable-name="${escapeAttr(name)}"
+                    ${rememberChecked ? 'checked' : ''}
+                  />
+                  Remember
+                </label>
+              </div>
+            `;
+  }).join('')}
+        </div>
+        <div class="row">
+          <button class="btn primary min-w70" id="btn-variable-input-confirm">Confirm</button>
+          <button class="btn secondary action min-w70" id="btn-variable-input-cancel">Cancel</button>
         </div>
       </div>
     </div>
@@ -871,9 +941,9 @@ function bindEditTabEvents() {
     });
   }
 
-  document.querySelectorAll('.edit-command-group-tag').forEach(function (tagButton) {
-    tagButton.addEventListener('click', function () {
-      const groupId = tagButton.dataset.groupId;
+  document.querySelectorAll('.edit-command-group-tag').forEach(function (tabButton) {
+    tabButton.addEventListener('click', function () {
+      const groupId = tabButton.dataset.groupId;
       const selected = uiState.editCommandDraft.groupIds;
 
       if (selected.includes(groupId)) {
@@ -946,6 +1016,21 @@ function bindCommandActionButtons() {
         return;
       }
 
+      const missing = getMissingVariables(command);
+
+      if (missing.length > 0) {
+        variableInputState = {
+          commandId,
+          action: 'run',
+          missingVariables: missing,
+          inputValues: {},
+          rememberFlags: {},
+          returnToRunConfirm: false,
+        };
+        render();
+        return;
+      }
+
       runConfirmState = {
         commandId,
         resolvedCommand: resolveCommandTemplate(command),
@@ -1011,6 +1096,7 @@ function bindCommandActionButtons() {
 
   const confirmRunYesButton = document.getElementById('btn-confirm-run-yes');
   const confirmRunNoButton = document.getElementById('btn-confirm-run-no');
+  const confirmRunVariablesButton = document.getElementById('btn-confirm-run-variables');
 
   if (confirmRunYesButton) {
     confirmRunYesButton.addEventListener('click', function () {
@@ -1022,13 +1108,142 @@ function bindCommandActionButtons() {
         return;
       }
 
-      performCommandAction(commandId, 'run');
+      dispatchCommandAction(commandId, 'run');
     });
   }
 
   if (confirmRunNoButton) {
     confirmRunNoButton.addEventListener('click', function () {
       runConfirmState = {commandId: null, resolvedCommand: ''};
+      render();
+    });
+  }
+
+  if (confirmRunVariablesButton) {
+    confirmRunVariablesButton.addEventListener('click', function () {
+      const commandId = runConfirmState.commandId;
+
+      if (!commandId) {
+        return;
+      }
+
+      const command = (state.data.commands || []).find(function (item) {
+        return item.id === commandId;
+      });
+
+      if (!command) {
+        return;
+      }
+
+      // Show all non-workspaceFolder variables for editing
+      const allVars = collectVariables([command.command]).filter(function (name) {
+        return name !== 'workspaceFolder';
+      });
+
+      const draft = getCommandDraft(commandId);
+      const rememberMap = getCommandRemember(commandId);
+      const inputValues = {};
+      const rememberFlags = {};
+
+      allVars.forEach(function (name) {
+        inputValues[name] = draft[name] || '';
+        rememberFlags[name] = Boolean(rememberMap[name]);
+      });
+
+      variableInputState = {
+        commandId,
+        action: 'run',
+        missingVariables: allVars,
+        inputValues,
+        rememberFlags,
+        returnToRunConfirm: true,
+      };
+
+      render();
+    });
+  }
+
+  var variableInputConfirmButton = document.getElementById('btn-variable-input-confirm');
+  var variableInputCancelButton = document.getElementById('btn-variable-input-cancel');
+
+  if (variableInputConfirmButton) {
+    variableInputConfirmButton.addEventListener('click', function () {
+      const commandId = variableInputState.commandId;
+      const action = variableInputState.action;
+      const returnToRunConfirm = variableInputState.returnToRunConfirm;
+
+      if (!commandId || !action) {
+        variableInputState = {commandId: null, action: null, missingVariables: [], inputValues: {}, rememberFlags: {}, returnToRunConfirm: false};
+        render();
+        return;
+      }
+
+      // Collect current values and remember flags from the modal DOM
+      document.querySelectorAll('.variable-modal-input').forEach(function (input) {
+        const varName = input.dataset.variableName;
+        variableInputState.inputValues[varName] = input.value;
+      });
+
+      document.querySelectorAll('.variable-modal-remember').forEach(function (checkbox) {
+        const varName = checkbox.dataset.variableName;
+        variableInputState.rememberFlags[varName] = checkbox.checked;
+      });
+
+      // Apply input values to commandDraft
+      const draft = getCommandDraft(commandId);
+      Object.keys(variableInputState.inputValues).forEach(function (varName) {
+        draft[varName] = variableInputState.inputValues[varName];
+      });
+      uiState.commandDrafts[commandId] = draft;
+
+      // Apply remember flags
+      const rememberMap = getCommandRemember(commandId);
+      Object.keys(variableInputState.rememberFlags).forEach(function (varName) {
+        rememberMap[varName] = variableInputState.rememberFlags[varName];
+      });
+      uiState.commandRemember[commandId] = rememberMap;
+
+      // Persist if any remember flags are set
+      const hasRemembered = Object.values(variableInputState.rememberFlags).some(Boolean);
+      if (hasRemembered) {
+        persistCommandVariables();
+      }
+
+      // Close variable input modal
+      variableInputState = {commandId: null, action: null, missingVariables: [], inputValues: {}, rememberFlags: {}, returnToRunConfirm: false};
+
+      if (action === 'run') {
+        const command = (state.data.commands || []).find(function (item) {
+          return item.id === commandId;
+        });
+
+        if (command) {
+          // Update the run confirm modal with the new resolved command
+          runConfirmState = {
+            commandId,
+            resolvedCommand: resolveCommandTemplate(command),
+          };
+        }
+
+        render();
+        return;
+      }
+
+      render();
+      dispatchCommandAction(commandId, action);
+    });
+  }
+
+  if (variableInputCancelButton) {
+    variableInputCancelButton.addEventListener('click', function () {
+      const returnToRunConfirm = variableInputState.returnToRunConfirm;
+      variableInputState = {commandId: null, action: null, missingVariables: [], inputValues: {}, rememberFlags: {}, returnToRunConfirm: false};
+
+      // If we came from the run confirm modal, restore it
+      if (!returnToRunConfirm) {
+        runConfirmState = {commandId: null, resolvedCommand: ''};
+      }
+
       render();
     });
   }
@@ -1196,7 +1411,47 @@ function showNotice(message) {
   }, 3000);
 }
 
+function getMissingVariables(command) {
+  const names = collectVariables([command.command]);
+  const draft = getCommandDraft(command.id);
+
+  return names.filter(function (name) {
+    if (name === 'workspaceFolder') {
+      return false;
+    }
+
+    return !draft[name];
+  });
+}
+
 function performCommandAction(commandId, action) {
+  const command = (state.data.commands || []).find(function (item) {
+    return item.id === commandId;
+  });
+
+  if (!command) {
+    return;
+  }
+
+  const missing = getMissingVariables(command);
+
+  if (missing.length > 0) {
+    variableInputState = {
+      commandId,
+      action,
+      missingVariables: missing,
+      inputValues: {},
+      rememberFlags: {},
+      returnToRunConfirm: false,
+    };
+    render();
+    return;
+  }
+
+  dispatchCommandAction(commandId, action);
+}
+
+function dispatchCommandAction(commandId, action) {
   const command = (state.data.commands || []).find(function (item) {
     return item.id === commandId;
   });
