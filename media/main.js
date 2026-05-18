@@ -230,15 +230,15 @@ function render() {
       <header class="header">
         <h1>Terminal Recipes</h1>
         <div class="header-actions">
-          <button id="btn-open-local-variables-file" class="btn secondary" ${state.workspaceFolder ? '' : 'disabled'} title="${state.workspaceFolder ? '' : 'No workspace open'}">Open Local Variables JSON</button>
-          <button id="btn-open-global-variables-file" class="btn secondary">Open Global Variables JSON</button>
-          <button id="btn-open-commands-file" class="btn secondary">Open Global JSON</button>
+          <button id="btn-open-local-variables-file" class="btn small secondary" ${state.workspaceFolder ? '' : 'disabled'} title="${state.workspaceFolder ? '' : 'No workspace open'}">Open Local Variables JSON</button>
+          <button id="btn-open-global-variables-file" class="btn small secondary">Open Global Variables JSON</button>
+          <button id="btn-open-commands-file" class="btn small secondary">Open Global JSON</button>
         </div>
       </header>
       <p class="meta">Workspace: <code>${escapeHtml(state.workspaceFolder || 'No workspace open')}</code></p>
       ${uiState.noticeMessage ? `<div class="notice">${escapeHtml(uiState.noticeMessage)}</div>` : ''}
 
-      <section class="card">
+      <section class="card tabs-section">
         <div class="tabs">
           <button class="tab ${uiState.activeTab === 'recent' ? 'active' : ''}" data-tab="recent">Recent Commands</button>
           <button class="tab ${uiState.activeTab === 'manage' ? 'active' : ''}" data-tab="manage">Categories & Groups</button>
@@ -296,7 +296,7 @@ function renderManageTab() {
         <div class="manage-panel">
           <div class="manage-panel-header">
             <h2 class="manage-panel-title">Groups</h2>
-            <button class="btn primary small" id="btn-open-add-group-modal" ${selectedCategory ? '' : 'disabled'}>+ Add New Group</button>
+            <button class="btn small primary" id="btn-open-add-group-modal" ${selectedCategory ? '' : 'disabled'}>+ Add New Group</button>
           </div>
           <div class="manage-list">
             ${!selectedCategory ? `<p class="muted manage-empty">Select a category first.</p>` : ''}
@@ -355,7 +355,7 @@ function renderManageModal() {
       <div class="modal-box">
         <h3>${escapeHtml(title)}</h3>
         <input id="manage-modal-input" class="input" placeholder="${escapeAttr(placeholder)}" value="${escapeAttr(manageModalState.value)}" autocomplete="off" />
-        <div class="row confirm-buttons-row">
+        <div class="row justify-content-flex-end">
           <button class="btn primary min-w65" id="btn-manage-modal-confirm">${escapeHtml(btnLabel)}</button>
           <button class="btn secondary action min-w65" id="btn-manage-modal-cancel">Cancel</button>
         </div>
@@ -433,9 +433,9 @@ function renderAddCommandTab(selectedCategory) {
   }).join('')}
           </div>
         </div>
-        <div class="row full-width confirm-buttons-row mt-20">
-          <button type="submit" class="btn primary">Add Command</button>
-          <button type="button" id="btn-cancel-add-command" class="btn secondary action">Cancel</button>
+        <div class="row full-width justify-content-flex-end mt-20">
+          <button type="submit" class="btn medium primary">Add Command</button>
+          <button type="button" id="btn-cancel-add-command" class="btn medium secondary action">Cancel</button>
         </div>
       </form>
     </section>
@@ -502,7 +502,7 @@ function renderNewCommandForm(groups, draft) {
   }).join('')}
         </div>
       </div>
-      <div class="row full-width confirm-buttons-row mt-20">
+      <div class="row full-width justify-content-flex-end mt-20">
         <button type="submit" class="btn primary">Add Command</button>
         <button type="button" id="btn-cancel-add-command" class="btn secondary action">Cancel</button>
       </div>
@@ -571,8 +571,8 @@ function renderEditTab() {
           <span class="muted" style="font-size:0.82rem">Last Run: <strong title="${escapeAttr(formatDateTime(command.lastRunAt))}">${escapeHtml(timeAgo(command.lastRunAt))}</strong> &nbsp;·&nbsp; ×${command.runCount || 0} runs</span>
         </div>
         ` : ''}
-        <div class="row full-width confirm-buttons-row mt-20">
-          <button type="submit" class="btn primary">Save Changes</button>
+        <div class="row full-width justify-content-flex-end mt-20">
+          <button type="submit" class="btn medium primary">Save Changes</button>
         </div>
       </form>
     </section>
@@ -616,10 +616,10 @@ function renderRunConfirmModal() {
         <h3>Do you want to run this command?</h3>
         <pre class="modal-command-preview">&gt; ${escapeHtml(runConfirmState.resolvedCommand)}</pre>
         <p class="muted">⚠️ This command will be executed immediately</p>
-        <div class="row confirm-buttons-row">
-        ${hasVariables ? `<button class="btn secondary min-w65" id="btn-confirm-run-variables">Edit Variables</button>` : ''}
-          <button class="btn primary min-w65" id="btn-confirm-run-yes">Run</button>
-          <button class="btn secondary action min-w65" id="btn-confirm-run-no">Cancel</button>
+        <div class="row justify-content-flex-end">
+        ${hasVariables ? `<button class="btn small secondary min-w65" id="btn-confirm-run-variables">Edit Variables</button>` : ''}
+          <button class="btn small primary min-w65" id="btn-confirm-run-yes">Run</button>
+          <button class="btn small secondary action min-w65" id="btn-confirm-run-no">Cancel</button>
         </div>
       </div>
     </div>
@@ -664,9 +664,9 @@ function renderVariableInputModal() {
             `;
   }).join('')}
         </div>
-        <div class="row confirm-buttons-row mt-20">
-          <button class="btn primary min-w65" id="btn-variable-input-confirm">Confirm</button>
-          <button class="btn secondary action min-w65" id="btn-variable-input-cancel">Cancel</button>
+        <div class="row justify-content-flex-end mt-20">
+          <button class="btn small primary min-w65" id="btn-variable-input-confirm">Confirm</button>
+          <button class="btn small secondary action min-w65" id="btn-variable-input-cancel">Cancel</button>
         </div>
       </div>
     </div>
@@ -694,9 +694,9 @@ function renderDeleteConfirmModal() {
       <div class="modal-box">
         <h3>Do you want to delete this ${escapeHtml(deleteConfirmState.type)}?</h3>
         ${detailHtml}
-        <div class="row">
-          <button class="btn danger min-w65" id="btn-confirm-delete-yes">Yes</button>
-          <button class="btn secondary action min-w65" id="btn-confirm-delete-no">No</button>
+        <div class="row justify-content-flex-end">
+          <button class="btn small danger min-w65" id="btn-confirm-delete-yes">Delete</button>
+          <button class="btn small secondary action min-w65" id="btn-confirm-delete-no">Cancel</button>
         </div>
       </div>
     </div>

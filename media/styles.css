@@ -82,30 +82,70 @@ body {
   opacity: 0.9;
 }
 
+.tabs-section {
+  border: unset !important;
+  padding: 0 !important;
+}
+
+
 .tabs {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 0;
+  border-bottom: 1px solid var(--vscode-panel-border);
+  padding-bottom: 0;
 }
 
 .tab {
-  background: var(--vscode-button-secondaryBackground);
-  color: var(--vscode-button-secondaryForeground);
-  border: 1px solid var(--vscode-input-border);
-  border-radius: 6px;
-  padding: 7px 14px;
+  background: transparent;
+  color: var(--vscode-editor-foreground);
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  padding: 7px 16px;
   font-size: 0.82rem;
   cursor: pointer;
+  opacity: 0.55;
+  margin-bottom: -1px;
+  transition: opacity 0.15s, background 0.15s;
+}
+
+.tab:hover:not(:disabled):not(.active) {
+  opacity: 0.85;
+  background: color-mix(in srgb, var(--vscode-editor-background) 90%, var(--vscode-foreground));
 }
 
 .tab.active {
-  background: var(--vscode-button-background);
-  color: var(--vscode-button-foreground);
-  border-color: var(--vscode-button-background);
+  background: color-mix(in srgb, var(--vscode-editor-background) 85%, var(--vscode-foreground));
+  color: var(--vscode-editor-foreground);
+  border-bottom: 2px solid var(--vscode-editor-foreground);
+  opacity: 1;
 }
 
 .tab-push-right {
   margin-left: auto;
+  /* Restore button style for "Add New Command" */
+  background: var(--vscode-button-secondaryBackground) !important;
+  color: var(--vscode-button-secondaryForeground) !important;
+  /* border: 1px solid var(--vscode-input-border) !important; */
+  /* border-radius: 6px !important; */
+  /* border-bottom: 1px solid var(--vscode-input-border) !important; */
+  opacity: 1 !important;
+  margin-bottom: 0 !important;
+  align-self: center;
+}
+
+.tab-push-right.active {
+  background: color-mix(in srgb, var(--vscode-editor-background) 85%, var(--vscode-foreground));
+  /* background: var(--vscode-button-background) !important; */
+  color: var(--vscode-button-foreground) !important;
+  border-color: var(--vscode-button-background) !important;
+  border-bottom: 2px solid var(--vscode-button-background) !important;
+}
+
+.tab-push-right:hover:not(:disabled) {
+  background: var(--vscode-button-secondaryHoverBackground) !important;
+  opacity: 1 !important;
 }
 
 .row {
@@ -270,6 +310,12 @@ select {
   padding: 5px 8px;
 }
 
+.btn.medium {
+  font-size: 0.8rem;
+  padding: 7px 11px;
+}
+
+
 .table-wrap {
   overflow-x: auto;
 }
@@ -433,7 +479,6 @@ td.actions-cell {
   display: flex;
 }
 
-
 .vars-store-row {
   justify-content: flex-end;
 }
@@ -471,7 +516,7 @@ td.actions-cell {
   width: fit-content;
 }
 
-.confirm-buttons-row {
+.justify-content-flex-end {
   justify-content: flex-end;
 }
 
