@@ -45,6 +45,12 @@ let deleteConfirmState = {
   template: '',
 };
 
+let manageModalState = {
+  visible: false,
+  mode: null, // 'add-category' | 'rename-category' | 'add-group' | 'rename-group'
+  value: '',
+};
+
 const state = {
   data: {
     version: 1,
@@ -255,48 +261,106 @@ function render() {
 }
 
 function renderManageTab() {
+  const categories = state.data.categories || [];
   const selectedCategory = getSelectedCategory();
   const selectedGroups = getSelectedCategoryGroups();
 
   return `
-    <section class="card">
-      <h2>Manage Categories</h2>
-      <div class="row">
-        <select id="manage-category-select" class="input">
-          ${(state.data.categories || []).map(function (category) {
-    return `<option value="${escapeAttr(category.id)}" ${category.id === uiState.selectedCategoryId ? 'selected' : ''}>${escapeHtml(category.title)}</option>`;
-  }).join('')}
-        </select>
-      </div>
-      <form id="form-add-category" class="form-grid">
-        <label>Category Title<input id="new-category-title" class="input" required /></label>
-        <div class="row flex-end">
-          <button type="submit" class="btn secondary action">Add Category</button>
-          <button type="button" id="btn-rename-category" class="btn secondary action" ${selectedCategory ? '' : 'disabled'}>Rename Selected</button>
-          <button type="button" id="btn-delete-category" class="btn danger" ${selectedCategory ? '' : 'disabled'}>Delete Selected</button>
-        </div>
-      </form>
-    </section>
+    <section class="card manage-card">
+      <div class="manage-layout">
 
-    <section class="card">
-      <h2>Manage Groups</h2>
-      <div class="row">
-        <select id="manage-group-select" class="input" ${selectedCategory ? '' : 'disabled'}>
-          <option value="all" ${uiState.selectedGroupId === 'all' ? 'selected' : ''}>All</option>
-          ${selectedGroups.map(function (group) {
-    return `<option value="${escapeAttr(group.id)}" ${group.id === uiState.selectedGroupId ? 'selected' : ''}>${escapeHtml(group.title)}</option>`;
+        <!-- Categories Panel -->
+        <div class="manage-panel">
+          <div class="manage-panel-header">
+            <h2 class="manage-panel-title">Categories</h2>
+            <button class="btn primary small" id="btn-open-add-category-modal">+ Add New Category</button>
+          </div>
+          <div class="manage-list">
+            ${categories.length === 0 ? `<p class="muted manage-empty">No categories yet.</p>` : ''}
+            ${categories.map(function (category) {
+    const isActive = category.id === uiState.selectedCategoryId;
+    return `
+              <div class="manage-item ${isActive ? 'active' : ''}" data-category-id="${escapeAttr(category.id)}">
+                <span class="manage-item-label">${escapeHtml(category.title)}</span>
+                <div class="manage-item-actions">
+                  <button class="btn small secondary btn-rename-category" data-category-id="${escapeAttr(category.id)}" data-category-title="${escapeAttr(category.title)}" title="Rename">Rename</button>
+                  <button class="btn small danger btn-delete-category" data-category-id="${escapeAttr(category.id)}" data-category-title="${escapeAttr(category.title)}" title="Delete">Delete</button>
+                </div>
+              </div>
+            `;
   }).join('')}
-        </select>
-      </div>
-      <form id="form-add-group" class="form-grid" ${selectedCategory ? '' : 'data-disabled="true"'}>
-        <label>Group Title<input id="new-group-title" class="input" ${selectedCategory ? 'required' : 'disabled'} /></label>
-        <div class="row">
-          <button type="submit" class="btn secondary action" ${selectedCategory ? '' : 'disabled'}>Add Group</button>
-          <button type="button" id="btn-rename-group" class="btn secondary action" ${selectedCategory && uiState.selectedGroupId !== 'all' ? '' : 'disabled'}>Rename Selected</button>
-          <button type="button" id="btn-delete-group" class="btn danger" ${selectedCategory && uiState.selectedGroupId !== 'all' ? '' : 'disabled'}>Delete Selected</button>
+          </div>
         </div>
-      </form>
+
+        <!-- Groups Panel -->
+        <div class="manage-panel">
+          <div class="manage-panel-header">
+            <h2 class="manage-panel-title">Groups</h2>
+            <button class="btn primary small" id="btn-open-add-group-modal" ${selectedCategory ? '' : 'disabled'}>+ Add New Group</button>
+          </div>
+          <div class="manage-list">
+            ${!selectedCategory ? `<p class="muted manage-empty">Select a category first.</p>` : ''}
+            ${selectedCategory && selectedGroups.length === 0 ? `<p class="muted manage-empty">No groups yet.</p>` : ''}
+            ${selectedGroups.map(function (group) {
+    const isActive = group.id === uiState.selectedGroupId;
+    return `
+              <div class="manage-item ${isActive ? 'active' : ''}" data-group-id="${escapeAttr(group.id)}">
+                <span class="manage-item-label">${escapeHtml(group.title)}</span>
+                <div class="manage-item-actions">
+                  <button class="btn small secondary btn-rename-group" data-group-id="${escapeAttr(group.id)}" data-group-title="${escapeAttr(group.title)}" title="Rename">Rename</button>
+                  <button class="btn small danger btn-delete-group" data-group-id="${escapeAttr(group.id)}" data-group-title="${escapeAttr(group.title)}" title="Delete">Delete</button>
+                </div>
+              </div>
+            `;
+  }).join('')}
+          </div>
+        </div>
+
+      </div>
     </section>
+    ${renderManageModal()}
+  `;
+}
+
+function renderManageModal() {
+  if (!manageModalState.visible) {
+    return '';
+  }
+
+  const mode = manageModalState.mode;
+  let title = '';
+  let placeholder = '';
+  let btnLabel = '';
+
+  if (mode === 'add-category') {
+    title = 'Add New Category';
+    placeholder = 'Category name...';
+    btnLabel = 'Add';
+  } else if (mode === 'rename-category') {
+    title = 'Rename Category';
+    placeholder = 'New name...';
+    btnLabel = 'Rename';
+  } else if (mode === 'add-group') {
+    title = 'Add New Group';
+    placeholder = 'Group name...';
+    btnLabel = 'Add';
+  } else if (mode === 'rename-group') {
+    title = 'Rename Group';
+    placeholder = 'New name...';
+    btnLabel = 'Rename';
+  }
+
+  return `
+    <div class="modal-overlay" id="manage-modal-overlay">
+      <div class="modal-box">
+        <h3>${escapeHtml(title)}</h3>
+        <input id="manage-modal-input" class="input" placeholder="${escapeAttr(placeholder)}" value="${escapeAttr(manageModalState.value)}" autocomplete="off" />
+        <div class="row confirm-buttons-row">
+          <button class="btn primary min-w65" id="btn-manage-modal-confirm">${escapeHtml(btnLabel)}</button>
+          <button class="btn secondary action min-w65" id="btn-manage-modal-cancel">Cancel</button>
+        </div>
+      </div>
+    </div>
   `;
 }
 
@@ -811,164 +875,237 @@ function bindTabs() {
 }
 
 function bindManageTabEvents() {
-  const categorySelect = document.getElementById('manage-category-select');
-  const groupSelect = document.getElementById('manage-group-select');
-  const addCategoryForm = document.getElementById('form-add-category');
-  const addGroupForm = document.getElementById('form-add-group');
-  const renameCategoryButton = document.getElementById('btn-rename-category');
-  const deleteCategoryButton = document.getElementById('btn-delete-category');
-  const renameGroupButton = document.getElementById('btn-rename-group');
-  const deleteGroupButton = document.getElementById('btn-delete-group');
+  // --- Category item click (select category) ---
+  document.querySelectorAll('.manage-item[data-category-id]').forEach(function (item) {
+    item.addEventListener('click', function (e) {
+      // Don't trigger selection if a button inside was clicked
+      if (e.target.closest('button')) {
+        return;
+      }
 
-  if (categorySelect) {
-    categorySelect.addEventListener('change', function () {
-      uiState.selectedCategoryId = categorySelect.value;
+      uiState.selectedCategoryId = item.dataset.categoryId;
       uiState.selectedGroupId = 'all';
       render();
     });
-  }
+  });
 
-  if (groupSelect) {
-    groupSelect.addEventListener('change', function () {
-      uiState.selectedGroupId = groupSelect.value;
+  // --- Group item click (select group) ---
+  document.querySelectorAll('.manage-item[data-group-id]').forEach(function (item) {
+    item.addEventListener('click', function (e) {
+      if (e.target.closest('button')) {
+        return;
+      }
+
+      uiState.selectedGroupId = item.dataset.groupId;
       render();
     });
-  }
+  });
 
-  if (addCategoryForm) {
-    addCategoryForm.addEventListener('submit', function (event) {
-      event.preventDefault();
-      const input = document.getElementById('new-category-title');
-      const title = input ? input.value.trim() : '';
-
-      if (!title) {
-        showNotice('Category title is required.');
-        render();
-        return;
+  // --- Open Add Category Modal ---
+  const addCategoryBtn = document.getElementById('btn-open-add-category-modal');
+  if (addCategoryBtn) {
+    addCategoryBtn.addEventListener('click', function () {
+      manageModalState = {visible: true, mode: 'add-category', value: ''};
+      render();
+      const input = document.getElementById('manage-modal-input');
+      if (input) {
+        input.focus();
       }
-
-      const newCategory = {
-        id: generateEntityId('cat'),
-        title,
-        groups: [],
-      };
-
-      state.data.categories.push(newCategory);
-      uiState.selectedCategoryId = newCategory.id;
-      uiState.selectedGroupId = 'all';
-      persistDataThenRender('Category added and saved.');
     });
   }
 
-  if (renameCategoryButton) {
-    renameCategoryButton.addEventListener('click', function () {
-      const selectedCategory = getSelectedCategory();
-      const input = document.getElementById('new-category-title');
-      const nextTitle = input ? input.value.trim() : '';
-
-      if (!selectedCategory || !nextTitle) {
-        showNotice('Select category and provide title to rename.');
-        render();
-        return;
+  // --- Open Add Group Modal ---
+  const addGroupBtn = document.getElementById('btn-open-add-group-modal');
+  if (addGroupBtn) {
+    addGroupBtn.addEventListener('click', function () {
+      manageModalState = {visible: true, mode: 'add-group', value: ''};
+      render();
+      const input = document.getElementById('manage-modal-input');
+      if (input) {
+        input.focus();
       }
-
-      selectedCategory.title = nextTitle;
-      persistDataThenRender('Category renamed and saved.');
     });
   }
 
-  if (deleteCategoryButton) {
-    deleteCategoryButton.addEventListener('click', function () {
-      const selectedCategory = getSelectedCategory();
-
-      if (!selectedCategory) {
-        return;
+  // --- Rename Category buttons ---
+  document.querySelectorAll('.btn-rename-category').forEach(function (btn) {
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      const categoryId = btn.dataset.categoryId;
+      const categoryTitle = btn.dataset.categoryTitle;
+      uiState.selectedCategoryId = categoryId;
+      manageModalState = {visible: true, mode: 'rename-category', value: categoryTitle};
+      render();
+      const input = document.getElementById('manage-modal-input');
+      if (input) {
+        input.focus();
+        input.select();
       }
+    });
+  });
 
+  // --- Delete Category buttons ---
+  document.querySelectorAll('.btn-delete-category').forEach(function (btn) {
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      const categoryId = btn.dataset.categoryId;
+      const categoryTitle = btn.dataset.categoryTitle;
+      uiState.selectedCategoryId = categoryId;
       deleteConfirmState = {
         type: 'category',
-        id: selectedCategory.id,
-        title: selectedCategory.title,
+        id: categoryId,
+        title: categoryTitle,
       };
       render();
     });
-  }
+  });
 
-  if (addGroupForm) {
-    addGroupForm.addEventListener('submit', function (event) {
-      event.preventDefault();
-      const selectedCategory = getSelectedCategory();
-      const input = document.getElementById('new-group-title');
-      const title = input ? input.value.trim() : '';
-
-      if (!selectedCategory || !title) {
-        showNotice('Select category and provide group title.');
-        render();
-        return;
+  // --- Rename Group buttons ---
+  document.querySelectorAll('.btn-rename-group').forEach(function (btn) {
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      const groupId = btn.dataset.groupId;
+      const groupTitle = btn.dataset.groupTitle;
+      uiState.selectedGroupId = groupId;
+      manageModalState = {visible: true, mode: 'rename-group', value: groupTitle};
+      render();
+      const input = document.getElementById('manage-modal-input');
+      if (input) {
+        input.focus();
+        input.select();
       }
-
-      const newGroup = {
-        id: generateEntityId('grp'),
-        title,
-      };
-
-      selectedCategory.groups = selectedCategory.groups || [];
-      selectedCategory.groups.push(newGroup);
-      uiState.selectedGroupId = newGroup.id;
-      persistDataThenRender('Group added and saved.');
     });
-  }
+  });
 
-  if (renameGroupButton) {
-    renameGroupButton.addEventListener('click', function () {
-      const selectedCategory = getSelectedCategory();
-      const input = document.getElementById('new-group-title');
-      const nextTitle = input ? input.value.trim() : '';
-
-      if (!selectedCategory || uiState.selectedGroupId === 'all' || !nextTitle) {
-        showNotice('Select group and provide title to rename.');
-        render();
-        return;
-      }
-
-      const group = (selectedCategory.groups || []).find(function (item) {
-        return item.id === uiState.selectedGroupId;
-      });
-
-      if (!group) {
-        showNotice('Selected group not found.');
-        render();
-        return;
-      }
-
-      group.title = nextTitle;
-      persistDataThenRender('Group renamed and saved.');
-    });
-  }
-
-  if (deleteGroupButton) {
-    deleteGroupButton.addEventListener('click', function () {
-      const selectedCategory = getSelectedCategory();
-
-      if (!selectedCategory || uiState.selectedGroupId === 'all') {
-        return;
-      }
-
-      const group = (selectedCategory.groups || []).find(function (item) {
-        return item.id === uiState.selectedGroupId;
-      });
-
-      if (!group) {
-        return;
-      }
-
+  // --- Delete Group buttons ---
+  document.querySelectorAll('.btn-delete-group').forEach(function (btn) {
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      const groupId = btn.dataset.groupId;
+      const groupTitle = btn.dataset.groupTitle;
+      uiState.selectedGroupId = groupId;
       deleteConfirmState = {
         type: 'group',
-        id: group.id,
-        title: group.title,
+        id: groupId,
+        title: groupTitle,
       };
       render();
     });
+  });
+
+  // --- Modal Confirm ---
+  const modalConfirmBtn = document.getElementById('btn-manage-modal-confirm');
+  if (modalConfirmBtn) {
+    modalConfirmBtn.addEventListener('click', function () {
+      executeManageModalConfirm();
+    });
+  }
+
+  // --- Modal Cancel ---
+  const modalCancelBtn = document.getElementById('btn-manage-modal-cancel');
+  if (modalCancelBtn) {
+    modalCancelBtn.addEventListener('click', function () {
+      manageModalState = {visible: false, mode: null, value: ''};
+      render();
+    });
+  }
+
+  // --- Modal Input: confirm on Enter ---
+  const modalInput = document.getElementById('manage-modal-input');
+  if (modalInput) {
+    modalInput.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        executeManageModalConfirm();
+      }
+      if (e.key === 'Escape') {
+        manageModalState = {visible: false, mode: null, value: ''};
+        render();
+      }
+    });
+  }
+
+  // --- Click outside modal overlay to close ---
+  const modalOverlay = document.getElementById('manage-modal-overlay');
+  if (modalOverlay) {
+    modalOverlay.addEventListener('click', function (e) {
+      if (e.target === modalOverlay) {
+        manageModalState = {visible: false, mode: null, value: ''};
+        render();
+      }
+    });
+  }
+}
+
+function executeManageModalConfirm() {
+  const input = document.getElementById('manage-modal-input');
+  const value = input ? input.value.trim() : '';
+  const mode = manageModalState.mode;
+
+  if (!value) {
+    showNotice('Name is required.');
+    if (input) {
+      input.focus();
+    }
+    return;
+  }
+
+  if (mode === 'add-category') {
+    const newCategory = {
+      id: generateEntityId('cat'),
+      title: value,
+      groups: [],
+    };
+    state.data.categories.push(newCategory);
+    uiState.selectedCategoryId = newCategory.id;
+    uiState.selectedGroupId = 'all';
+    manageModalState = {visible: false, mode: null, value: ''};
+    persistDataThenRender('Category added and saved.');
+    return;
+  }
+
+  if (mode === 'rename-category') {
+    const category = getSelectedCategory();
+    if (category) {
+      category.title = value;
+    }
+    manageModalState = {visible: false, mode: null, value: ''};
+    persistDataThenRender('Category renamed and saved.');
+    return;
+  }
+
+  if (mode === 'add-group') {
+    const selectedCategory = getSelectedCategory();
+    if (!selectedCategory) {
+      showNotice('Select a category first.');
+      return;
+    }
+    const newGroup = {
+      id: generateEntityId('grp'),
+      title: value,
+    };
+    selectedCategory.groups = selectedCategory.groups || [];
+    selectedCategory.groups.push(newGroup);
+    uiState.selectedGroupId = newGroup.id;
+    manageModalState = {visible: false, mode: null, value: ''};
+    persistDataThenRender('Group added and saved.');
+    return;
+  }
+
+  if (mode === 'rename-group') {
+    const selectedCategory = getSelectedCategory();
+    if (!selectedCategory) {
+      return;
+    }
+    const group = (selectedCategory.groups || []).find(function (g) {
+      return g.id === uiState.selectedGroupId;
+    });
+    if (group) {
+      group.title = value;
+    }
+    manageModalState = {visible: false, mode: null, value: ''};
+    persistDataThenRender('Group renamed and saved.');
+    return;
   }
 }
 

@@ -538,6 +538,103 @@ code {
   font-family: Consolas, monospace;
 }
 
+/* ===== Manage Tab (Categories & Groups) ===== */
+
+.manage-card {
+  padding: 14px;
+}
+
+.manage-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.manage-panel {
+  border: 1px solid var(--vscode-panel-border);
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.manage-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--vscode-panel-border);
+  background: color-mix(in srgb, var(--vscode-editor-background) 92%, var(--vscode-foreground));
+  gap: 8px;
+}
+
+.manage-panel-title {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.manage-list {
+  display: flex;
+  flex-direction: column;
+  min-height: 120px;
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.manage-empty {
+  padding: 16px 12px;
+  margin: 0;
+  text-align: center;
+}
+
+.manage-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  gap: 8px;
+  cursor: pointer;
+  border-bottom: 1px solid color-mix(in srgb, var(--vscode-panel-border) 50%, transparent);
+  transition: background 0.12s;
+}
+
+.manage-item:last-child {
+  border-bottom: none;
+}
+
+.manage-item:hover {
+  background: color-mix(in srgb, var(--vscode-editor-background) 80%, var(--vscode-foreground));
+}
+
+.manage-item.active {
+  background: color-mix(in srgb, var(--vscode-button-background) 18%, var(--vscode-editor-background));
+  border-left: 3px solid var(--vscode-button-background);
+}
+
+.manage-item-label {
+  font-size: 0.85rem;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.manage-item-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.12s;
+}
+
+.manage-item:hover .manage-item-actions,
+.manage-item.active .manage-item-actions {
+  opacity: 1;
+}
+
 @media (max-width: 920px) {
   .commands-grid {
     grid-template-columns: 1fr;
@@ -550,5 +647,13 @@ code {
   .add-command-title,
   .add-command-template {
     grid-column: 1 / -1;
+  }
+
+  .manage-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .manage-item-actions {
+    opacity: 1;
   }
 }
