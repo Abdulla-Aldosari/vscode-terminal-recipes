@@ -57,6 +57,10 @@ const state = {
     version: 2,
     commands: {},
   },
+  globalCommandVariables: {
+    version: 2,
+    commands: {},
+  },
 };
 
 window.addEventListener('message', function (event) {
@@ -91,6 +95,10 @@ window.addEventListener('message', function (event) {
       if (message.payload.commandVariables && typeof message.payload.commandVariables === 'object') {
         state.commandVariables = message.payload.commandVariables;
       }
+
+      if (message.payload.globalCommandVariables && typeof message.payload.globalCommandVariables === 'object') {
+        state.globalCommandVariables = message.payload.globalCommandVariables;
+      }
     } else {
       showNotice(`Action failed: ${message.payload && message.payload.message ? message.payload.message : 'Unknown error'}`);
     }
@@ -101,13 +109,15 @@ window.addEventListener('message', function (event) {
 
   if (message.type === 'saveVariablesResult') {
     if (message.payload && message.payload.success) {
-      state.commandVariables = message.payload.commandVariables;
-      showNotice('Variables saved.');
-    } else {
-      showNotice(`Variables save failed: ${message.payload && message.payload.message ? message.payload.message : 'Unknown error'}`);
-    }
+      if (message.payload.commandVariables) {
+        state.commandVariables = message.payload.commandVariables;
+      }
 
-    render();
+      if (message.payload.globalCommandVariables) {
+        state.globalCommandVariables = message.payload.globalCommandVariables;
+      }
+    }
+    // No render() here to avoid focus loss while editing
   }
 });
 
@@ -116,16 +126,28 @@ function hydrateState(payload) {
   state.globalCommandsFile = payload && payload.globalCommandsFile ? payload.globalCommandsFile : '';
   state.workspaceFolder = payload ? payload.workspaceFolder : null;
   state.commandVariables = payload && payload.commandVariables ? payload.commandVariables : {version: 2, commands: {}};
+  state.globalCommandVariables = payload && payload.globalCommandVariables ? payload.globalCommandVariables : {version: 2, commands: {}};
 
-  Object.keys(state.commandVariables.commands || {}).forEach(function (commandId) {
+  const localCmds = state.commandVariables.commands || {};
+  const globalCmds = state.globalCommandVariables.commands || {};
+  const allCommandIds = new Set([...Object.keys(localCmds), ...Object.keys(globalCmds)]);
+
+  allCommandIds.forEach(function (commandId) {
     if (!uiState.commandDrafts[commandId]) {
-      uiState.commandDrafts[commandId] = {...(state.commandVariables.commands[commandId] || {})};
+      const globalVars = globalCmds[commandId] || {};
+      const localVars = localCmds[commandId] || {};
+      uiState.commandDrafts[commandId] = {...globalVars, ...localVars};
     }
 
     if (!uiState.commandRemember[commandId]) {
       const remembered = {};
-      Object.keys(state.commandVariables.commands[commandId] || {}).forEach(function (key) {
-        remembered[key] = true;
+      const globalVars = globalCmds[commandId] || {};
+      const localVars = localCmds[commandId] || {};
+      Object.keys(globalVars).forEach(function (key) {
+        remembered[key] = 'global';
+      });
+      Object.keys(localVars).forEach(function (key) {
+        remembered[key] = 'local';
       });
       uiState.commandRemember[commandId] = remembered;
     }
@@ -367,7 +389,7 @@ function renderNewCommandForm(groups, draft) {
     <form id="form-new-command" class="form-grid add-command-grid">
       <label class="add-command-title">Command Title<input id="new-command-title" class="input" required value="${escapeAttr(draft.title)}" /></label>
       
-      <label class="add-command-template">Command Template<input id="new-command-template" class="input" required placeholder="php spark make:migration ${name}" value="${escapeAttr(draft.template)}" /></label>
+      <label class="add-command-template">Command Template (Variables supported)<input id="new-command-template" class="input" required placeholder="npm install \${package_name}" value="${escapeAttr(draft.template)}" /></label>
       
       
       <label class="full-width">Description<textarea id="new-command-description" class="input" rows="2">${escapeAttr(draft.description)}</textarea></label>
@@ -379,8 +401,9 @@ function renderNewCommandForm(groups, draft) {
   }).join('')}
         </div>
       </div>
-      <div class="row">
+      <div class="row full-width confirm-buttons-row mt-20">
         <button type="submit" class="btn primary">Add Command</button>
+        <button type="button" id="btn-cancel-add-command" class="btn secondary action">Cancel</button>
       </div>
     </form>
   `;
@@ -419,34 +442,51 @@ function renderEditTab() {
   }).join('')}
           </div>
         </div>
-        <div class="row">
-          <button type="submit" class="btn primary">Save Changes</button>
-        </div>
-      </form>
-    </section>
-
-    <section class="card">
-      <h2>Command Variables</h2>
-      ${variables.length ? `
-        <div class="variables-list">
-          ${variables.map(function (name) {
+        ${variables.length ? `
+        <div class="full-width mt-5">
+          <h3>Command Variables:</h3>
+          <div class="variables-list">
+            <div class="variable-row vars-store-row">
+              <span></span>
+              <span></span>
+              <span class="muted vars-store-location">Variables store location</span>
+            </div>
+            ${variables.map(function (name) {
     const value = name === 'workspaceFolder' ? (state.workspaceFolder || '') : (commandDraft[name] || '');
-    const rememberChecked = Boolean(commandRemember[name]);
-
+    const rememberValue = name === 'workspaceFolder' ? null : (commandRemember[name] || 'off');
     return `
               <div class="variable-row">
                 <label class="variable-name">\${${escapeHtml(name)}}</label>
                 <input class="input variable-input" data-command-id="${escapeAttr(command.id)}" data-variable-name="${escapeAttr(name)}" value="${escapeAttr(value)}" ${name === 'workspaceFolder' ? 'readonly' : ''} />
-                <label class="remember-wrap">
-                  <input type="checkbox" class="variable-remember" data-command-id="${escapeAttr(command.id)}" data-variable-name="${escapeAttr(name)}" ${rememberChecked ? 'checked' : ''} ${name === 'workspaceFolder' ? 'disabled' : ''} />
-                  Remember
-                </label>
+                ${name === 'workspaceFolder' ? '<span></span>' : renderToggleSwitch3(command.id, name, rememberValue, 'variable-remember-toggle')}
               </div>
             `;
   }).join('')}
+          </div>
         </div>
-      ` : '<p>No variables detected in this command template.</p>'}
+        ` : ''}
+        <div class="row full-width confirm-buttons-row mt-20">
+          <button type="submit" class="btn primary">Save Changes</button>
+        </div>
+      </form>
     </section>
+  `;
+}
+
+function renderToggleSwitch3(commandId, varName, currentValue, extraClass) {
+  const noWorkspace = !state.workspaceFolder;
+  const opts = [
+    {value: 'local', label: 'Local', disabled: noWorkspace},
+    {value: 'off', label: 'Off', disabled: false},
+    {value: 'global', label: 'Global', disabled: false},
+  ];
+
+  return `
+    <div class="toggle-switch-3 ${escapeAttr(extraClass)}" data-command-id="${escapeAttr(commandId)}" data-variable-name="${escapeAttr(varName)}">
+      ${opts.map(function (opt) {
+    return `<button type="button" class="toggle-option-3 ${currentValue === opt.value ? 'active' : ''}" data-value="${opt.value}" ${opt.disabled ? 'disabled' : ''}>${opt.label}</button>`;
+  }).join('')}
+    </div>
   `;
 }
 
@@ -469,7 +509,8 @@ function renderRunConfirmModal() {
       <div class="modal-box">
         <h3>Do you want to run this command?</h3>
         <pre class="modal-command-preview">&gt; ${escapeHtml(runConfirmState.resolvedCommand)}</pre>
-        <div class="row">
+        <p class="muted" style="margin:0">This command will be executed immediately</p>
+        <div class="row confirm-buttons-row">
           <button class="btn primary min-w70" id="btn-confirm-run-yes">Yes</button>
           <button class="btn secondary action min-w70" id="btn-confirm-run-no">No</button>
           ${hasVariables ? `<button class="btn secondary min-w70" id="btn-confirm-run-variables" style="margin-left:auto">Variables</button>` : ''}
@@ -491,13 +532,18 @@ function renderVariableInputModal() {
       <div class="modal-box">
         <h3>Enter Variable Values</h3>
         <div class="variables-list">
+          <div class="variable-row vars-store-row">
+            <span></span>
+            <span></span>
+            <span class="muted vars-store-location">Variables store location</span>
+          </div>
           ${vars.map(function (name) {
     const currentValue = variableInputState.inputValues[name] !== undefined
       ? variableInputState.inputValues[name]
       : (getCommandDraft(variableInputState.commandId)[name] || '');
-    const rememberChecked = variableInputState.rememberFlags[name] !== undefined
-      ? Boolean(variableInputState.rememberFlags[name])
-      : Boolean((uiState.commandRemember[variableInputState.commandId] || {})[name]);
+    const rememberValue = variableInputState.rememberFlags[name] !== undefined
+      ? variableInputState.rememberFlags[name]
+      : (getCommandRemember(variableInputState.commandId)[name] || 'off');
     return `
               <div class="variable-row">
                 <label class="variable-name">\${${escapeHtml(name)}}</label>
@@ -507,20 +553,12 @@ function renderVariableInputModal() {
                   value="${escapeAttr(currentValue)}"
                   placeholder="Enter value..."
                 />
-                <label class="remember-wrap">
-                  <input
-                    type="checkbox"
-                    class="variable-modal-remember"
-                    data-variable-name="${escapeAttr(name)}"
-                    ${rememberChecked ? 'checked' : ''}
-                  />
-                  Remember
-                </label>
+                ${renderToggleSwitch3(variableInputState.commandId, name, rememberValue, 'variable-modal-remember-toggle')}
               </div>
             `;
   }).join('')}
         </div>
-        <div class="row">
+        <div class="row confirm-buttons-row mt-20">
           <button class="btn primary min-w70" id="btn-variable-input-confirm">Confirm</button>
           <button class="btn secondary action min-w70" id="btn-variable-input-cancel">Cancel</button>
         </div>
@@ -832,6 +870,20 @@ function bindCommandsTabEvents() {
     });
   });
 
+  const cancelAddCommandButton = document.getElementById('btn-cancel-add-command');
+  if (cancelAddCommandButton) {
+    cancelAddCommandButton.addEventListener('click', function () {
+      uiState.newCommandDraft = {
+        visible: false,
+        title: '',
+        template: '',
+        description: '',
+        groupIds: [],
+      };
+      render();
+    });
+  }
+
   if (newCommandForm) {
     newCommandForm.addEventListener('submit', function (event) {
       event.preventDefault();
@@ -915,6 +967,30 @@ function bindEditTabEvents() {
     command.description = draft.description;
     command.command = draft.template;
     command.groupIds = [...draft.groupIds];
+
+    // Read variable values from DOM before re-render
+    document.querySelectorAll('.variable-input').forEach(function (varInput) {
+      const cid = varInput.dataset.commandId;
+      const vname = varInput.dataset.variableName;
+      if (cid && vname) {
+        const d = getCommandDraft(cid);
+        d[vname] = varInput.value;
+        uiState.commandDrafts[cid] = d;
+      }
+    });
+
+    // Read toggle states from DOM before re-render
+    document.querySelectorAll('.variable-remember-toggle').forEach(function (container) {
+      const cid = container.dataset.commandId;
+      const vname = container.dataset.variableName;
+      const activeBtn = container.querySelector('.toggle-option-3.active');
+      if (cid && vname && activeBtn) {
+        const rm = getCommandRemember(cid);
+        rm[vname] = activeBtn.dataset.value;
+        uiState.commandRemember[cid] = rm;
+      }
+    });
+
     persistDataThenRender('Command updated and saved.');
     persistCommandVariables();
   });
@@ -962,25 +1038,35 @@ function bindEditTabEvents() {
     input.addEventListener('input', function () {
       const commandId = input.dataset.commandId;
       const variableName = input.dataset.variableName;
-
       const draft = getCommandDraft(commandId);
       draft[variableName] = input.value;
       uiState.commandDrafts[commandId] = draft;
-      persistCommandVariables();
-      syncEditCommandDraftFromDom();
+      // No auto-save here — save happens on form submit
     });
   });
 
-  document.querySelectorAll('.variable-remember').forEach(function (checkbox) {
-    checkbox.addEventListener('change', function () {
-      const commandId = checkbox.dataset.commandId;
-      const variableName = checkbox.dataset.variableName;
+  // Bind toggle switches in edit tab — update state only, no auto-save
+  document.querySelectorAll('.variable-remember-toggle').forEach(function (container) {
+    container.querySelectorAll('.toggle-option-3').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        if (btn.disabled) {
+          return;
+        }
 
-      const rememberMap = getCommandRemember(commandId);
-      rememberMap[variableName] = checkbox.checked;
-      uiState.commandRemember[commandId] = rememberMap;
-      persistCommandVariables();
-      syncEditCommandDraftFromDom();
+        container.querySelectorAll('.toggle-option-3').forEach(function (b) {
+          b.classList.remove('active');
+        });
+        btn.classList.add('active');
+
+        const commandId = container.dataset.commandId;
+        const variableName = container.dataset.variableName;
+        const value = btn.dataset.value;
+
+        const rememberMap = getCommandRemember(commandId);
+        rememberMap[variableName] = value;
+        uiState.commandRemember[commandId] = rememberMap;
+        // No auto-save here — save happens on form submit
+      });
     });
   });
 }
@@ -1019,12 +1105,23 @@ function bindCommandActionButtons() {
       const missing = getMissingVariables(command);
 
       if (missing.length > 0) {
+        const allVars = collectVariables([command.command]).filter(function (name) {
+          return name !== 'workspaceFolder';
+        });
+        const draft = getCommandDraft(commandId);
+        const rememberMap = getCommandRemember(commandId);
+        const inputValues = {};
+        const rememberFlags = {};
+        allVars.forEach(function (name) {
+          inputValues[name] = draft[name] || '';
+          rememberFlags[name] = rememberMap[name] || 'off';
+        });
         variableInputState = {
           commandId,
           action: 'run',
-          missingVariables: missing,
-          inputValues: {},
-          rememberFlags: {},
+          missingVariables: allVars,
+          inputValues,
+          rememberFlags,
           returnToRunConfirm: false,
         };
         render();
@@ -1135,7 +1232,6 @@ function bindCommandActionButtons() {
         return;
       }
 
-      // Show all non-workspaceFolder variables for editing
       const allVars = collectVariables([command.command]).filter(function (name) {
         return name !== 'workspaceFolder';
       });
@@ -1147,7 +1243,7 @@ function bindCommandActionButtons() {
 
       allVars.forEach(function (name) {
         inputValues[name] = draft[name] || '';
-        rememberFlags[name] = Boolean(rememberMap[name]);
+        rememberFlags[name] = rememberMap[name] || 'off';
       });
 
       variableInputState = {
@@ -1162,6 +1258,25 @@ function bindCommandActionButtons() {
       render();
     });
   }
+
+  // Bind toggle switches in variable input modal
+  document.querySelectorAll('.variable-modal-remember-toggle').forEach(function (container) {
+    container.querySelectorAll('.toggle-option-3').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        if (btn.disabled) {
+          return;
+        }
+
+        container.querySelectorAll('.toggle-option-3').forEach(function (b) {
+          b.classList.remove('active');
+        });
+        btn.classList.add('active');
+
+        const varName = container.dataset.variableName;
+        variableInputState.rememberFlags[varName] = btn.dataset.value;
+      });
+    });
+  });
 
   var variableInputConfirmButton = document.getElementById('btn-variable-input-confirm');
   var variableInputCancelButton = document.getElementById('btn-variable-input-cancel');
@@ -1178,15 +1293,17 @@ function bindCommandActionButtons() {
         return;
       }
 
-      // Collect current values and remember flags from the modal DOM
+      // Collect current values from the modal DOM
       document.querySelectorAll('.variable-modal-input').forEach(function (input) {
         const varName = input.dataset.variableName;
         variableInputState.inputValues[varName] = input.value;
       });
 
-      document.querySelectorAll('.variable-modal-remember').forEach(function (checkbox) {
-        const varName = checkbox.dataset.variableName;
-        variableInputState.rememberFlags[varName] = checkbox.checked;
+      // Collect remember flags from toggle switches in the modal DOM
+      document.querySelectorAll('.variable-modal-remember-toggle').forEach(function (container) {
+        const varName = container.dataset.variableName;
+        const activeBtn = container.querySelector('.toggle-option-3.active');
+        variableInputState.rememberFlags[varName] = activeBtn ? activeBtn.dataset.value : 'off';
       });
 
       // Apply input values to commandDraft
@@ -1203,9 +1320,11 @@ function bindCommandActionButtons() {
       });
       uiState.commandRemember[commandId] = rememberMap;
 
-      // Persist if any remember flags are set
-      const hasRemembered = Object.values(variableInputState.rememberFlags).some(Boolean);
-      if (hasRemembered) {
+      // Persist if any flag is not 'off'
+      const hasToSave = Object.values(variableInputState.rememberFlags).some(function (v) {
+        return v !== 'off';
+      });
+      if (hasToSave) {
         persistCommandVariables();
       }
 
@@ -1218,7 +1337,6 @@ function bindCommandActionButtons() {
         });
 
         if (command) {
-          // Update the run confirm modal with the new resolved command
           runConfirmState = {
             commandId,
             resolvedCommand: resolveCommandTemplate(command),
@@ -1239,7 +1357,6 @@ function bindCommandActionButtons() {
       const returnToRunConfirm = variableInputState.returnToRunConfirm;
       variableInputState = {commandId: null, action: null, missingVariables: [], inputValues: {}, rememberFlags: {}, returnToRunConfirm: false};
 
-      // If we came from the run confirm modal, restore it
       if (!returnToRunConfirm) {
         runConfirmState = {commandId: null, resolvedCommand: ''};
       }
@@ -1341,6 +1458,10 @@ function executeDeleteConfirm() {
       delete state.commandVariables.commands[id];
     }
 
+    if (state.globalCommandVariables && state.globalCommandVariables.commands && Object.prototype.hasOwnProperty.call(state.globalCommandVariables.commands, id)) {
+      delete state.globalCommandVariables.commands[id];
+    }
+
     if (uiState.editingCommandId === id) {
       uiState.editingCommandId = null;
       uiState.editCommandDraft = {title: '', template: '', description: '', groupIds: []};
@@ -1436,12 +1557,23 @@ function performCommandAction(commandId, action) {
   const missing = getMissingVariables(command);
 
   if (missing.length > 0) {
+    const allVars = collectVariables([command.command]).filter(function (name) {
+      return name !== 'workspaceFolder';
+    });
+    const draft = getCommandDraft(commandId);
+    const rememberMap = getCommandRemember(commandId);
+    const inputValues = {};
+    const rememberFlags = {};
+    allVars.forEach(function (name) {
+      inputValues[name] = draft[name] || '';
+      rememberFlags[name] = rememberMap[name] || 'off';
+    });
     variableInputState = {
       commandId,
       action,
-      missingVariables: missing,
-      inputValues: {},
-      rememberFlags: {},
+      missingVariables: allVars,
+      inputValues,
+      rememberFlags,
       returnToRunConfirm: false,
     };
     render();
@@ -1487,41 +1619,47 @@ function resolveCommandTemplate(command) {
 }
 
 function buildCommandVariablesPayload() {
-  const payload = {
-    version: 2,
-    commands: {},
-  };
+  const local = {version: 2, commands: {}};
+  const global = {version: 2, commands: {}};
 
   Object.keys(uiState.commandRemember).forEach(function (commandId) {
     const rememberMap = uiState.commandRemember[commandId] || {};
     const draft = getCommandDraft(commandId);
-    const remembered = {};
+    const localVars = {};
+    const globalVars = {};
 
     Object.keys(rememberMap).forEach(function (variableName) {
       if (variableName === 'workspaceFolder') {
         return;
       }
 
-      if (rememberMap[variableName]) {
-        remembered[variableName] = draft[variableName] || '';
+      const flag = rememberMap[variableName];
+      const val = draft[variableName];
+
+      if (flag === 'local' && val) {
+        localVars[variableName] = val;
+      } else if (flag === 'global' && val) {
+        globalVars[variableName] = val;
       }
     });
 
-    if (Object.keys(remembered).length > 0) {
-      payload.commands[commandId] = remembered;
+    if (Object.keys(localVars).length > 0) {
+      local.commands[commandId] = localVars;
+    }
+
+    if (Object.keys(globalVars).length > 0) {
+      global.commands[commandId] = globalVars;
     }
   });
 
-  return payload;
+  return {local, global};
 }
 
 function getCommandDraft(commandId) {
   if (!uiState.commandDrafts[commandId]) {
-    uiState.commandDrafts[commandId] = {
-      ...(state.commandVariables.commands && state.commandVariables.commands[commandId]
-        ? state.commandVariables.commands[commandId]
-        : {}),
-    };
+    const globalVars = (state.globalCommandVariables && state.globalCommandVariables.commands && state.globalCommandVariables.commands[commandId]) || {};
+    const localVars = (state.commandVariables && state.commandVariables.commands && state.commandVariables.commands[commandId]) || {};
+    uiState.commandDrafts[commandId] = {...globalVars, ...localVars};
   }
 
   return uiState.commandDrafts[commandId];
@@ -1530,12 +1668,15 @@ function getCommandDraft(commandId) {
 function getCommandRemember(commandId) {
   if (!uiState.commandRemember[commandId]) {
     const remembered = {};
-    const values = state.commandVariables.commands && state.commandVariables.commands[commandId]
-      ? state.commandVariables.commands[commandId]
-      : {};
+    const globalVars = (state.globalCommandVariables && state.globalCommandVariables.commands && state.globalCommandVariables.commands[commandId]) || {};
+    const localVars = (state.commandVariables && state.commandVariables.commands && state.commandVariables.commands[commandId]) || {};
 
-    Object.keys(values).forEach(function (key) {
-      remembered[key] = true;
+    Object.keys(globalVars).forEach(function (key) {
+      remembered[key] = 'global';
+    });
+
+    Object.keys(localVars).forEach(function (key) {
+      remembered[key] = 'local';
     });
 
     uiState.commandRemember[commandId] = remembered;
@@ -1563,7 +1704,7 @@ function collectVariables(commandTemplates) {
     regex.lastIndex = 0;
   });
 
-  return Array.from(names.values()).sort();
+  return Array.from(names.values());
 }
 
 function resolveGroupTitles(groupIds, groups) {

@@ -89,19 +89,19 @@ body {
 }
 
 .tab {
+  background: var(--vscode-button-secondaryBackground);
+  color: var(--vscode-button-secondaryForeground);
   border: 1px solid var(--vscode-button-secondaryBackground);
   border-radius: 6px;
-  background: transparent;
-  color: var(--vscode-editor-foreground);
   padding: 7px 14px;
   font-size: 0.82rem;
   cursor: pointer;
 }
 
 .tab.active {
-  background: var(--vscode-button-background);
-  color: var(--vscode-button-foreground);
-  border-color: var(--vscode-button-background);
+  background: var(--vscode-button-secondaryHoverBackground);
+  color: var(--vscode-button-secondaryForeground);
+  border-color: var(--vscode-input-border);
 }
 
 .row {
@@ -279,7 +279,8 @@ label {
 }
 
 .tag.active {
-  background: color-mix(in srgb, var(--vscode-button-background) 74%, var(--vscode-editor-background));
+  background: color-mix(in srgb, var(--vscode-editor-background) 83%, var(--vscode-foreground));
+  /* background: color-mix(in srgb, var(--vscode-button-background) 74%, var(--vscode-editor-background)); */
   color: var(--vscode-button-foreground);
   border-color: transparent;
 }
@@ -387,21 +388,91 @@ td.actions-cell {
 }
 
 .variable-row {
-  display: grid;
-  grid-template-columns: minmax(120px, 1fr) 2fr auto;
   gap: 10px;
   align-items: center;
+  display: flex;
 }
+
+
+.vars-store-row {
+  justify-content: flex-end;
+}
+
+.vars-store-location {
+  font-size: 0.74rem;
+  text-align: center;
+  margin-right: 12px;
+}
+
+.mt-5 {
+  margin-top: 5px;
+}
+
+.mt-20 {
+  margin-top: 20px;
+}
+
+.confirm-buttons-row {
+  justify-content: flex-end;
+}
+
 
 .variable-name {
   font-family: Consolas, monospace;
+  min-width: 120px;
+  text-align: end;
 }
+
+
+
 
 .remember-wrap {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   font-size: 0.82rem;
+}
+
+.toggle-switch-3 {
+  display: inline-flex;
+  border: 1px solid var(--vscode-input-border);
+  border-radius: 6px;
+  background: var(--vscode-input-background);
+  overflow: hidden;
+  min-width: 142px;
+}
+
+.toggle-option-3 {
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: var(--vscode-editor-foreground);
+  padding: 7px 10px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  opacity: 0.6;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+
+.toggle-option-3:not(:last-child) {
+  border-right: 1px solid var(--vscode-input-border);
+}
+
+.toggle-option-3.active {
+  background: color-mix(in srgb, var(--vscode-editor-background) 83%, var(--vscode-foreground));
+  color: var(--vscode-button-secondaryForeground);
+  opacity: 1;
+}
+
+.toggle-option-3:hover:not(.active):not(:disabled) {
+  background: color-mix(in srgb, var(--vscode-button-secondaryBackground) 50%, transparent);
+  opacity: 0.85;
+}
+
+.toggle-option-3:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
 }
 
 code {

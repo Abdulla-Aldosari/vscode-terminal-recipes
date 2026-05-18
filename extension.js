@@ -6,6 +6,7 @@ const crypto = require('crypto');
 
 const GLOBAL_DIR = path.join(os.homedir(), '.vscode-terminal-recipes');
 const GLOBAL_COMMANDS_FILE = path.join(GLOBAL_DIR, 'commands.json');
+const GLOBAL_VARIABLES_FILE = path.join(GLOBAL_DIR, 'variables.json');
 
 function activate(context) {
   let panel = null;
@@ -74,12 +75,13 @@ function activate(context) {
   context.subscriptions.push(openPanelCommand);
 }
 
-function deactivate() {}
+function deactivate() { }
 
 async function postState(panel) {
   const data = await readGlobalCommandsData();
   const workspaceFolder = getFirstWorkspaceFolderPath();
   const commandVariables = await readWorkspaceVariables();
+  const globalCommandVariables = await readGlobalVariables();
 
   await panel.webview.postMessage({
     type: 'state',
@@ -88,6 +90,7 @@ async function postState(panel) {
       globalCommandsFile: GLOBAL_COMMANDS_FILE,
       workspaceFolder,
       commandVariables,
+      globalCommandVariables,
     },
   });
 }
@@ -98,27 +101,39 @@ async function handleSaveData(panel, payload) {
     await writeGlobalCommandsData(normalizedData);
     await panel.webview.postMessage({
       type: 'saveResult',
-      payload: { success: true },
+      payload: {success: true},
     });
     await postState(panel);
   } catch (error) {
     await panel.webview.postMessage({
       type: 'saveResult',
-      payload: { success: false, message: error instanceof Error ? error.message : 'Unknown error' },
+      payload: {success: false, message: error instanceof Error ? error.message : 'Unknown error'},
     });
   }
 }
 
 async function handleSaveCommandVariables(panel, payload) {
   try {
-    const normalizedCommandVariables = normalizeCommandVariables(payload);
-    await writeWorkspaceVariables(normalizedCommandVariables);
+    // Support new {local, global} format as well as legacy format
+    const localPayload = payload && payload.local ? payload.local : payload;
+    const globalPayload = payload && payload.global ? payload.global : null;
+
+    const normalizedLocal = normalizeCommandVariables(localPayload);
+    await writeWorkspaceVariables(normalizedLocal);
+
+    if (globalPayload) {
+      const normalizedGlobal = normalizeCommandVariables(globalPayload);
+      await writeGlobalVariables(normalizedGlobal);
+    }
+
+    const globalCommandVariables = await readGlobalVariables();
 
     await panel.webview.postMessage({
       type: 'saveVariablesResult',
       payload: {
         success: true,
-        commandVariables: normalizedCommandVariables,
+        commandVariables: normalizedLocal,
+        globalCommandVariables,
       },
     });
   } catch (error) {
@@ -137,13 +152,23 @@ async function handlePerformAction(panel, payload) {
     const action = payload && typeof payload.action === 'string' ? payload.action : '';
     const resolvedCommand = payload && typeof payload.resolvedCommand === 'string' ? payload.resolvedCommand : '';
     const commandVariables = payload && typeof payload.commandVariables === 'object' ? payload.commandVariables : {};
-    const normalizedCommandVariables = normalizeCommandVariables(commandVariables);
 
     if (!action || !resolvedCommand) {
       throw new Error('Action and resolved command are required.');
     }
 
-    await writeWorkspaceVariables(normalizedCommandVariables);
+    // Support new {local, global} format as well as legacy format
+    let localVars, globalVars;
+    if (commandVariables.local || commandVariables.global) {
+      localVars = normalizeCommandVariables(commandVariables.local || {});
+      globalVars = normalizeCommandVariables(commandVariables.global || {});
+    } else {
+      localVars = normalizeCommandVariables(commandVariables);
+      globalVars = {version: 2, commands: {}};
+    }
+
+    await writeWorkspaceVariables(localVars);
+    await writeGlobalVariables(globalVars);
 
     if (action === 'copy') {
       await vscode.env.clipboard.writeText(resolvedCommand);
@@ -155,12 +180,15 @@ async function handlePerformAction(panel, payload) {
       terminal.sendText(resolvedCommand, action === 'run');
     }
 
+    const globalCommandVariables = await readGlobalVariables();
+
     await panel.webview.postMessage({
       type: 'actionResult',
       payload: {
         success: true,
         action,
-        commandVariables: normalizedCommandVariables,
+        commandVariables: localVars,
+        globalCommandVariables,
       },
     });
   } catch (error) {
@@ -218,7 +246,7 @@ function getOrCreateTerminal() {
 async function openGlobalCommandsFile() {
   await ensureGlobalCommandsFile();
   const document = await vscode.workspace.openTextDocument(GLOBAL_COMMANDS_FILE);
-  await vscode.window.showTextDocument(document, { preview: false });
+  await vscode.window.showTextDocument(document, {preview: false});
 }
 
 function getFirstWorkspaceFolderPath() {
@@ -232,7 +260,7 @@ function getFirstWorkspaceFolderPath() {
 }
 
 async function ensureGlobalCommandsFile() {
-  await fs.mkdir(GLOBAL_DIR, { recursive: true });
+  await fs.mkdir(GLOBAL_DIR, {recursive: true});
 
   try {
     await fs.access(GLOBAL_COMMANDS_FILE);
@@ -257,7 +285,7 @@ async function readGlobalCommandsData() {
 }
 
 async function writeGlobalCommandsData(data) {
-  await fs.mkdir(GLOBAL_DIR, { recursive: true });
+  await fs.mkdir(GLOBAL_DIR, {recursive: true});
   await fs.writeFile(GLOBAL_COMMANDS_FILE, JSON.stringify(data, null, 2), 'utf8');
 }
 
@@ -269,33 +297,33 @@ function getDefaultCommandsData() {
         id: 'general',
         title: 'General Commands',
         groups: [
-          { id: 'setup', title: 'Setup' },
-          { id: 'build', title: 'Build' },
-          { id: 'test', title: 'Test' },
-          { id: 'deploy', title: 'Deploy' },
+          {id: 'setup', title: 'Setup'},
+          {id: 'build', title: 'Build'},
+          {id: 'test', title: 'Test'},
+          {id: 'deploy', title: 'Deploy'},
         ],
       },
       {
         id: 'spark',
         title: 'Spark Commands',
         groups: [
-          { id: 'setup', title: 'Setup' },
-          { id: 'build', title: 'Build' },
-          { id: 'test', title: 'Test' },
-          { id: 'deploy', title: 'Deploy' },
-          { id: 'migrate', title: 'Migrate' },
-          { id: 'cache', title: 'Cache' },
-          { id: 'seed', title: 'Seed' },
-          { id: 'make', title: 'Make' },
+          {id: 'setup', title: 'Setup'},
+          {id: 'build', title: 'Build'},
+          {id: 'test', title: 'Test'},
+          {id: 'deploy', title: 'Deploy'},
+          {id: 'migrate', title: 'Migrate'},
+          {id: 'cache', title: 'Cache'},
+          {id: 'seed', title: 'Seed'},
+          {id: 'make', title: 'Make'},
         ],
       },
       {
         id: 'mysql',
         title: 'MySQL Commands',
         groups: [
-          { id: 'setup', title: 'Setup' },
-          { id: 'migrate', title: 'Migrate' },
-          { id: 'seed', title: 'Seed' },
+          {id: 'setup', title: 'Setup'},
+          {id: 'migrate', title: 'Migrate'},
+          {id: 'seed', title: 'Seed'},
         ],
       },
       {
@@ -330,7 +358,7 @@ function normalizeCommandsData(input) {
 
     const groups = normalizeGroups(rawCategory.groups);
 
-    categories.push({ id, title, groups });
+    categories.push({id, title, groups});
     categoryIds.add(id);
   }
 
@@ -362,12 +390,12 @@ function normalizeCommandsData(input) {
 
     const groupIds = Array.isArray(rawCommand.groupIds)
       ? rawCommand.groupIds
-          .map(function (groupId) {
-            return sanitizeId(groupId);
-          })
-          .filter(function (groupId, index, values) {
-            return Boolean(groupId) && allowedGroups.has(groupId) && values.indexOf(groupId) === index;
-          })
+        .map(function (groupId) {
+          return sanitizeId(groupId);
+        })
+        .filter(function (groupId, index, values) {
+          return Boolean(groupId) && allowedGroups.has(groupId) && values.indexOf(groupId) === index;
+        })
       : [];
 
     commands.push({
@@ -412,7 +440,7 @@ function normalizeGroups(input) {
       continue;
     }
 
-    groups.push({ id, title });
+    groups.push({id, title});
     seen.add(id);
   }
 
@@ -467,6 +495,25 @@ async function readWorkspaceVariables() {
   }
 }
 
+async function readGlobalVariables() {
+  try {
+    const raw = await fs.readFile(GLOBAL_VARIABLES_FILE, 'utf8');
+    const parsed = JSON.parse(raw);
+    return normalizeCommandVariables(parsed);
+  } catch {
+    return {
+      version: 2,
+      commands: {},
+    };
+  }
+}
+
+async function writeGlobalVariables(input) {
+  await fs.mkdir(GLOBAL_DIR, {recursive: true});
+  const normalized = normalizeCommandVariables(input);
+  await fs.writeFile(GLOBAL_VARIABLES_FILE, JSON.stringify(normalized, null, 2), 'utf8');
+}
+
 async function writeWorkspaceVariables(input) {
   const workspaceVariablesPath = getWorkspaceVariablesFilePath();
 
@@ -476,7 +523,7 @@ async function writeWorkspaceVariables(input) {
 
   const normalized = normalizeCommandVariables(input);
 
-  await fs.mkdir(path.dirname(workspaceVariablesPath), { recursive: true });
+  await fs.mkdir(path.dirname(workspaceVariablesPath), {recursive: true});
   await fs.writeFile(workspaceVariablesPath, JSON.stringify(normalized, null, 2), 'utf8');
 }
 
