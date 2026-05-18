@@ -157,14 +157,33 @@ label {
   border: 1px solid var(--vscode-input-border);
   background: var(--vscode-input-background);
   color: var(--vscode-input-foreground);
-  padding: 8px 10px;
-  font-size: 0.86rem;
+  padding: 6px 4px;
+  font-size: 0.8rem;
 }
 
+
+
+.input:focus {
+  outline-width: 1px;
+  outline-style: solid;
+  outline-offset: -1px;
+  outline-color: var(--vscode-focusBorder);
+  opacity: 1;
+}
+
+
+select {
+  background-color: var(--vscode-settings-dropdownBackground) !important;
+  color: var(--vscode-settings-dropdownForeground) !important;
+  border-color: var(--vscode-settings-dropdownBorder) !important;
+}
+
+
+
 .btn {
-  border-radius: 6px;
+  border-radius: 4px;
   border: 1px solid transparent;
-  padding: 7px 10px;
+  padding: 4px 5px;
   font-size: 0.82rem;
   cursor: pointer;
 }
@@ -236,8 +255,8 @@ label {
   background: var(--vscode-button-secondaryHoverBackground);
 }
 
-.min-w70 {
-  min-width: 70px;
+.min-w65 {
+  min-width: 65px;
 }
 
 .delete-confirm-command-name {
@@ -290,7 +309,7 @@ label {
   border-radius: 6px;
   background: transparent;
   color: var(--vscode-editor-foreground);
-  padding: 6px 10px;
+  padding: 5px 9px;
   text-align: left;
   cursor: pointer;
   font-size: 0.8rem;
@@ -433,6 +452,11 @@ td.actions-cell {
   margin-top: 20px;
 }
 
+.recent-commands th {
+  white-space: nowrap;
+  border-bottom: 1px solid #28537d;
+}
+
 .recent-commands td {
   vertical-align: middle;
 }
@@ -474,7 +498,7 @@ td.actions-cell {
   border-radius: 6px;
   background: var(--vscode-input-background);
   overflow: hidden;
-  min-width: 142px;
+  min-width: 135px;
 }
 
 .toggle-option-3 {
@@ -482,8 +506,8 @@ td.actions-cell {
   border-radius: 0;
   background: transparent;
   color: var(--vscode-editor-foreground);
-  padding: 7px 10px;
-  font-size: 0.75rem;
+  padding: 5px 8px;
+  font-size: 0.8rem;
   cursor: pointer;
   opacity: 0.6;
   white-space: nowrap;

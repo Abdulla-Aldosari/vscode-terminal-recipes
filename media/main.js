@@ -553,9 +553,9 @@ function renderRunConfirmModal() {
         <pre class="modal-command-preview">&gt; ${escapeHtml(runConfirmState.resolvedCommand)}</pre>
         <p class="muted">⚠️ This command will be executed immediately</p>
         <div class="row confirm-buttons-row">
-        ${hasVariables ? `<button class="btn secondary min-w70" id="btn-confirm-run-variables">Edit Variables</button>` : ''}
-          <button class="btn primary min-w70" id="btn-confirm-run-yes">Run</button>
-          <button class="btn secondary action min-w70" id="btn-confirm-run-no">Cancel</button>
+        ${hasVariables ? `<button class="btn secondary min-w65" id="btn-confirm-run-variables">Edit Variables</button>` : ''}
+          <button class="btn primary min-w65" id="btn-confirm-run-yes">Run</button>
+          <button class="btn secondary action min-w65" id="btn-confirm-run-no">Cancel</button>
         </div>
       </div>
     </div>
@@ -601,8 +601,8 @@ function renderVariableInputModal() {
   }).join('')}
         </div>
         <div class="row confirm-buttons-row mt-20">
-          <button class="btn primary min-w70" id="btn-variable-input-confirm">Confirm</button>
-          <button class="btn secondary action min-w70" id="btn-variable-input-cancel">Cancel</button>
+          <button class="btn primary min-w65" id="btn-variable-input-confirm">Confirm</button>
+          <button class="btn secondary action min-w65" id="btn-variable-input-cancel">Cancel</button>
         </div>
       </div>
     </div>
@@ -631,8 +631,8 @@ function renderDeleteConfirmModal() {
         <h3>Do you want to delete this ${escapeHtml(deleteConfirmState.type)}?</h3>
         ${detailHtml}
         <div class="row">
-          <button class="btn danger min-w70" id="btn-confirm-delete-yes">Yes</button>
-          <button class="btn secondary action min-w70" id="btn-confirm-delete-no">No</button>
+          <button class="btn danger min-w65" id="btn-confirm-delete-yes">Yes</button>
+          <button class="btn secondary action min-w65" id="btn-confirm-delete-no">No</button>
         </div>
       </div>
     </div>
