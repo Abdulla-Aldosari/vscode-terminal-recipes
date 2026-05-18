@@ -212,10 +212,34 @@ label {
 }
 
 
-select {
+select,
+select.input {
+  appearance: none;
+  -webkit-appearance: none;
   background-color: var(--vscode-settings-dropdownBackground) !important;
   color: var(--vscode-settings-dropdownForeground) !important;
-  border-color: var(--vscode-settings-dropdownBorder) !important;
+  border: 1px solid var(--vscode-settings-dropdownBorder) !important;
+  background-repeat: no-repeat !important;
+  background-position: right 10px center !important;
+  padding-right: 28px !important;
+}
+
+select.input:focus {
+  outline-color: var(--vscode-focusBorder) !important;
+}
+
+/* Dark / High-Contrast theme — light arrow */
+body.vscode-dark select,
+body.vscode-dark select.input,
+body.vscode-high-contrast select,
+body.vscode-high-contrast select.input {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath fill='%23cccccc' d='M7.976 10.072l-4.357-4.357.62-.62L8 9.071l3.76-3.976.62.62z'/%3E%3C/svg%3E") !important;
+}
+
+/* Light theme — dark arrow */
+body.vscode-light select,
+body.vscode-light select.input {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath fill='%23424242' d='M7.976 10.072l-4.357-4.357.62-.62L8 9.071l3.76-3.976.62.62z'/%3E%3C/svg%3E") !important;
 }
 
 
