@@ -160,6 +160,7 @@ async function handleSaveCommandVariables(panel, payload) {
 async function handlePerformAction(panel, payload) {
   try {
     const action = payload && typeof payload.action === 'string' ? payload.action : '';
+    const commandId = payload && typeof payload.commandId === 'string' ? payload.commandId : null;
     const resolvedCommand = payload && typeof payload.resolvedCommand === 'string' ? payload.resolvedCommand : '';
     const commandVariables = payload && typeof payload.commandVariables === 'object' ? payload.commandVariables : {};
 
@@ -190,6 +191,19 @@ async function handlePerformAction(panel, payload) {
       terminal.sendText(resolvedCommand, action === 'run');
     }
 
+    // Update lastRunAt and runCount for run/use actions
+    if ((action === 'run' || action === 'use') && commandId) {
+      const data = await readGlobalCommandsData();
+      const cmd = (data.commands || []).find(function (c) {
+        return c.id === commandId;
+      });
+      if (cmd) {
+        cmd.lastRunAt = new Date().toISOString();
+        cmd.runCount = (cmd.runCount || 0) + 1;
+        await writeGlobalCommandsData(data);
+      }
+    }
+
     const globalCommandVariables = await readGlobalVariables();
 
     await panel.webview.postMessage({
@@ -201,6 +215,11 @@ async function handlePerformAction(panel, payload) {
         globalCommandVariables,
       },
     });
+
+    // Send fresh state so Recent Commands tab reflects updated lastRunAt/runCount
+    if (action === 'run' || action === 'use') {
+      await postState(panel);
+    }
   } catch (error) {
     await panel.webview.postMessage({
       type: 'actionResult',
@@ -440,6 +459,9 @@ function normalizeCommandsData(input) {
         })
       : [];
 
+    const lastRunAt = typeof rawCommand.lastRunAt === 'string' ? rawCommand.lastRunAt : null;
+    const runCount = typeof rawCommand.runCount === 'number' && rawCommand.runCount > 0 ? rawCommand.runCount : 0;
+
     commands.push({
       id,
       title,
@@ -447,6 +469,8 @@ function normalizeCommandsData(input) {
       command,
       categoryId,
       groupIds,
+      ...(lastRunAt ? {lastRunAt} : {}),
+      ...(runCount ? {runCount} : {}),
     });
 
     commandIds.add(id);

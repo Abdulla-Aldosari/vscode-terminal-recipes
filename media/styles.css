@@ -433,6 +433,16 @@ td.actions-cell {
   margin-top: 20px;
 }
 
+.recent-commands td {
+  vertical-align: middle;
+}
+
+.recent-commands td {
+  white-space: nowrap;
+}
+
+
+
 .width-fit-content {
   width: fit-content;
 }

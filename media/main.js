@@ -1,7 +1,7 @@
 const vscode = acquireVsCodeApi();
 
 const uiState = {
-  activeTab: 'commands',
+  activeTab: 'recent',
   noticeMessage: '',
   selectedCategoryId: '',
   selectedGroupId: 'all',
@@ -234,12 +234,14 @@ function render() {
 
       <section class="card">
         <div class="tabs">
+          <button class="tab ${uiState.activeTab === 'recent' ? 'active' : ''}" data-tab="recent">Recent Commands</button>
           <button class="tab ${uiState.activeTab === 'manage' ? 'active' : ''}" data-tab="manage">Categories & Groups</button>
           <button class="tab ${uiState.activeTab === 'commands' ? 'active' : ''}" data-tab="commands">Commands</button>
           <button class="tab tab-push-right ${uiState.activeTab === 'add' ? 'active' : ''}" data-tab="add" ${selectedCategory ? '' : 'disabled'}>Add New Command</button>
         </div>
       </section>
 
+      ${uiState.activeTab === 'recent' ? renderRecentCommandsTab() : ''}
       ${uiState.activeTab === 'manage' ? renderManageTab() : ''}
       ${uiState.activeTab === 'commands' ? renderCommandsTab(selectedCategory) : ''}
       ${uiState.activeTab === 'add' ? renderAddCommandTab(selectedCategory) : ''}
@@ -500,6 +502,11 @@ function renderEditTab() {
           </div>
         </div>
         ` : ''}
+        ${command.lastRunAt ? `
+        <div class="full-width mt-5">
+          <span class="muted" style="font-size:0.82rem">Last Run: <strong title="${escapeAttr(formatDateTime(command.lastRunAt))}">${escapeHtml(timeAgo(command.lastRunAt))}</strong> &nbsp;·&nbsp; ×${command.runCount || 0} runs</span>
+        </div>
+        ` : ''}
         <div class="row full-width confirm-buttons-row mt-20">
           <button type="submit" class="btn primary">Save Changes</button>
         </div>
@@ -632,9 +639,103 @@ function renderDeleteConfirmModal() {
   `;
 }
 
+function renderRecentCommandsTab() {
+  const recentCommands = (state.data.commands || [])
+    .filter(function (cmd) {return cmd.lastRunAt;})
+    .slice()
+    .sort(function (a, b) {return new Date(b.lastRunAt) - new Date(a.lastRunAt);});
+
+  const totalRuns = recentCommands.reduce(function (sum, cmd) {return sum + (cmd.runCount || 0);}, 0);
+
+  if (!recentCommands.length) {
+    return `
+      <section class="card">
+        <div class="row between">
+          <h2>Recent Commands</h2>
+        </div>
+        <p class="muted">No recent commands yet. Run or Use a command to see it here.</p>
+      </section>
+    `;
+  }
+
+  return `
+    <section class="card">
+      <div class="row between">
+        <h2>Recent Commands</h2>
+        <div class="row">
+          <span class="muted" style="font-size:0.8rem;padding:6px 4px">Total runs: <strong>${totalRuns}</strong></span>
+          <button id="btn-clear-recent" class="btn danger small">Clear Recent</button>
+        </div>
+      </div>
+      <div class="table-wrap recent-commands">
+        <table>
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Template</th>
+              <th style="white-space:nowrap">Last Run</th>
+              <th style="text-align:center">×Runs</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${recentCommands.map(function (command) {
+    return `
+                <tr>
+                  <td><strong>${escapeHtml(command.title)}</strong></td>
+                  <td><pre class="template-cell">&gt; ${escapeHtml(command.command)}</pre></td>
+                  <td style="white-space:nowrap" title="${escapeAttr(formatDateTime(command.lastRunAt))}">${escapeHtml(timeAgo(command.lastRunAt))}</td>
+                  <td style="text-align:center;font-size:0.85rem"><strong>×${command.runCount || 0}</strong></td>
+                  <td>
+                    <div class="actions-cell">
+                      <button class="btn small success btn-run" data-command-id="${escapeAttr(command.id)}">Run</button>
+                      <button class="btn small secondary btn-use action" data-command-id="${escapeAttr(command.id)}">Use</button>
+                      <button class="btn small secondary btn-copy action" data-command-id="${escapeAttr(command.id)}">Copy</button>
+                      <button class="btn small secondary btn-edit action" data-command-id="${escapeAttr(command.id)}">Edit</button>
+                    </div>
+                  </td>
+                </tr>
+              `;
+  }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  `;
+}
+
+function timeAgo(isoString) {
+  if (!isoString) {return '–';}
+  const diff = Date.now() - new Date(isoString).getTime();
+  const seconds = Math.floor(diff / 1000);
+  if (seconds < 60) {return 'just now';}
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) {return `${minutes} minute${minutes !== 1 ? 's' : ''} ago`;}
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) {return `${hours} hour${hours !== 1 ? 's' : ''} ago`;}
+  const days = Math.floor(hours / 24);
+  if (days < 30) {return `${days} day${days !== 1 ? 's' : ''} ago`;}
+  const months = Math.floor(days / 30);
+  if (months < 12) {return `${months} month${months !== 1 ? 's' : ''} ago`;}
+  return `${Math.floor(months / 12)} year${Math.floor(months / 12) !== 1 ? 's' : ''} ago`;
+}
+
+function formatDateTime(isoString) {
+  if (!isoString) {return '';}
+  try {
+    return new Date(isoString).toLocaleString();
+  } catch {
+    return isoString;
+  }
+}
+
 function bindEvents() {
   bindTopActions();
   bindTabs();
+
+  if (uiState.activeTab === 'recent') {
+    bindRecentTabEvents();
+  }
 
   if (uiState.activeTab === 'manage') {
     bindManageTabEvents();
@@ -652,6 +753,20 @@ function bindEvents() {
   }
 
   bindCommandActionButtons();
+}
+
+function bindRecentTabEvents() {
+  const clearRecentButton = document.getElementById('btn-clear-recent');
+
+  if (clearRecentButton) {
+    clearRecentButton.addEventListener('click', function () {
+      (state.data.commands || []).forEach(function (cmd) {
+        delete cmd.lastRunAt;
+        delete cmd.runCount;
+      });
+      persistDataThenRender('Recent history cleared.');
+    });
+  }
 }
 
 function bindTopActions() {
@@ -1637,6 +1752,7 @@ function dispatchCommandAction(commandId, action) {
     type: 'performAction',
     payload: {
       action,
+      commandId,
       resolvedCommand: resolved,
       commandVariables,
     },
