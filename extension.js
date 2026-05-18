@@ -60,6 +60,16 @@ function activate(context) {
           await openGlobalCommandsFile();
           return;
         }
+
+        if (message.type === 'openGlobalVariablesFile') {
+          await openGlobalVariablesFile();
+          return;
+        }
+
+        if (message.type === 'openLocalVariablesFile') {
+          await openLocalVariablesFile();
+          return;
+        }
       },
       null,
       context.subscriptions
@@ -246,6 +256,38 @@ function getOrCreateTerminal() {
 async function openGlobalCommandsFile() {
   await ensureGlobalCommandsFile();
   const document = await vscode.workspace.openTextDocument(GLOBAL_COMMANDS_FILE);
+  await vscode.window.showTextDocument(document, {preview: false});
+}
+
+async function openGlobalVariablesFile() {
+  await fs.mkdir(GLOBAL_DIR, {recursive: true});
+
+  try {
+    await fs.access(GLOBAL_VARIABLES_FILE);
+  } catch {
+    await fs.writeFile(GLOBAL_VARIABLES_FILE, JSON.stringify({version: 2, commands: {}}, null, 2), 'utf8');
+  }
+
+  const document = await vscode.workspace.openTextDocument(GLOBAL_VARIABLES_FILE);
+  await vscode.window.showTextDocument(document, {preview: false});
+}
+
+async function openLocalVariablesFile() {
+  const workspaceVariablesPath = getWorkspaceVariablesFilePath();
+
+  if (!workspaceVariablesPath) {
+    vscode.window.showWarningMessage('No workspace folder is open.');
+    return;
+  }
+
+  try {
+    await fs.access(workspaceVariablesPath);
+  } catch {
+    await fs.mkdir(path.dirname(workspaceVariablesPath), {recursive: true});
+    await fs.writeFile(workspaceVariablesPath, JSON.stringify({version: 2, commands: {}}, null, 2), 'utf8');
+  }
+
+  const document = await vscode.workspace.openTextDocument(workspaceVariablesPath);
   await vscode.window.showTextDocument(document, {preview: false});
 }
 

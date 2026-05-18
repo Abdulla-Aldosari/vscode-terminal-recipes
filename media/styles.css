@@ -119,6 +119,10 @@ body {
   align-items: flex-end;
 }
 
+.align-items-center {
+  align-items: center;
+}
+
 .form-grid {
   display: grid;
   gap: 10px;
@@ -427,6 +431,10 @@ td.actions-cell {
 
 .mt-20 {
   margin-top: 20px;
+}
+
+.width-fit-content {
+  width: fit-content;
 }
 
 .confirm-buttons-row {

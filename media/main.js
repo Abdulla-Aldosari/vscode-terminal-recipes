@@ -224,6 +224,8 @@ function render() {
       <header class="header">
         <h1>Terminal Recipes</h1>
         <div class="header-actions">
+          <button id="btn-open-local-variables-file" class="btn secondary" ${state.workspaceFolder ? '' : 'disabled'} title="${state.workspaceFolder ? '' : 'No workspace open'}">Open Local Variables JSON</button>
+          <button id="btn-open-global-variables-file" class="btn secondary">Open Global Variables JSON</button>
           <button id="btn-open-commands-file" class="btn secondary">Open Global JSON</button>
         </div>
       </header>
@@ -234,14 +236,12 @@ function render() {
         <div class="tabs">
           <button class="tab ${uiState.activeTab === 'manage' ? 'active' : ''}" data-tab="manage">Categories & Groups</button>
           <button class="tab ${uiState.activeTab === 'commands' ? 'active' : ''}" data-tab="commands">Commands</button>
-          <button class="tab ${uiState.activeTab === 'edit' ? 'active' : ''}" data-tab="edit" ${uiState.editingCommandId ? '' : 'disabled'}>Edit Command</button>
           <button class="tab tab-push-right ${uiState.activeTab === 'add' ? 'active' : ''}" data-tab="add" ${selectedCategory ? '' : 'disabled'}>Add New Command</button>
         </div>
       </section>
 
       ${uiState.activeTab === 'manage' ? renderManageTab() : ''}
       ${uiState.activeTab === 'commands' ? renderCommandsTab(selectedCategory) : ''}
-      ${uiState.activeTab === 'edit' ? renderEditTab() : ''}
       ${uiState.activeTab === 'add' ? renderAddCommandTab(selectedCategory) : ''}
       ${renderVariableInputModal()}
       ${renderRunConfirmModal()}
@@ -299,6 +299,11 @@ function renderManageTab() {
 }
 
 function renderCommandsTab(selectedCategory) {
+  // Show edit form inline when editing
+  if (uiState.editingCommandId) {
+    return renderEditTab();
+  }
+
   const groups = getSelectedCategoryGroups();
   const commands = getVisibleCommands();
 
@@ -312,9 +317,10 @@ function renderCommandsTab(selectedCategory) {
 
   return `
     <section class="card">
-      <h2>Commands Browser</h2>
-      <div class="row">
-        <select id="commands-category-select" class="input">
+      
+      <div class="row align-items-center">
+        <h2>Commands Browser</h2>
+        <select id="commands-category-select" class="input width-fit-content">
           ${(state.data.categories || []).map(function (category) {
     return `<option value="${escapeAttr(category.id)}" ${category.id === uiState.selectedCategoryId ? 'selected' : ''}>${escapeHtml(category.title)}</option>`;
   }).join('')}
@@ -636,10 +642,9 @@ function bindEvents() {
 
   if (uiState.activeTab === 'commands') {
     bindCommandsTabEvents();
-  }
-
-  if (uiState.activeTab === 'edit') {
-    bindEditTabEvents();
+    if (uiState.editingCommandId) {
+      bindEditTabEvents();
+    }
   }
 
   if (uiState.activeTab === 'add') {
@@ -651,10 +656,24 @@ function bindEvents() {
 
 function bindTopActions() {
   const openCommandsFileButton = document.getElementById('btn-open-commands-file');
+  const openGlobalVariablesFileButton = document.getElementById('btn-open-global-variables-file');
+  const openLocalVariablesFileButton = document.getElementById('btn-open-local-variables-file');
 
   if (openCommandsFileButton) {
     openCommandsFileButton.addEventListener('click', function () {
       vscode.postMessage({type: 'openCommandsFile'});
+    });
+  }
+
+  if (openGlobalVariablesFileButton) {
+    openGlobalVariablesFileButton.addEventListener('click', function () {
+      vscode.postMessage({type: 'openGlobalVariablesFile'});
+    });
+  }
+
+  if (openLocalVariablesFileButton) {
+    openLocalVariablesFileButton.addEventListener('click', function () {
+      vscode.postMessage({type: 'openLocalVariablesFile'});
     });
   }
 }
@@ -664,8 +683,10 @@ function bindTabs() {
     tabButton.addEventListener('click', function () {
       const nextTab = tabButton.dataset.tab;
 
-      if (nextTab === 'edit' && !getEditingCommand()) {
-        return;
+      // Switching tabs while editing → discard editing state
+      if (uiState.editingCommandId && nextTab !== uiState.activeTab) {
+        uiState.editingCommandId = null;
+        uiState.editCommandDraft = {title: '', template: '', description: '', groupIds: []};
       }
 
       uiState.activeTab = nextTab;
@@ -1008,6 +1029,9 @@ function bindEditTabEvents() {
       }
     });
 
+    uiState.editingCommandId = null;
+    uiState.editCommandDraft = {title: '', template: '', description: '', groupIds: []};
+    uiState.activeTab = 'commands';
     persistDataThenRender('Command updated and saved.');
     persistCommandVariables();
   });
@@ -1186,7 +1210,7 @@ function bindCommandActionButtons() {
         };
       }
 
-      uiState.activeTab = 'edit';
+      uiState.activeTab = 'commands';
       render();
     });
   });
@@ -1428,9 +1452,6 @@ function executeDeleteConfirm() {
       if (!editCmd) {
         uiState.editingCommandId = null;
         uiState.editCommandDraft = {title: '', template: '', description: '', groupIds: []};
-        if (uiState.activeTab === 'edit') {
-          uiState.activeTab = 'commands';
-        }
       }
     }
 
@@ -1503,7 +1524,7 @@ function persistCommandVariables() {
 }
 
 function syncEditCommandDraftFromDom() {
-  if (uiState.activeTab !== 'edit' || !uiState.editingCommandId) {
+  if (!uiState.editingCommandId) {
     return;
   }
 
