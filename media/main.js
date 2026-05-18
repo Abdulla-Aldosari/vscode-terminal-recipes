@@ -234,13 +234,15 @@ function render() {
         <div class="tabs">
           <button class="tab ${uiState.activeTab === 'manage' ? 'active' : ''}" data-tab="manage">Categories & Groups</button>
           <button class="tab ${uiState.activeTab === 'commands' ? 'active' : ''}" data-tab="commands">Commands</button>
-          <button class="tab ${uiState.activeTab === 'edit' ? 'active' : ''}" data-tab="edit" ${getEditingCommand() ? '' : 'disabled'}>Edit Command</button>
+          <button class="tab ${uiState.activeTab === 'edit' ? 'active' : ''}" data-tab="edit" ${uiState.editingCommandId ? '' : 'disabled'}>Edit Command</button>
+          <button class="tab tab-push-right ${uiState.activeTab === 'add' ? 'active' : ''}" data-tab="add" ${selectedCategory ? '' : 'disabled'}>Add New Command</button>
         </div>
       </section>
 
       ${uiState.activeTab === 'manage' ? renderManageTab() : ''}
       ${uiState.activeTab === 'commands' ? renderCommandsTab(selectedCategory) : ''}
       ${uiState.activeTab === 'edit' ? renderEditTab() : ''}
+      ${uiState.activeTab === 'add' ? renderAddCommandTab(selectedCategory) : ''}
       ${renderVariableInputModal()}
       ${renderRunConfirmModal()}
       ${renderDeleteConfirmModal()}
@@ -299,12 +301,11 @@ function renderManageTab() {
 function renderCommandsTab(selectedCategory) {
   const groups = getSelectedCategoryGroups();
   const commands = getVisibleCommands();
-  const draft = uiState.newCommandDraft;
 
   if (!selectedCategory) {
     return `
       <section class="card">
-        <p>Add a category first in Categories & Groups tab.</p>
+        <p>Add a category first in Categories &amp; Groups tab.</p>
       </section>
     `;
   }
@@ -330,13 +331,41 @@ function renderCommandsTab(selectedCategory) {
         ${renderCommandsTable(commands, groups)}
       </div>
     </section>
+  `;
+}
 
+function renderAddCommandTab(selectedCategory) {
+  if (!selectedCategory) {
+    return `
+      <section class="card">
+        <p>Add a category first in Categories &amp; Groups tab.</p>
+      </section>
+    `;
+  }
+
+  const groups = getSelectedCategoryGroups();
+  const draft = uiState.newCommandDraft;
+
+  return `
     <section class="card">
-      <div class="row between">
-        <h2>${draft.visible ? `Add Command to ( ${escapeHtml(selectedCategory.title)} )` : 'Add Command'}</h2>
-        ${draft.visible ? '' : '<button id="btn-show-add-command" class="btn primary">Add New Command</button>'}
-      </div>
-      ${draft.visible ? renderNewCommandForm(groups, draft) : ''}
+      <h2>Add Command to ( ${escapeHtml(selectedCategory.title)} )</h2>
+      <form id="form-new-command" class="form-grid add-command-grid">
+        <label class="add-command-title">Command Title<input id="new-command-title" class="input" required value="${escapeAttr(draft.title)}" /></label>
+        <label class="add-command-template">Command Template (Variables supported)<input id="new-command-template" class="input" required placeholder="npm install \${package_name}" value="${escapeAttr(draft.template)}" /></label>
+        <label class="full-width">Description<textarea id="new-command-description" class="input" rows="2">${escapeAttr(draft.description)}</textarea></label>
+        <div class="full-width grouped-tags-wrap">
+          <span class="groups-label">Groups:</span>
+          <div class="inline-tags" id="new-command-groups-tags">
+            ${groups.map(function (group) {
+    return `<button type="button" class="tag new-command-group-tag ${draft.groupIds.includes(group.id) ? 'active' : ''}" data-group-id="${escapeAttr(group.id)}">${escapeHtml(group.title)}</button>`;
+  }).join('')}
+          </div>
+        </div>
+        <div class="row full-width confirm-buttons-row mt-20">
+          <button type="submit" class="btn primary">Add Command</button>
+          <button type="button" id="btn-cancel-add-command" class="btn secondary action">Cancel</button>
+        </div>
+      </form>
     </section>
   `;
 }
@@ -364,7 +393,7 @@ function renderCommandsTable(commands, groups) {
               <tr>
                 <td><strong>${escapeHtml(command.title)}</strong><br><span class="muted">${escapeHtml(command.id)}</span></td>
                 <td>${escapeHtml(command.description || '-')}</td>
-                <td><code class="template-cell">&gt; ${escapeHtml(command.command)}</code></td>
+                <td><pre class="template-cell">&gt; ${escapeHtml(command.command)}</pre></td>
                 <td>${escapeHtml(resolveGroupTitles(command.groupIds || [], groups))}</td>
                 <td>
                 <div class="actions-cell">
@@ -509,11 +538,11 @@ function renderRunConfirmModal() {
       <div class="modal-box">
         <h3>Do you want to run this command?</h3>
         <pre class="modal-command-preview">&gt; ${escapeHtml(runConfirmState.resolvedCommand)}</pre>
-        <p class="muted" style="margin:0">This command will be executed immediately</p>
+        <p class="muted">⚠️ This command will be executed immediately</p>
         <div class="row confirm-buttons-row">
-          <button class="btn primary min-w70" id="btn-confirm-run-yes">Yes</button>
-          <button class="btn secondary action min-w70" id="btn-confirm-run-no">No</button>
-          ${hasVariables ? `<button class="btn secondary min-w70" id="btn-confirm-run-variables" style="margin-left:auto">Variables</button>` : ''}
+        ${hasVariables ? `<button class="btn secondary min-w70" id="btn-confirm-run-variables">Edit Variables</button>` : ''}
+          <button class="btn primary min-w70" id="btn-confirm-run-yes">Run</button>
+          <button class="btn secondary action min-w70" id="btn-confirm-run-no">Cancel</button>
         </div>
       </div>
     </div>
@@ -611,6 +640,10 @@ function bindEvents() {
 
   if (uiState.activeTab === 'edit') {
     bindEditTabEvents();
+  }
+
+  if (uiState.activeTab === 'add') {
+    bindAddCommandTabEvents();
   }
 
   bindCommandActionButtons();
@@ -805,8 +838,6 @@ function bindManageTabEvents() {
 
 function bindCommandsTabEvents() {
   const categorySelect = document.getElementById('commands-category-select');
-  const newCommandForm = document.getElementById('form-new-command');
-  const showAddCommandButton = document.getElementById('btn-show-add-command');
 
   if (categorySelect) {
     categorySelect.addEventListener('change', function () {
@@ -818,18 +849,15 @@ function bindCommandsTabEvents() {
 
   document.querySelectorAll('.group-filter-tag').forEach(function (tagButton) {
     tagButton.addEventListener('click', function () {
-      syncNewCommandDraftFromDom();
       uiState.selectedGroupId = tagButton.dataset.groupId;
       render();
     });
   });
+}
 
-  if (showAddCommandButton) {
-    showAddCommandButton.addEventListener('click', function () {
-      uiState.newCommandDraft.visible = true;
-      render();
-    });
-  }
+function bindAddCommandTabEvents() {
+  const newCommandForm = document.getElementById('form-new-command');
+  const cancelButton = document.getElementById('btn-cancel-add-command');
 
   const newCommandTitleInput = document.getElementById('new-command-title');
   const newCommandTemplateInput = document.getElementById('new-command-template');
@@ -870,16 +898,10 @@ function bindCommandsTabEvents() {
     });
   });
 
-  const cancelAddCommandButton = document.getElementById('btn-cancel-add-command');
-  if (cancelAddCommandButton) {
-    cancelAddCommandButton.addEventListener('click', function () {
-      uiState.newCommandDraft = {
-        visible: false,
-        title: '',
-        template: '',
-        description: '',
-        groupIds: [],
-      };
+  if (cancelButton) {
+    cancelButton.addEventListener('click', function () {
+      uiState.newCommandDraft = {visible: false, title: '', template: '', description: '', groupIds: []};
+      uiState.activeTab = 'commands';
       render();
     });
   }
@@ -926,13 +948,8 @@ function bindCommandsTabEvents() {
       };
 
       state.data.commands.push(newCommand);
-      uiState.newCommandDraft = {
-        visible: false,
-        title: '',
-        template: '',
-        description: '',
-        groupIds: [],
-      };
+      uiState.newCommandDraft = {visible: false, title: '', template: '', description: '', groupIds: []};
+      uiState.activeTab = 'commands';
       persistDataThenRender('Command added and saved.');
     });
   }
