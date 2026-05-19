@@ -3,7 +3,11 @@ const vscode = acquireVsCodeApi();
 const uiState = {
   activeTab: 'recent',
   noticeMessage: '',
-  selectedCategoryId: '',
+  selectedCategoryId: (function () {
+    try {
+      return localStorage.getItem('selectedCategoryId') || '';
+    } catch { return ''; }
+  }()),
   selectedGroupId: 'all',
   editingCommandId: null,
   commandDrafts: {},
@@ -211,6 +215,13 @@ function ensureSelectionDefaults() {
   })) {
     uiState.selectedGroupId = 'all';
   }
+}
+
+function setSelectedCategory(categoryId) {
+  uiState.selectedCategoryId = categoryId;
+  try {
+    localStorage.setItem('selectedCategoryId', categoryId);
+  } catch {}
 }
 
 function getSelectedCategory() {
@@ -964,7 +975,7 @@ function bindManageTabEvents() {
         return;
       }
 
-      uiState.selectedCategoryId = item.dataset.categoryId;
+      setSelectedCategory(item.dataset.categoryId);
       uiState.selectedGroupId = 'all';
       render();
     });
@@ -1014,7 +1025,7 @@ function bindManageTabEvents() {
       e.stopPropagation();
       const categoryId = btn.dataset.categoryId;
       const categoryTitle = btn.dataset.categoryTitle;
-      uiState.selectedCategoryId = categoryId;
+      setSelectedCategory(categoryId);
       manageModalState = {visible: true, mode: 'rename-category', value: categoryTitle};
       render();
       const input = document.getElementById('manage-modal-input');
@@ -1031,7 +1042,7 @@ function bindManageTabEvents() {
       e.stopPropagation();
       const categoryId = btn.dataset.categoryId;
       const categoryTitle = btn.dataset.categoryTitle;
-      uiState.selectedCategoryId = categoryId;
+      setSelectedCategory(categoryId);
       deleteConfirmState = {
         type: 'category',
         id: categoryId,
@@ -1138,7 +1149,7 @@ function executeManageModalConfirm() {
       groups: [],
     };
     state.data.categories.push(newCategory);
-    uiState.selectedCategoryId = newCategory.id;
+    setSelectedCategory(newCategory.id);
     uiState.selectedGroupId = 'all';
     manageModalState = {visible: false, mode: null, value: ''};
     persistDataThenRender('Category added and saved.');
@@ -1306,7 +1317,7 @@ function bindCommandsTabEvents() {
     // Item click → select + close
     csMenu.querySelectorAll('.cs-item').forEach(function (item) {
       item.addEventListener('click', function () {
-        uiState.selectedCategoryId = item.dataset.value;
+        setSelectedCategory(item.dataset.value);
         uiState.selectedGroupId = 'all';
         closeMenu();
         render();
