@@ -385,12 +385,8 @@ function renderCommandsTab(selectedCategory) {
     <section class="card">
       
       <div class="row align-items-center">
-        <h2>Commands Browser</h2>
-        <select id="commands-category-select" class="input width-fit-content">
-          ${(state.data.categories || []).map(function (category) {
-    return `<option value="${escapeAttr(category.id)}" ${category.id === uiState.selectedCategoryId ? 'selected' : ''}>${escapeHtml(category.title)}</option>`;
-  }).join('')}
-        </select>
+        <h2 class="pb-5">Commands Browser</h2>
+        ${renderCustomCategorySelect()}
       </div>
       <div class="group-tags-row">
         <span class="groups-label">Groups:</span>
@@ -678,24 +674,33 @@ function renderDeleteConfirmModal() {
     return '';
   }
 
+  var heading = '';
   var detailHtml = '';
+  var confirmLabel = 'Delete';
+  var confirmClass = 'btn small danger min-w65';
 
-  if (deleteConfirmState.type === 'command') {
+  if (deleteConfirmState.type === 'clearRecent') {
+    heading = 'Clear Recent History?';
+    confirmLabel = 'Clear';
+    detailHtml = `<p class="modal-description">${escapeHtml(deleteConfirmState.title || 'This action cannot be undone.')}</p>`;
+  } else if (deleteConfirmState.type === 'command') {
+    heading = `Do you want to delete this command?`;
     detailHtml = `
       <p class="delete-confirm-command-name">${escapeHtml(deleteConfirmState.title)}</p>
       <pre class="modal-command-preview">&gt; ${escapeHtml(deleteConfirmState.template)}</pre>
     `;
   } else {
+    heading = `Do you want to delete this ${escapeHtml(deleteConfirmState.type)}?`;
     detailHtml = `<p class="modal-description">${escapeHtml(deleteConfirmState.title || 'This action cannot be undone.')}</p>`;
   }
 
   return `
     <div class="modal-overlay" id="delete-confirm-overlay">
       <div class="modal-box">
-        <h3>Do you want to delete this ${escapeHtml(deleteConfirmState.type)}?</h3>
+        <h3>${heading}</h3>
         ${detailHtml}
         <div class="row justify-content-flex-end">
-          <button class="btn small danger min-w65" id="btn-confirm-delete-yes">Delete</button>
+          <button class="${confirmClass}" id="btn-confirm-delete-yes">${confirmLabel}</button>
           <button class="btn small secondary action min-w65" id="btn-confirm-delete-no">Cancel</button>
         </div>
       </div>
@@ -727,7 +732,7 @@ function renderRecentCommandsTab() {
       <div class="row between">
         <h2>Recent Commands</h2>
         <div class="row">
-          <span class="muted" style="font-size:0.8rem;padding:6px 4px">Total runs: <strong>${totalRuns}</strong></span>
+          <span class="muted total-runs">Total runs: <strong>${totalRuns}</strong></span>
           <button id="btn-clear-recent" class="btn danger small">Clear Recent</button>
         </div>
       </div>
@@ -824,11 +829,13 @@ function bindRecentTabEvents() {
 
   if (clearRecentButton) {
     clearRecentButton.addEventListener('click', function () {
-      (state.data.commands || []).forEach(function (cmd) {
-        delete cmd.lastRunAt;
-        delete cmd.runCount;
-      });
-      persistDataThenRender('Recent history cleared.');
+      deleteConfirmState = {
+        type: 'clearRecent',
+        id: null,
+        title: 'All recent history will be cleared.',
+        template: '',
+      };
+      render();
     });
   }
 }
@@ -1109,14 +1116,101 @@ function executeManageModalConfirm() {
   }
 }
 
-function bindCommandsTabEvents() {
-  const categorySelect = document.getElementById('commands-category-select');
+function renderCustomCategorySelect() {
+  const categories = state.data.categories || [];
+  const selected = getSelectedCategory();
+  const selectedTitle = selected ? selected.title : 'Select category';
 
-  if (categorySelect) {
-    categorySelect.addEventListener('change', function () {
-      uiState.selectedCategoryId = categorySelect.value;
-      uiState.selectedGroupId = 'all';
-      render();
+  // SVG: chevron down (from button.html)
+  const chevronSvg = `<svg viewBox="0 0 24 24" width="14" height="14" class="cs-chevron" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m6 9l6 6l6-6"></path></svg>`;
+
+  // SVG: checkmark (from popup-floating-menu.html)
+  const checkSvg = `<svg viewBox="0 0 24 24" width="14" height="14" class="cs-check" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 6L9 17l-5-5"></path></svg>`;
+
+  const items = categories.map(function (category) {
+    const isSelected = category.id === uiState.selectedCategoryId;
+    return `
+      <div class="cs-item" role="menuitem" tabindex="-1" data-value="${escapeAttr(category.id)}">
+        <span class="cs-item-label">${escapeHtml(category.title)}</span>
+        ${isSelected ? checkSvg : ''}
+      </div>
+    `;
+  }).join('');
+
+  return `
+    <div class="cs-wrap" id="custom-category-select">
+      <button class="cs-btn" type="button" aria-haspopup="menu" aria-expanded="false" id="cs-btn-toggle">
+        <span class="cs-btn-label">${escapeHtml(selectedTitle)}</span>
+        ${chevronSvg}
+      </button>
+      <div class="cs-menu" role="menu" id="cs-menu" hidden>
+        ${items}
+      </div>
+    </div>
+  `;
+}
+
+function bindCommandsTabEvents() {
+  // --- Custom category select ---
+  const csWrap = document.getElementById('custom-category-select');
+  const csBtn = document.getElementById('cs-btn-toggle');
+  const csMenu = document.getElementById('cs-menu');
+
+  if (csBtn && csMenu) {
+    // Helper: close the menu and remove listeners
+    function closeMenu() {
+      if (!csMenu.hidden) {
+        csMenu.hidden = true;
+        csBtn.setAttribute('aria-expanded', 'false');
+      }
+      document.removeEventListener('pointerdown', onPointerDown, true);
+      window.removeEventListener('blur', onWindowBlur);
+    }
+
+    // Pointer down anywhere outside the wrap → close
+    function onPointerDown(e) {
+      if (csWrap && !csWrap.contains(e.target)) {
+        closeMenu();
+      }
+    }
+
+    // Window loses focus (user clicks outside VS Code / webview) → close
+    function onWindowBlur() {
+      closeMenu();
+    }
+
+    // Toggle open/close
+    csBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      const isOpen = !csMenu.hidden;
+
+      if (isOpen) {
+        closeMenu();
+      } else {
+        csMenu.hidden = false;
+        csBtn.setAttribute('aria-expanded', 'true');
+        // Register outside-click and blur listeners
+        document.addEventListener('pointerdown', onPointerDown, true);
+        window.addEventListener('blur', onWindowBlur);
+      }
+    });
+
+    // Item click → select + close
+    csMenu.querySelectorAll('.cs-item').forEach(function (item) {
+      item.addEventListener('click', function () {
+        uiState.selectedCategoryId = item.dataset.value;
+        uiState.selectedGroupId = 'all';
+        closeMenu();
+        render();
+      });
+
+      // Hover: add/remove data-highlighted
+      item.addEventListener('mouseenter', function () {
+        item.setAttribute('data-highlighted', '');
+      });
+      item.addEventListener('mouseleave', function () {
+        item.removeAttribute('data-highlighted');
+      });
     });
   }
 
@@ -1681,6 +1775,15 @@ function executeDeleteConfirm() {
   var id = deleteConfirmState.id;
 
   deleteConfirmState = {type: null, id: null, title: '', template: ''};
+
+  if (type === 'clearRecent') {
+    (state.data.commands || []).forEach(function (cmd) {
+      delete cmd.lastRunAt;
+      delete cmd.runCount;
+    });
+    persistDataThenRender('Recent history cleared.');
+    return;
+  }
 
   if (type === 'category') {
     state.data.categories = (state.data.categories || []).filter(function (category) {

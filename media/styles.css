@@ -212,6 +212,32 @@ label {
 }
 
 
+.select-container {
+  position: relative;
+  display: inline-block;
+}
+
+.select-container.full-width {
+  display: block;
+  width: 100%;
+}
+
+.select-container::after {
+  content: '';
+  display: block;
+  width: 7px;
+  height: 7px;
+  border-right: 1.7px solid currentColor;
+  border-bottom: 1.7px solid currentColor;
+  transform: translateY(-65%) rotate(45deg);
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  pointer-events: none;
+  color: var(--vscode-settings-dropdownForeground);
+  opacity: 0.75;
+}
+
 select,
 select.input {
   appearance: none;
@@ -219,27 +245,14 @@ select.input {
   background-color: var(--vscode-settings-dropdownBackground) !important;
   color: var(--vscode-settings-dropdownForeground) !important;
   border: 1px solid var(--vscode-settings-dropdownBorder) !important;
-  background-repeat: no-repeat !important;
-  background-position: right 10px center !important;
   padding-right: 28px !important;
+  padding-left: 9px;
+  width: 100%;
+  border-radius: var(--vscode-cornerRadius-small);
 }
 
 select.input:focus {
   outline-color: var(--vscode-focusBorder) !important;
-}
-
-/* Dark / High-Contrast theme — light arrow */
-body.vscode-dark select,
-body.vscode-dark select.input,
-body.vscode-high-contrast select,
-body.vscode-high-contrast select.input {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath fill='%23cccccc' d='M7.976 10.072l-4.357-4.357.62-.62L8 9.071l3.76-3.976.62.62z'/%3E%3C/svg%3E") !important;
-}
-
-/* Light theme — dark arrow */
-body.vscode-light select,
-body.vscode-light select.input {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath fill='%23424242' d='M7.976 10.072l-4.357-4.357.62-.62L8 9.071l3.76-3.976.62.62z'/%3E%3C/svg%3E") !important;
 }
 
 
@@ -521,6 +534,10 @@ td.actions-cell {
   margin-top: 20px;
 }
 
+.pb-5 {
+  padding-bottom: 5px;
+}
+
 .recent-commands th {
   white-space: nowrap;
   border-bottom: 1px solid #28537d;
@@ -534,7 +551,10 @@ td.actions-cell {
   white-space: nowrap;
 }
 
-
+.total-runs {
+  font-size: 0.8rem;
+  padding: 6px 4px;
+}
 
 .width-fit-content {
   width: fit-content;
@@ -605,6 +625,87 @@ td.actions-cell {
 
 code {
   font-family: Consolas, monospace;
+}
+
+/* ===== Custom Category Select ===== */
+
+.cs-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.cs-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  border: 1px solid color-mix(in srgb, var(--vscode-panel-border) 75%, transparent);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--vscode-editor-background) 96%, var(--vscode-foreground));
+  color: var(--vscode-editor-foreground);
+  font-size: 0.82rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.12s, border-color 0.12s;
+  min-width: 200px;
+}
+
+.cs-btn:hover {
+  background: color-mix(in srgb, var(--vscode-editor-background) 88%, var(--vscode-foreground));
+  border-color: color-mix(in srgb, var(--vscode-panel-border) 100%, transparent);
+}
+
+.cs-btn-label {
+  flex: 1;
+  text-align: left;
+}
+
+.cs-chevron {
+  flex-shrink: 0;
+  opacity: 0.6;
+}
+
+.cs-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 200;
+  min-width: max(100%, 160px);
+  background: color-mix(in srgb, var(--vscode-settings-dropdownBackground) 40%, var(--vscode-editor-background));
+  border: 1px solid var(--vscode-panel-border);
+  border-radius: 6px;
+  padding: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.cs-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  color: var(--vscode-foreground, #080808);
+  transition: background 0.1s;
+}
+
+.cs-item[data-highlighted] {
+  background: color-mix(in srgb, var(--vscode-activityBarBadge-background, #4393ef) 80%, var(--vscode-editor-background));
+  /* background: var(--vscode-activityBarBadge-background, #4393ef); */
+}
+
+.cs-item-label {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cs-check {
+  flex-shrink: 0;
+  opacity: 0.85;
 }
 
 /* ===== Manage Tab (Categories & Groups) ===== */
