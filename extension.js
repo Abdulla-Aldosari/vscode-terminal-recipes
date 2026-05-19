@@ -28,6 +28,8 @@ function activate(context) {
       }
     );
 
+    panel.iconPath = vscode.Uri.joinPath(context.extensionUri, 'media', 'icon.png');
+
     panel.webview.html = getWebviewHtml(panel.webview, context.extensionUri);
 
     panel.webview.onDidReceiveMessage(
@@ -281,9 +283,19 @@ async function openGlobalCommandsFile() {
 async function openGlobalVariablesFile() {
   await fs.mkdir(GLOBAL_DIR, {recursive: true});
 
-  try {
-    await fs.access(GLOBAL_VARIABLES_FILE);
-  } catch {
+  const exists = await fileExists(GLOBAL_VARIABLES_FILE);
+
+  if (!exists) {
+    const choice = await vscode.window.showInformationMessage(
+      'No global variables file found.',
+      {detail: 'This file is created when you save global variables for any command.', modal: false},
+      'Create File'
+    );
+
+    if (choice !== 'Create File') {
+      return;
+    }
+
     await fs.writeFile(GLOBAL_VARIABLES_FILE, JSON.stringify({version: 2, commands: {}}, null, 2), 'utf8');
   }
 
@@ -299,15 +311,34 @@ async function openLocalVariablesFile() {
     return;
   }
 
-  try {
-    await fs.access(workspaceVariablesPath);
-  } catch {
+  const exists = await fileExists(workspaceVariablesPath);
+
+  if (!exists) {
+    const choice = await vscode.window.showInformationMessage(
+      'No local variables file found for this workspace.',
+      {detail: 'This file is created when you save local variables for a command in the current workspace.', modal: false},
+      'Create File'
+    );
+
+    if (choice !== 'Create File') {
+      return;
+    }
+
     await fs.mkdir(path.dirname(workspaceVariablesPath), {recursive: true});
     await fs.writeFile(workspaceVariablesPath, JSON.stringify({version: 2, commands: {}}, null, 2), 'utf8');
   }
 
   const document = await vscode.workspace.openTextDocument(workspaceVariablesPath);
   await vscode.window.showTextDocument(document, {preview: false});
+}
+
+async function fileExists(filePath) {
+  try {
+    await fs.access(filePath);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function getFirstWorkspaceFolderPath() {
