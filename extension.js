@@ -271,7 +271,30 @@ function getOrCreateTerminal() {
     return vscode.window.activeTerminal;
   }
 
-  return vscode.window.createTerminal('Terminal Recipes');
+  // Resolve the user's default terminal profile shell path
+  const platform = process.platform; // 'win32', 'darwin', 'linux'
+  const profileKey =
+    platform === 'win32' ? 'windows' :
+    platform === 'darwin' ? 'osx' : 'linux';
+
+  const defaultProfile = vscode.workspace
+    .getConfiguration('terminal.integrated.defaultProfile')
+    .get(profileKey);
+
+  const profiles = vscode.workspace
+    .getConfiguration('terminal.integrated.profiles')
+    .get(profileKey) || {};
+
+  let shellPath;
+  if (defaultProfile && profiles[defaultProfile] && profiles[defaultProfile].path) {
+    const profilePath = profiles[defaultProfile].path;
+    shellPath = Array.isArray(profilePath) ? profilePath[0] : profilePath;
+  }
+
+  return vscode.window.createTerminal({
+    name: 'Terminal Recipes',
+    ...(shellPath ? {shellPath} : {}),
+  });
 }
 
 async function openGlobalCommandsFile() {
