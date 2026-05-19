@@ -569,6 +569,7 @@ function renderEditTab() {
         ` : ''}
         <div class="row full-width justify-content-flex-end mt-20">
           <button type="submit" class="btn medium primary">Save Changes</button>
+          <button type="button" id="btn-cancel-edit-command" class="btn medium secondary action">Cancel</button>
         </div>
       </form>
     </section>
@@ -1382,6 +1383,15 @@ function bindEditTabEvents() {
     persistCommandVariables();
   });
 
+  const cancelEditButton = document.getElementById('btn-cancel-edit-command');
+  if (cancelEditButton) {
+    cancelEditButton.addEventListener('click', function () {
+      uiState.editingCommandId = null;
+      uiState.editCommandDraft = {title: '', template: '', description: '', groupIds: []};
+      render();
+    });
+  }
+
   const editCommandTitleInput = document.getElementById('edit-command-title');
   const editCommandTemplateInput = document.getElementById('edit-command-template');
   const editCommandDescriptionInput = document.getElementById('edit-command-description');
@@ -2136,5 +2146,13 @@ function escapeAttr(value) {
 function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
+
+// Disable right-click context menu unless text is selected
+document.addEventListener('contextmenu', function (e) {
+  const selection = window.getSelection();
+  if (!selection || selection.toString().trim() === '') {
+    e.preventDefault();
+  }
+});
 
 vscode.postMessage({type: 'ready'});
