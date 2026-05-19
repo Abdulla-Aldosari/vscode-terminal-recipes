@@ -21,10 +21,19 @@ const uiState = {
     description: '',
     groupIds: [],
   },
-  columnVisibility: {
-    description: true,
-    groups: true,
-  },
+  columnVisibility: (function () {
+    try {
+      const saved = localStorage.getItem('columnVisibility');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return {
+          description: parsed.description !== undefined ? parsed.description : true,
+          groups: parsed.groups !== undefined ? parsed.groups : true,
+        };
+      }
+    } catch {}
+    return {description: true, groups: true};
+  }()),
 };
 
 let noticeTimer = null;
@@ -464,18 +473,21 @@ function renderCommandsTable(commands, groups) {
     return '<p>No commands found for this filter.</p>';
   }
 
-  const showDescription = uiState.columnVisibility.description;
-  const showGroups = uiState.columnVisibility.groups;
+  const tableClasses = [
+    'commands-table',
+    !uiState.columnVisibility.description ? 'hide-description' : '',
+    !uiState.columnVisibility.groups ? 'hide-groups' : '',
+  ].filter(Boolean).join(' ');
 
   return `
     <div class="table-wrap">
-      <table class="commands-table">
+      <table class="${tableClasses}">
         <thead>
           <tr>
             <th>Title</th>
-            ${showDescription ? '<th>Description</th>' : ''}
+            <th>Description</th>
             <th>Template</th>
-            ${showGroups ? '<th>Groups</th>' : ''}
+            <th>Groups</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -484,9 +496,9 @@ function renderCommandsTable(commands, groups) {
     return `
               <tr>
                 <td><strong>${escapeHtml(command.title)}</strong><br><span class="muted">${escapeHtml(command.id)}</span></td>
-                ${showDescription ? `<td>${escapeHtml(command.description || '-')}</td>` : ''}
+                <td>${escapeHtml(command.description || '-')}</td>
                 <td><pre class="template-cell">&gt; ${escapeHtml(command.command)}</pre></td>
-                ${showGroups ? `<td>${escapeHtml(resolveGroupTitles(command.groupIds || [], groups))}</td>` : ''}
+                <td>${escapeHtml(resolveGroupTitles(command.groupIds || [], groups))}</td>
                 <td>
                 <div class="actions-cell">
                   <button class="btn small success btn-run" data-command-id="${escapeAttr(command.id)}">Run</button>
@@ -1357,6 +1369,10 @@ function bindCommandsTabEvents() {
         const colKey = checkbox.dataset.colKey;
         if (colKey && Object.prototype.hasOwnProperty.call(uiState.columnVisibility, colKey)) {
           uiState.columnVisibility[colKey] = checkbox.checked;
+          // Persist to localStorage
+          try {
+            localStorage.setItem('columnVisibility', JSON.stringify(uiState.columnVisibility));
+          } catch {}
           // Re-render just the table panel without closing the menu
           const tablePanel = document.querySelector('.table-panel');
           if (tablePanel) {
