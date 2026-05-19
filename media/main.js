@@ -21,6 +21,10 @@ const uiState = {
     description: '',
     groupIds: [],
   },
+  columnVisibility: {
+    description: true,
+    groups: true,
+  },
 };
 
 let noticeTimer = null;
@@ -400,9 +404,10 @@ function renderCommandsTab(selectedCategory) {
   return `
     <section class="card">
       
-      <div class="row align-items-center">
+      <div class="row align-items-center commands-toolbar">
         <h2 class="pb-5">Commands Browser</h2>
         ${renderCustomCategorySelect()}
+        ${renderColumnToggleDropdown()}
       </div>
       <div class="group-tags-row">
         <span class="groups-label">Groups:</span>
@@ -459,15 +464,18 @@ function renderCommandsTable(commands, groups) {
     return '<p>No commands found for this filter.</p>';
   }
 
+  const showDescription = uiState.columnVisibility.description;
+  const showGroups = uiState.columnVisibility.groups;
+
   return `
     <div class="table-wrap">
-      <table>
+      <table class="commands-table">
         <thead>
           <tr>
             <th>Title</th>
-            <th>Description</th>
+            ${showDescription ? '<th>Description</th>' : ''}
             <th>Template</th>
-            <th>Groups</th>
+            ${showGroups ? '<th>Groups</th>' : ''}
             <th>Actions</th>
           </tr>
         </thead>
@@ -476,9 +484,9 @@ function renderCommandsTable(commands, groups) {
     return `
               <tr>
                 <td><strong>${escapeHtml(command.title)}</strong><br><span class="muted">${escapeHtml(command.id)}</span></td>
-                <td>${escapeHtml(command.description || '-')}</td>
+                ${showDescription ? `<td>${escapeHtml(command.description || '-')}</td>` : ''}
                 <td><pre class="template-cell">&gt; ${escapeHtml(command.command)}</pre></td>
-                <td>${escapeHtml(resolveGroupTitles(command.groupIds || [], groups))}</td>
+                ${showGroups ? `<td>${escapeHtml(resolveGroupTitles(command.groupIds || [], groups))}</td>` : ''}
                 <td>
                 <div class="actions-cell">
                   <button class="btn small success btn-run" data-command-id="${escapeAttr(command.id)}">Run</button>
@@ -791,7 +799,7 @@ function renderRecentCommandsTab() {
         </div>
       </div>
       <div class="table-wrap recent-commands">
-        <table>
+        <table class="recent-table">
           <thead>
             <tr>
               <th>Title</th>
@@ -1204,6 +1212,40 @@ function renderCustomCategorySelect() {
   `;
 }
 
+function renderColumnToggleDropdown() {
+  const columnSvg = `<svg viewBox="0 0 24 24" width="14" height="14" class="col-toggle-icon" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="18" rx="1"/><rect x="14" y="3" width="7" height="18" rx="1"/></svg>`;
+  const chevronSvg = `<svg viewBox="0 0 21 21" width="14" height="14" class="cs-chevron" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="m6 9l6 6l6-6"></path></svg>`;
+
+  const columns = [
+    {key: 'description', label: 'Description'},
+    {key: 'groups', label: 'Groups'},
+  ];
+
+  const items = columns.map(function (col) {
+    const checked = uiState.columnVisibility[col.key];
+    return `
+      <label class="col-toggle-item" data-col-key="${escapeAttr(col.key)}">
+        <input type="checkbox" class="col-toggle-checkbox" data-col-key="${escapeAttr(col.key)}" ${checked ? 'checked' : ''} />
+        <span class="col-toggle-label">${escapeHtml(col.label)}</span>
+      </label>
+    `;
+  }).join('');
+
+  return `
+    <div class="cs-wrap col-toggle-wrap" id="col-toggle-wrap" style="margin-left:auto">
+      <button class="cs-btn cs-btn-col-toggle" type="button" aria-haspopup="menu" aria-expanded="false" id="col-toggle-btn" title="Show/Hide Columns">
+        ${columnSvg}
+        <span class="cs-btn-label col-toggle-btn-label">Columns</span>
+        ${chevronSvg}
+      </button>
+      <div class="cs-menu col-toggle-menu" id="col-toggle-menu" hidden>
+        <div class="col-toggle-header">Show/Hide Columns</div>
+        ${items}
+      </div>
+    </div>
+  `;
+}
+
 function bindCommandsTabEvents() {
   // --- Custom category select ---
   const csWrap = document.getElementById('custom-category-select');
@@ -1274,6 +1316,59 @@ function bindCommandsTabEvents() {
       render();
     });
   });
+
+  // --- Column Toggle Dropdown ---
+  const colToggleWrap = document.getElementById('col-toggle-wrap');
+  const colToggleBtn = document.getElementById('col-toggle-btn');
+  const colToggleMenu = document.getElementById('col-toggle-menu');
+
+  if (colToggleBtn && colToggleMenu) {
+    function closeColMenu() {
+      if (!colToggleMenu.hidden) {
+        colToggleMenu.hidden = true;
+        colToggleBtn.setAttribute('aria-expanded', 'false');
+      }
+      document.removeEventListener('pointerdown', onColPointerDown, true);
+    }
+
+    function onColPointerDown(e) {
+      if (colToggleWrap && !colToggleWrap.contains(e.target)) {
+        closeColMenu();
+      }
+    }
+
+    colToggleBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      const isOpen = !colToggleMenu.hidden;
+      if (isOpen) {
+        closeColMenu();
+      } else {
+        colToggleMenu.hidden = false;
+        colToggleBtn.setAttribute('aria-expanded', 'true');
+        document.addEventListener('pointerdown', onColPointerDown, true);
+      }
+    });
+
+    // Checkbox change → update state + re-render table only (keep menu open)
+    colToggleMenu.querySelectorAll('.col-toggle-checkbox').forEach(function (checkbox) {
+      checkbox.addEventListener('change', function (e) {
+        // Stop propagation so the pointerdown outside-click doesn't fire and close the menu
+        e.stopPropagation();
+        const colKey = checkbox.dataset.colKey;
+        if (colKey && Object.prototype.hasOwnProperty.call(uiState.columnVisibility, colKey)) {
+          uiState.columnVisibility[colKey] = checkbox.checked;
+          // Re-render just the table panel without closing the menu
+          const tablePanel = document.querySelector('.table-panel');
+          if (tablePanel) {
+            const groups = getSelectedCategoryGroups();
+            const commands = getVisibleCommands();
+            tablePanel.innerHTML = renderCommandsTable(commands, groups);
+            bindCommandActionButtons();
+          }
+        }
+      });
+    });
+  }
 }
 
 function bindAddCommandTabEvents() {
