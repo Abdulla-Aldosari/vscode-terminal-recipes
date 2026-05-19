@@ -291,8 +291,8 @@ select.input:focus {
 }
 
 .btn.action {
-  background: color-mix(in srgb, #505050 33%, var(--vscode-editor-background));
-  color: #fff;
+  background: var(--vscode-button-secondaryBackground);
+  color: var(--vscode-button-secondaryForeground);
 }
 
 .btn.primary:hover:not(:disabled) {
@@ -317,8 +317,8 @@ select.input:focus {
 }
 
 .btn.action:hover:not(:disabled) {
-  background: color-mix(in srgb, #505050 53%, var(--vscode-editor-background));
-  color: #fff;
+  background: var(--vscode-button-secondaryHoverBackground);
+  color: var(--vscode-button-secondaryForeground);
 }
 
 #btn-confirm-run-variables {
@@ -540,7 +540,7 @@ td.actions-cell {
 
 .recent-commands th {
   white-space: nowrap;
-  border-bottom: 1px solid #28537d;
+  border-bottom: 1px solid var(--vscode-panel-border);
 }
 
 .recent-commands td {
@@ -687,13 +687,13 @@ code {
   border-radius: 4px;
   font-size: 0.82rem;
   cursor: pointer;
-  color: var(--vscode-foreground, #080808);
+  color: var(--vscode-editor-foreground);
   transition: background 0.1s;
 }
 
 .cs-item[data-highlighted] {
-  background: color-mix(in srgb, var(--vscode-activityBarBadge-background, #4393ef) 80%, var(--vscode-editor-background));
-  /* background: var(--vscode-activityBarBadge-background, #4393ef); */
+  background: var(--vscode-list-hoverBackground, color-mix(in srgb, var(--vscode-editor-background) 80%, var(--vscode-foreground)));
+  color: var(--vscode-list-hoverForeground, var(--vscode-editor-foreground));
 }
 
 .cs-item-label {
