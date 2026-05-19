@@ -708,6 +708,19 @@ code {
   opacity: 0.85;
 }
 
+/* ===== Shell Selector (Run Confirm Modal) ===== */
+
+.cs-btn-sm {
+  min-width: unset;
+  padding: 5px 8px;
+  font-size: 0.76rem;
+}
+
+.cs-menu-up {
+  top: auto;
+  bottom: calc(100% + 4px);
+}
+
 /* ===== Manage Tab (Categories & Groups) ===== */
 
 .manage-card {

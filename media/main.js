@@ -27,6 +27,8 @@ let noticeTimer = null;
 let runConfirmState = {
   commandId: null,
   resolvedCommand: '',
+  selectedShellPath: null,
+  selectedShellName: null,
 };
 
 let variableInputState = {
@@ -66,6 +68,10 @@ const state = {
   globalCommandVariables: {
     version: 2,
     commands: {},
+  },
+  terminalProfiles: {
+    defaultProfile: '',
+    profiles: [],
   },
 };
 
@@ -133,6 +139,16 @@ function hydrateState(payload) {
   state.workspaceFolder = payload ? payload.workspaceFolder : null;
   state.commandVariables = payload && payload.commandVariables ? payload.commandVariables : {version: 2, commands: {}};
   state.globalCommandVariables = payload && payload.globalCommandVariables ? payload.globalCommandVariables : {version: 2, commands: {}};
+  state.terminalProfiles = payload && payload.terminalProfiles ? payload.terminalProfiles : {defaultProfile: '', profiles: []};
+
+  // Initialize selected shell from default profile if not already set
+  if (runConfirmState.selectedShellName === null) {
+    const profiles = state.terminalProfiles.profiles || [];
+    const defaultName = state.terminalProfiles.defaultProfile || '';
+    const defaultProfileEntry = profiles.find(function (p) { return p.name === defaultName; }) || profiles[0] || null;
+    runConfirmState.selectedShellName = defaultProfileEntry ? defaultProfileEntry.name : null;
+    runConfirmState.selectedShellPath = defaultProfileEntry ? defaultProfileEntry.shellPath : null;
+  }
 
   const localCmds = state.commandVariables.commands || {};
   const globalCmds = state.globalCommandVariables.commands || {};
@@ -593,6 +609,42 @@ function renderToggleSwitch3(commandId, varName, currentValue, extraClass) {
   `;
 }
 
+function renderShellSelector() {
+  const profiles = (state.terminalProfiles && state.terminalProfiles.profiles) || [];
+  if (!profiles.length) {
+    return '';
+  }
+
+  // Use profile name as unique identifier (avoids double-tick when two profiles share same path)
+  const selectedShellName = runConfirmState.selectedShellName;
+  const selectedLabel = selectedShellName || (state.terminalProfiles.defaultProfile || 'Default');
+
+  const chevronSvg = `<svg viewBox="0 0 24 24" width="12" height="12" class="cs-chevron" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m6 9l6 6l6-6"></path></svg>`;
+  const checkSvg = `<svg viewBox="0 0 24 24" width="12" height="12" class="cs-check" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 6L9 17l-5-5"></path></svg>`;
+
+  const items = profiles.map(function (profile) {
+    const isSelected = profile.name === selectedShellName;
+    return `
+      <div class="cs-item" role="menuitem" tabindex="-1" data-shell-name="${escapeAttr(profile.name)}" data-shell-path="${escapeAttr(profile.shellPath)}">
+        <span class="cs-item-label">${escapeHtml(profile.name)}</span>
+        ${isSelected ? checkSvg : ''}
+      </div>
+    `;
+  }).join('');
+
+  return `
+    <div class="cs-wrap" id="shell-selector-wrap">
+      <button class="cs-btn cs-btn-sm" type="button" aria-haspopup="menu" aria-expanded="false" id="shell-selector-btn">
+        <span class="cs-btn-label">${escapeHtml(selectedLabel)}</span>
+        ${chevronSvg}
+      </button>
+      <div class="cs-menu cs-menu-up" role="menu" id="shell-selector-menu" hidden>
+        ${items}
+      </div>
+    </div>
+  `;
+}
+
 function renderRunConfirmModal() {
   // Hide run confirm modal while variable input modal is open (returning to run confirm)
   if (!runConfirmState.commandId || (variableInputState.commandId && variableInputState.returnToRunConfirm)) {
@@ -615,6 +667,7 @@ function renderRunConfirmModal() {
         <p class="muted">⚠️ This command will be executed immediately</p>
         <div class="row justify-content-flex-end">
         ${hasVariables ? `<button class="btn small secondary min-w65" id="btn-confirm-run-variables">Edit Variables</button>` : ''}
+          ${renderShellSelector()}
           <button class="btn small primary min-w65" id="btn-confirm-run-yes">Run</button>
           <button class="btn small secondary action min-w65" id="btn-confirm-run-no">Cancel</button>
         </div>
@@ -1528,6 +1581,8 @@ function bindCommandActionButtons() {
       runConfirmState = {
         commandId,
         resolvedCommand: resolveCommandTemplate(command),
+        selectedShellPath: runConfirmState.selectedShellPath,
+        selectedShellName: runConfirmState.selectedShellName,
       };
 
       render();
@@ -1592,17 +1647,68 @@ function bindCommandActionButtons() {
   const confirmRunNoButton = document.getElementById('btn-confirm-run-no');
   const confirmRunVariablesButton = document.getElementById('btn-confirm-run-variables');
 
+  // --- Shell selector dropdown ---
+  const shellSelectorWrap = document.getElementById('shell-selector-wrap');
+  const shellSelectorBtn = document.getElementById('shell-selector-btn');
+  const shellSelectorMenu = document.getElementById('shell-selector-menu');
+
+  if (shellSelectorBtn && shellSelectorMenu) {
+    function closeShellMenu() {
+      if (!shellSelectorMenu.hidden) {
+        shellSelectorMenu.hidden = true;
+        shellSelectorBtn.setAttribute('aria-expanded', 'false');
+      }
+      document.removeEventListener('pointerdown', onShellPointerDown, true);
+    }
+
+    function onShellPointerDown(e) {
+      if (shellSelectorWrap && !shellSelectorWrap.contains(e.target)) {
+        closeShellMenu();
+      }
+    }
+
+    shellSelectorBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      const isOpen = !shellSelectorMenu.hidden;
+      if (isOpen) {
+        closeShellMenu();
+      } else {
+        shellSelectorMenu.hidden = false;
+        shellSelectorBtn.setAttribute('aria-expanded', 'true');
+        document.addEventListener('pointerdown', onShellPointerDown, true);
+      }
+    });
+
+    shellSelectorMenu.querySelectorAll('.cs-item').forEach(function (item) {
+      item.addEventListener('click', function () {
+        runConfirmState.selectedShellName = item.dataset.shellName || null;
+        runConfirmState.selectedShellPath = item.dataset.shellPath || null;
+        closeShellMenu();
+        render();
+      });
+
+      item.addEventListener('mouseenter', function () {
+        item.setAttribute('data-highlighted', '');
+      });
+      item.addEventListener('mouseleave', function () {
+        item.removeAttribute('data-highlighted');
+      });
+    });
+  }
+
   if (confirmRunYesButton) {
     confirmRunYesButton.addEventListener('click', function () {
       const commandId = runConfirmState.commandId;
-      runConfirmState = {commandId: null, resolvedCommand: ''};
+      const shellPath = runConfirmState.selectedShellPath || null;
+      const shellName = runConfirmState.selectedShellName || null;
+      runConfirmState = {commandId: null, resolvedCommand: '', selectedShellPath: shellPath, selectedShellName: shellName};
       render();
 
       if (!commandId) {
         return;
       }
 
-      dispatchCommandAction(commandId, 'run');
+      dispatchCommandAction(commandId, 'run', shellPath, shellName);
     });
   }
 
@@ -1737,6 +1843,8 @@ function bindCommandActionButtons() {
           runConfirmState = {
             commandId,
             resolvedCommand: resolveCommandTemplate(command),
+            selectedShellPath: runConfirmState.selectedShellPath,
+            selectedShellName: runConfirmState.selectedShellName,
           };
         }
 
@@ -1745,7 +1853,7 @@ function bindCommandActionButtons() {
       }
 
       render();
-      dispatchCommandAction(commandId, action);
+      dispatchCommandAction(commandId, action, null, null);
     });
   }
 
@@ -1986,7 +2094,7 @@ function performCommandAction(commandId, action) {
   dispatchCommandAction(commandId, action);
 }
 
-function dispatchCommandAction(commandId, action) {
+function dispatchCommandAction(commandId, action, shellPath, shellName) {
   const command = (state.data.commands || []).find(function (item) {
     return item.id === commandId;
   });
@@ -2005,6 +2113,8 @@ function dispatchCommandAction(commandId, action) {
       commandId,
       resolvedCommand: resolved,
       commandVariables,
+      ...(shellPath ? {shellPath} : {}),
+      ...(shellName ? {shellName} : {}),
     },
   });
 }

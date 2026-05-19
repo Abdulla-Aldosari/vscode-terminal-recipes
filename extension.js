@@ -94,6 +94,7 @@ async function postState(panel) {
   const workspaceFolder = getFirstWorkspaceFolderPath();
   const commandVariables = await readWorkspaceVariables();
   const globalCommandVariables = await readGlobalVariables();
+  const terminalProfiles = getTerminalProfiles();
 
   await panel.webview.postMessage({
     type: 'state',
@@ -103,6 +104,7 @@ async function postState(panel) {
       workspaceFolder,
       commandVariables,
       globalCommandVariables,
+      terminalProfiles,
     },
   });
 }
@@ -165,6 +167,8 @@ async function handlePerformAction(panel, payload) {
     const commandId = payload && typeof payload.commandId === 'string' ? payload.commandId : null;
     const resolvedCommand = payload && typeof payload.resolvedCommand === 'string' ? payload.resolvedCommand : '';
     const commandVariables = payload && typeof payload.commandVariables === 'object' ? payload.commandVariables : {};
+    const shellPath = payload && typeof payload.shellPath === 'string' ? payload.shellPath : null;
+    const shellName = payload && typeof payload.shellName === 'string' ? payload.shellName : null;
 
     if (!action || !resolvedCommand) {
       throw new Error('Action and resolved command are required.');
@@ -188,7 +192,7 @@ async function handlePerformAction(panel, payload) {
     }
 
     if (action === 'run' || action === 'use') {
-      const terminal = getOrCreateTerminal();
+      const terminal = getOrCreateTerminal(shellPath || undefined, shellName || undefined);
       terminal.show(false);
       terminal.sendText(resolvedCommand, action === 'run');
     }
@@ -266,34 +270,122 @@ function normalizeCommandVariables(input) {
   return output;
 }
 
-function getOrCreateTerminal() {
-  if (vscode.window.activeTerminal) {
-    return vscode.window.activeTerminal;
+function fixShellPath(rawPath) {
+  if (typeof rawPath !== 'string') {
+    return rawPath;
+  }
+  // Replace Sysnative (32-bit alias) with System32 (actual 64-bit path)
+  return rawPath.replace(/\\Sysnative\\/i, '\\System32\\');
+}
+
+function resolveSourceProfilePath(source) {
+  const platform = process.platform;
+
+  if (platform === 'win32') {
+    const fsSync = require('fs');
+
+    if (source === 'PowerShell') {
+      const pwsh7 = 'C:\\Program Files\\PowerShell\\7\\pwsh.exe';
+      try { fsSync.accessSync(pwsh7); return pwsh7; } catch {}
+      return 'C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe';
+    }
+
+    if (source === 'Command Prompt') {
+      return 'C:\\Windows\\System32\\cmd.exe';
+    }
+
+    if (source === 'Git Bash') {
+      const fsSync2 = require('fs');
+      const candidates = [
+        'C:\\Program Files\\Git\\bin\\bash.exe',
+        'C:\\Program Files (x86)\\Git\\bin\\bash.exe',
+      ];
+      for (const p of candidates) {
+        try { fsSync2.accessSync(p); return p; } catch {}
+      }
+      return null;
+    }
+
+    if (source === 'WSL' || source === 'WSL Bash') {
+      return 'C:\\Windows\\System32\\wsl.exe';
+    }
   }
 
-  // Resolve the user's default terminal profile shell path
-  const platform = process.platform; // 'win32', 'darwin', 'linux'
+  return null;
+}
+
+function getTerminalProfiles() {
+  const platform = process.platform;
   const profileKey =
     platform === 'win32' ? 'windows' :
     platform === 'darwin' ? 'osx' : 'linux';
 
-  const defaultProfile = vscode.workspace
+  const defaultProfileName = vscode.workspace
     .getConfiguration('terminal.integrated.defaultProfile')
-    .get(profileKey);
+    .get(profileKey) || '';
 
-  const profiles = vscode.workspace
+  const rawProfiles = vscode.workspace
     .getConfiguration('terminal.integrated.profiles')
     .get(profileKey) || {};
 
-  let shellPath;
-  if (defaultProfile && profiles[defaultProfile] && profiles[defaultProfile].path) {
-    const profilePath = profiles[defaultProfile].path;
-    shellPath = Array.isArray(profilePath) ? profilePath[0] : profilePath;
+  const profiles = [];
+
+  for (const [name, config] of Object.entries(rawProfiles)) {
+    if (!config || typeof config !== 'object') {
+      continue;
+    }
+
+    let shellPath = null;
+
+    // Prefer explicit path
+    if (config.path) {
+      const rawPath = Array.isArray(config.path) ? config.path[0] : config.path;
+      if (typeof rawPath === 'string' && rawPath) {
+        shellPath = fixShellPath(rawPath);
+      }
+    }
+
+    // Fall back to resolving from source
+    if (!shellPath && config.source) {
+      shellPath = resolveSourceProfilePath(config.source);
+    }
+
+    if (!shellPath) {
+      continue;
+    }
+
+    profiles.push({name, shellPath});
   }
 
+  return {
+    defaultProfile: defaultProfileName,
+    profiles,
+  };
+}
+
+function getOrCreateTerminal(shellPath, shellName) {
+  if (!shellPath && vscode.window.activeTerminal) {
+    return vscode.window.activeTerminal;
+  }
+
+  const terminalName = shellName ? `Terminal Recipes (${shellName})` : 'Terminal Recipes';
+
+  if (shellPath) {
+    return vscode.window.createTerminal({
+      name: terminalName,
+      shellPath,
+    });
+  }
+
+  // No shellPath provided — resolve user's default profile
+  const {defaultProfile: defaultProfileName, profiles} = getTerminalProfiles();
+  const defaultEntry = profiles.find(function (p) { return p.name === defaultProfileName; });
+  const resolvedShellPath = defaultEntry ? defaultEntry.shellPath : undefined;
+  const resolvedName = defaultEntry ? `Terminal Recipes (${defaultEntry.name})` : 'Terminal Recipes';
+
   return vscode.window.createTerminal({
-    name: 'Terminal Recipes',
-    ...(shellPath ? {shellPath} : {}),
+    name: resolvedName,
+    ...(resolvedShellPath ? {shellPath: resolvedShellPath} : {}),
   });
 }
 
