@@ -638,7 +638,7 @@ code {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 7px 10px;
+  padding: 5px 8px;
   border: 1px solid color-mix(in srgb, var(--vscode-panel-border) 75%, transparent);
   border-radius: 6px;
   background: color-mix(in srgb, var(--vscode-editor-background) 96%, var(--vscode-foreground));
@@ -662,7 +662,7 @@ code {
 
 .cs-chevron {
   flex-shrink: 0;
-  opacity: 0.6;
+  opacity: 1;
 }
 
 .cs-menu {

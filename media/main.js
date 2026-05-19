@@ -1176,10 +1176,10 @@ function renderCustomCategorySelect() {
   const selectedTitle = selected ? selected.title : 'Select category';
 
   // SVG: chevron down (from button.html)
-  const chevronSvg = `<svg viewBox="0 0 24 24" width="14" height="14" class="cs-chevron" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m6 9l6 6l6-6"></path></svg>`;
+  const chevronSvg = `<svg viewBox="0 0 21 21" width="17" height="17" class="cs-chevron" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="m6 9l6 6l6-6"></path></svg>`;
 
   // SVG: checkmark (from popup-floating-menu.html)
-  const checkSvg = `<svg viewBox="0 0 24 24" width="14" height="14" class="cs-check" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 6L9 17l-5-5"></path></svg>`;
+  const checkSvg = `<svg viewBox="0 0 24 24" width="17" height="17" class="cs-check" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 6L9 17l-5-5"></path></svg>`;
 
   const items = categories.map(function (category) {
     const isSelected = category.id === uiState.selectedCategoryId;
