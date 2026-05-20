@@ -1,28 +1,35 @@
 const OpenAI = require('openai');
-const { SCHEMA_FULL, SCHEMA_SINGLE, addAdditionalPropertiesFalse } = require('../schemas');
+const {SCHEMA_FULL, SCHEMA_SINGLE, addAdditionalPropertiesFalse} = require('../schemas');
+const {formatRequestLog, formatResponseLog} = require('../debugLogger');
 
 class OpenAIProvider {
   constructor(apiKey) {
-    this.client = new OpenAI({ apiKey });
+    this.client = new OpenAI({apiKey});
   }
 
   /**
    * @param {string} prompt
    * @param {'full'|'single'} mode
    * @param {string} systemInstruction
+   * @param {import('vscode').OutputChannel|null} [logger]
    * @returns {Promise<object>}
    */
-  async generateCommands(prompt, mode, systemInstruction) {
+  async generateCommands(prompt, mode, systemInstruction, logger) {
     // OpenAI strict mode requires additionalProperties: false on every object
     const baseSchema = mode === 'full' ? SCHEMA_FULL : SCHEMA_SINGLE;
     const schema = addAdditionalPropertiesFalse(baseSchema);
     const schemaName = mode === 'full' ? 'terminal_commands_full' : 'terminal_commands_single';
 
+    if (logger) {
+      logger.appendLine(formatRequestLog('openai', mode, systemInstruction, prompt, schema));
+      logger.show(true);
+    }
+
     const response = await this.client.chat.completions.create({
       model: 'gpt-4.1',
       messages: [
-        { role: 'system', content: systemInstruction },
-        { role: 'user', content: prompt },
+        {role: 'system', content: systemInstruction},
+        {role: 'user', content: prompt},
       ],
       response_format: {
         type: 'json_schema',
@@ -35,8 +42,13 @@ class OpenAIProvider {
     });
 
     const content = response.choices[0].message.content;
+
+    if (logger) {
+      logger.appendLine(formatResponseLog(content));
+    }
+
     return JSON.parse(content);
   }
 }
 
-module.exports = { OpenAIProvider };
+module.exports = {OpenAIProvider};

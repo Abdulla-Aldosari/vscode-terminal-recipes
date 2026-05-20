@@ -12,6 +12,9 @@ const GLOBAL_VARIABLES_FILE = path.join(GLOBAL_DIR, 'variables.json');
 
 function activate(context) {
   let panel = null;
+  const aiOutputChannel = vscode.window.createOutputChannel('Terminal Recipes AI', 'json');
+  context.subscriptions.push(aiOutputChannel);
+
 
   const openPanelCommand = vscode.commands.registerCommand('terminalRecipes.openPanel', async function () {
     if (panel) {
@@ -91,7 +94,7 @@ function activate(context) {
         }
 
         if (message.type === 'aiGenerate') {
-          await handleAiGenerate(panel, context, message.payload);
+          await handleAiGenerate(panel, context, message.payload, aiOutputChannel);
           return;
         }
 
@@ -919,8 +922,9 @@ async function handleAiSaveSettings(panel, context, payload) {
 /**
  * Runs AI generation and returns results back to the webview.
  * @param {{ mode: 'full'|'single', prompt: string, categoryId?: string, groupId?: string }} payload
+ * @param {import('vscode').OutputChannel} outputChannel
  */
-async function handleAiGenerate(panel, context, payload) {
+async function handleAiGenerate(panel, context, payload, outputChannel) {
   try {
     const mode = payload && payload.mode === 'single' ? 'single' : 'full';
     const prompt = payload && typeof payload.prompt === 'string' ? payload.prompt.trim() : '';
@@ -944,6 +948,10 @@ async function handleAiGenerate(panel, context, payload) {
       .getConfiguration('terminalRecipes')
       .get('customSystemInstructions') || '';
 
+    const debugEnabled = vscode.workspace
+      .getConfiguration('terminalRecipes')
+      .get('aiDebugOutput') === true;
+
     const result = await generateWithAI({
       providerName,
       apiKey: apiKey.trim(),
@@ -952,6 +960,7 @@ async function handleAiGenerate(panel, context, payload) {
       customSystemInstruction: customSystemInstruction.trim() || undefined,
       categoryId,
       groupId,
+      logger: debugEnabled ? outputChannel : null,
     });
 
     await panel.webview.postMessage({

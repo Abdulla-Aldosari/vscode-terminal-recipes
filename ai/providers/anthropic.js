@@ -1,9 +1,10 @@
 const Anthropic = require('@anthropic-ai/sdk');
-const { SCHEMA_FULL, SCHEMA_SINGLE } = require('../schemas');
+const {SCHEMA_FULL, SCHEMA_SINGLE} = require('../schemas');
+const {formatRequestLog, formatResponseLog} = require('../debugLogger');
 
 class AnthropicProvider {
   constructor(apiKey) {
-    this.client = new Anthropic({ apiKey });
+    this.client = new Anthropic({apiKey});
   }
 
   /**
@@ -13,9 +14,10 @@ class AnthropicProvider {
    * @param {string} prompt
    * @param {'full'|'single'} mode
    * @param {string} systemInstruction
+   * @param {import('vscode').OutputChannel|null} [logger]
    * @returns {Promise<object>}
    */
-  async generateCommands(prompt, mode, systemInstruction) {
+  async generateCommands(prompt, mode, systemInstruction, logger) {
     const schema = mode === 'full' ? SCHEMA_FULL : SCHEMA_SINGLE;
 
     const enhancedSystem = `${systemInstruction}
@@ -25,16 +27,25 @@ ${JSON.stringify(schema, null, 2)}
 
 Do NOT include any text, explanation, or markdown before or after the JSON.`;
 
+    if (logger) {
+      logger.appendLine(formatRequestLog('anthropic', mode, enhancedSystem, prompt, schema));
+      logger.show(true);
+    }
+
     const response = await this.client.messages.create({
       model: 'claude-sonnet-4-6',
       max_tokens: 8096,
       system: enhancedSystem,
       messages: [
-        { role: 'user', content: prompt },
+        {role: 'user', content: prompt},
       ],
     });
 
     const content = response.content[0].text;
+
+    if (logger) {
+      logger.appendLine(formatResponseLog(content));
+    }
 
     // Extract JSON from response (strip any accidental markdown fences)
     const jsonMatch = content.match(/\{[\s\S]*\}/);
@@ -46,4 +57,4 @@ Do NOT include any text, explanation, or markdown before or after the JSON.`;
   }
 }
 
-module.exports = { AnthropicProvider };
+module.exports = {AnthropicProvider};

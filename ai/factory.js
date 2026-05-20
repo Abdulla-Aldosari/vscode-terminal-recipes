@@ -115,6 +115,7 @@ function remapSingleModeResult(aiResult, categoryId, groupId) {
  *   customSystemInstruction?: string,
  *   categoryId?: string,
  *   groupId?: string,
+ *   logger?: import('vscode').OutputChannel|null,
  * }} options
  * @returns {Promise<object>}
  */
@@ -127,11 +128,12 @@ async function generateWithAI(options) {
     customSystemInstruction,
     categoryId,
     groupId,
+    logger,
   } = options;
 
   const systemInstruction = customSystemInstruction || DEFAULT_SYSTEM_INSTRUCTION;
   const provider = createProvider(providerName, apiKey);
-  const aiResult = await provider.generateCommands(prompt, mode, systemInstruction);
+  const aiResult = await provider.generateCommands(prompt, mode, systemInstruction, logger || null);
 
   if (mode === 'full') {
     return remapFullModeIds(aiResult);

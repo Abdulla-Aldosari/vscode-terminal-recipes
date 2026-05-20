@@ -31,7 +31,11 @@
       "properties": {
         "terminalRecipes.aiProvider": {
           "type": "string",
-          "enum": ["gemini", "openai", "anthropic"],
+          "enum": [
+            "gemini",
+            "openai",
+            "anthropic"
+          ],
           "enumDescriptions": [
             "Google Gemini (gemini-flash-latest)",
             "OpenAI ChatGPT (gpt-4.1)",
@@ -45,6 +49,11 @@
           "default": "",
           "editPresentation": "multilineText",
           "description": "Custom system instructions for the AI command generator. Leave empty to use the default instructions."
+        },
+        "terminalRecipes.aiDebugOutput": {
+          "type": "boolean",
+          "default": false,
+          "description": "Show AI request and response payloads in the VS Code Output Channel (Terminal Recipes AI). Useful for inspecting the request body and verifying that the AI response matches the expected JSON schema."
         }
       }
     }
