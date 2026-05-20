@@ -345,7 +345,8 @@ select.input:focus {
 
 .btn.small {
   font-size: 0.76rem;
-  padding: 5px 8px;
+  padding: 5.3px 8px;
+  white-space: nowrap;
 }
 
 .btn.medium {
@@ -562,7 +563,7 @@ td.actions-cell {
 }
 
 .justify-content-flex-end {
-  justify-content: flex-end;
+  justify-content: flex-end !important;
 }
 
 
@@ -1136,6 +1137,143 @@ table.commands-table.ai-results-table td:last-child {
 /* Unchecked row styling */
 .ai-row-unchecked td {
   opacity: 0.45;
+}
+
+/* ===== Error Notice ===== */
+
+.notice-error {
+  background: color-mix(in srgb, #d1242f 18%, var(--vscode-editor-background)) !important;
+  border-color: color-mix(in srgb, #d1242f 55%, transparent) !important;
+  color: var(--vscode-editor-foreground);
+  font-weight: 500;
+}
+
+/* ===== Enum Variable Input Row (in variable modal) ===== */
+
+.variable-row-enum {
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.enum-input-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 180px;
+}
+
+/* ===== Help Link (cmd-title-link) ===== */
+
+.cmd-title-link {
+  color: var(--vscode-textLink-foreground, var(--vscode-button-background));
+  text-decoration: none;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cmd-title-link:hover {
+  text-decoration: underline;
+  opacity: 0.85;
+}
+
+/* ===== Enum Variable List (in Add/Edit forms) ===== */
+
+.enum-var-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.enum-var-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-open-enum-manager {
+  min-width: 95px;
+  text-align: left;
+}
+
+/* ===== Enum Manager Modal ===== */
+
+.enum-manager-box {
+  width: min(760px, 96vw) !important;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.enum-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.enum-table th,
+.enum-table td {
+  border-bottom: 1px solid var(--vscode-panel-border);
+  text-align: left;
+  padding: 7px 8px;
+  vertical-align: middle;
+}
+
+.enum-cell-title {
+  font-weight: 600;
+  width: 18%;
+  min-width: 80px;
+}
+
+.enum-cell-value {
+  width: 18%;
+  min-width: 80px;
+}
+
+.enum-cell-desc {
+  color: var(--vscode-editor-foreground);
+  opacity: 0.85;
+  width: 100%;
+}
+
+.enum-cell-actions {
+  /* width: 1%; */
+  white-space: nowrap;
+  /* display: flex; */
+  /* gap: 4px; */
+}
+
+.enum-cell-actions .btn.small {
+  background: color-mix(in srgb, #2e2e2e 72%, var(--vscode-editor-background));
+  border-color: transparent;
+  width: 26px;
+  height: 26px;
+  padding: 0px 0px 0px 0px;
+}
+
+.enum-cell-value code {
+  padding: 4px 7px;
+}
+
+/* ===== Enum Add/Edit Form ===== */
+
+.enum-add-form {
+  border: 1px solid var(--vscode-panel-border);
+  border-radius: 6px;
+  padding: 10px 12px;
+  background: color-mix(in srgb, var(--vscode-editor-background) 95%, var(--vscode-foreground));
+  margin-top: 8px;
+}
+
+.enum-form-grid {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: 1fr 1fr;
+  margin-bottom: 12px;
+}
+
+.enum-form-desc {
+  grid-column: 1 / -1;
 }
 
 @media (max-width: 920px) {

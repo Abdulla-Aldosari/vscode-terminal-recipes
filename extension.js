@@ -3,8 +3,8 @@ const fs = require('fs/promises');
 const os = require('os');
 const path = require('path');
 const crypto = require('crypto');
-const { generateWithAI } = require('./ai/factory');
-const { DEFAULT_SYSTEM_INSTRUCTION } = require('./ai/systemInstruction');
+const {generateWithAI} = require('./ai/factory');
+const {DEFAULT_SYSTEM_INSTRUCTION} = require('./ai/systemInstruction');
 
 const GLOBAL_DIR = path.join(os.homedir(), '.vscode-terminal-recipes');
 const GLOBAL_COMMANDS_FILE = path.join(GLOBAL_DIR, 'commands.json');
@@ -72,6 +72,11 @@ function activate(context) {
 
         if (message.type === 'openLocalVariablesFile') {
           await openLocalVariablesFile();
+          return;
+        }
+
+        if (message.type === 'openExternalUrl') {
+          await handleOpenExternalUrl(message.payload);
           return;
         }
 
@@ -308,7 +313,7 @@ function resolveSourceProfilePath(source) {
 
     if (source === 'PowerShell') {
       const pwsh7 = 'C:\\Program Files\\PowerShell\\7\\pwsh.exe';
-      try { fsSync.accessSync(pwsh7); return pwsh7; } catch {}
+      try {fsSync.accessSync(pwsh7); return pwsh7;} catch { }
       return 'C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe';
     }
 
@@ -323,7 +328,7 @@ function resolveSourceProfilePath(source) {
         'C:\\Program Files (x86)\\Git\\bin\\bash.exe',
       ];
       for (const p of candidates) {
-        try { fsSync2.accessSync(p); return p; } catch {}
+        try {fsSync2.accessSync(p); return p;} catch { }
       }
       return null;
     }
@@ -340,7 +345,7 @@ function getTerminalProfiles() {
   const platform = process.platform;
   const profileKey =
     platform === 'win32' ? 'windows' :
-    platform === 'darwin' ? 'osx' : 'linux';
+      platform === 'darwin' ? 'osx' : 'linux';
 
   const defaultProfileName = vscode.workspace
     .getConfiguration('terminal.integrated.defaultProfile')
@@ -401,7 +406,7 @@ function getOrCreateTerminal(shellPath, shellName) {
 
   // No shellPath provided — resolve user's default profile
   const {defaultProfile: defaultProfileName, profiles} = getTerminalProfiles();
-  const defaultEntry = profiles.find(function (p) { return p.name === defaultProfileName; });
+  const defaultEntry = profiles.find(function (p) {return p.name === defaultProfileName;});
   const resolvedShellPath = defaultEntry ? defaultEntry.shellPath : undefined;
   const resolvedName = defaultEntry ? `Terminal Recipes (${defaultEntry.name})` : 'Terminal Recipes';
 
@@ -629,6 +634,8 @@ function normalizeCommandsData(input) {
 
     const lastRunAt = typeof rawCommand.lastRunAt === 'string' ? rawCommand.lastRunAt : null;
     const runCount = typeof rawCommand.runCount === 'number' && rawCommand.runCount > 0 ? rawCommand.runCount : 0;
+    const helpUrl = typeof rawCommand.helpUrl === 'string' ? rawCommand.helpUrl.trim() : '';
+    const variableMeta = normalizeVariableMeta(rawCommand.variableMeta);
 
     commands.push({
       id,
@@ -639,6 +646,8 @@ function normalizeCommandsData(input) {
       groupIds,
       ...(lastRunAt ? {lastRunAt} : {}),
       ...(runCount ? {runCount} : {}),
+      ...(helpUrl ? {helpUrl} : {}),
+      ...(Object.keys(variableMeta).length > 0 ? {variableMeta} : {}),
     });
 
     commandIds.add(id);
@@ -649,6 +658,75 @@ function normalizeCommandsData(input) {
     categories,
     commands,
   };
+}
+
+/**
+ * Normalizes and validates variableMeta for a command.
+ * Returns a clean object with only valid enum entries.
+ * @param {*} input
+ * @returns {object}
+ */
+function normalizeVariableMeta(input) {
+  const output = {};
+
+  if (!input || typeof input !== 'object' || Array.isArray(input)) {
+    return output;
+  }
+
+  for (const [varName, meta] of Object.entries(input)) {
+    if (typeof varName !== 'string' || !meta || typeof meta !== 'object') {
+      continue;
+    }
+
+    if (meta.type !== 'enum') {
+      continue;
+    }
+
+    if (!Array.isArray(meta.enumValues) || meta.enumValues.length === 0) {
+      continue;
+    }
+
+    const validEnumValues = meta.enumValues
+      .filter(function (item) {
+        return item &&
+          typeof item === 'object' &&
+          typeof item.title === 'string' && item.title.trim() &&
+          typeof item.value === 'string' && item.value.trim() &&
+          typeof item.description === 'string';
+      })
+      .map(function (item) {
+        return {
+          title: item.title.trim(),
+          value: item.value.trim(),
+          description: item.description.trim(),
+        };
+      });
+
+    if (validEnumValues.length > 0) {
+      output[varName] = {
+        type: 'enum',
+        enumValues: validEnumValues,
+      };
+    }
+  }
+
+  return output;
+}
+
+/**
+ * Opens an external URL using VS Code's built-in browser.
+ * @param {{ url: string }} payload
+ */
+async function handleOpenExternalUrl(payload) {
+  try {
+    const url = payload && typeof payload.url === 'string' ? payload.url.trim() : '';
+    if (!url) {
+      return;
+    }
+    await vscode.env.openExternal(vscode.Uri.parse(url));
+  } catch {
+    // Silently ignore — URL open failures are not critical
+  }
 }
 
 function normalizeGroups(input) {
@@ -801,7 +879,7 @@ async function handleAiGetSettings(panel, context) {
 
   await panel.webview.postMessage({
     type: 'aiSettingsResult',
-    payload: { providerName, keyStatus },
+    payload: {providerName, keyStatus},
   });
 }
 
@@ -828,12 +906,12 @@ async function handleAiSaveSettings(panel, context, payload) {
 
     await panel.webview.postMessage({
       type: 'aiSaveSettingsResult',
-      payload: { success: true },
+      payload: {success: true},
     });
   } catch (error) {
     await panel.webview.postMessage({
       type: 'aiSaveSettingsResult',
-      payload: { success: false, message: error instanceof Error ? error.message : 'Unknown error' },
+      payload: {success: false, message: error instanceof Error ? error.message : 'Unknown error'},
     });
   }
 }
@@ -878,12 +956,12 @@ async function handleAiGenerate(panel, context, payload) {
 
     await panel.webview.postMessage({
       type: 'aiGenerateResult',
-      payload: { success: true, mode, result },
+      payload: {success: true, mode, result},
     });
   } catch (error) {
     await panel.webview.postMessage({
       type: 'aiGenerateResult',
-      payload: { success: false, message: classifyAiError(error) },
+      payload: {success: false, message: classifyAiError(error)},
     });
   }
 }
@@ -917,7 +995,7 @@ async function handleAiInsert(panel, payload) {
         });
       } else {
         // Merge new groups into existing category
-        const existingGroupIds = new Set(existingCategory.groups.map(function (g) { return g.id; }));
+        const existingGroupIds = new Set(existingCategory.groups.map(function (g) {return g.id;}));
         for (const group of (payload.category.groups || [])) {
           if (!existingGroupIds.has(group.id)) {
             existingCategory.groups.push(group);
@@ -927,7 +1005,7 @@ async function handleAiInsert(panel, payload) {
     }
 
     // Add selected commands (skip duplicates by ID)
-    const existingCommandIds = new Set(data.commands.map(function (c) { return c.id; }));
+    const existingCommandIds = new Set(data.commands.map(function (c) {return c.id;}));
     for (const cmd of selectedCommands) {
       if (!existingCommandIds.has(cmd.id)) {
         data.commands.push(cmd);
@@ -940,14 +1018,14 @@ async function handleAiInsert(panel, payload) {
 
     await panel.webview.postMessage({
       type: 'aiInsertResult',
-      payload: { success: true, count: selectedCommands.length },
+      payload: {success: true, count: selectedCommands.length},
     });
 
     await postState(panel);
   } catch (error) {
     await panel.webview.postMessage({
       type: 'aiInsertResult',
-      payload: { success: false, message: error instanceof Error ? error.message : 'Unknown error' },
+      payload: {success: false, message: error instanceof Error ? error.message : 'Unknown error'},
     });
   }
 }

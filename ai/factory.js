@@ -1,7 +1,7 @@
-const { GeminiProvider }    = require('./providers/gemini');
-const { OpenAIProvider }    = require('./providers/openai');
-const { AnthropicProvider } = require('./providers/anthropic');
-const { DEFAULT_SYSTEM_INSTRUCTION } = require('./systemInstruction');
+const {GeminiProvider} = require('./providers/gemini');
+const {OpenAIProvider} = require('./providers/openai');
+const {AnthropicProvider} = require('./providers/anthropic');
+const {DEFAULT_SYSTEM_INSTRUCTION} = require('./systemInstruction');
 const crypto = require('crypto');
 
 /** @typedef {'gemini'|'openai'|'anthropic'} ProviderName */
@@ -14,8 +14,8 @@ const crypto = require('crypto');
  */
 function createProvider(providerName, apiKey) {
   switch (providerName) {
-    case 'gemini':    return new GeminiProvider(apiKey);
-    case 'openai':    return new OpenAIProvider(apiKey);
+    case 'gemini': return new GeminiProvider(apiKey);
+    case 'openai': return new OpenAIProvider(apiKey);
     case 'anthropic': return new AnthropicProvider(apiKey);
     default: throw new Error(`Unknown AI provider: "${providerName}"`);
   }
@@ -47,7 +47,7 @@ function remapFullModeIds(aiResult) {
   const remappedGroups = (aiResult.category.groups || []).map(function (group) {
     const newGroupId = generateLocalId();
     idMap[group.id] = newGroupId;
-    return { id: newGroupId, title: group.title };
+    return {id: newGroupId, title: group.title};
   });
 
   const remappedCategory = {
@@ -61,7 +61,7 @@ function remapFullModeIds(aiResult) {
     const newCmdId = generateLocalId();
     const mappedCategoryId = idMap[cmd.categoryId] || newCategoryId;
     const mappedGroupIds = (cmd.groupIds || [])
-      .map(function (gid) { return idMap[gid] || gid; })
+      .map(function (gid) {return idMap[gid] || gid;})
       .filter(Boolean);
 
     return {
@@ -71,6 +71,8 @@ function remapFullModeIds(aiResult) {
       command: cmd.command,
       categoryId: mappedCategoryId,
       groupIds: mappedGroupIds,
+      ...(cmd.helpUrl ? {helpUrl: cmd.helpUrl} : {}),
+      ...(cmd.variableMeta && Object.keys(cmd.variableMeta).length > 0 ? {variableMeta: cmd.variableMeta} : {}),
     };
   });
 
@@ -97,6 +99,8 @@ function remapSingleModeResult(aiResult, categoryId, groupId) {
     command: aiResult.command,
     categoryId,
     groupIds: groupId ? [groupId] : [],
+    ...(aiResult.helpUrl ? {helpUrl: aiResult.helpUrl} : {}),
+    ...(aiResult.variableMeta && Object.keys(aiResult.variableMeta).length > 0 ? {variableMeta: aiResult.variableMeta} : {}),
   };
 }
 
@@ -136,4 +140,4 @@ async function generateWithAI(options) {
   return remapSingleModeResult(aiResult, categoryId, groupId);
 }
 
-module.exports = { generateWithAI };
+module.exports = {generateWithAI};

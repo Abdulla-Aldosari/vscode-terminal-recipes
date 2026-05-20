@@ -8,6 +8,32 @@
  */
 
 /**
+ * Sub-schema for a single enum option inside variableMeta.
+ */
+const ENUM_VALUE_ITEM = {
+  type: 'object',
+  properties: {
+    title: {type: 'string'},
+    value: {type: 'string'},
+    description: {type: 'string'},
+  },
+  required: ['title', 'value', 'description'],
+};
+
+/**
+ * Sub-schema for variableMeta — one entry per variable name.
+ * Each entry describes the variable type and its enum values (if applicable).
+ */
+const VARIABLE_META_VALUE = {
+  type: 'object',
+  properties: {
+    type: {type: 'string'}, // always "enum" for now
+    enumValues: {type: 'array', items: ENUM_VALUE_ITEM},
+  },
+  required: ['type', 'enumValues'],
+};
+
+/**
  * Schema for `full` mode: generates a complete category with groups and commands.
  */
 const SCHEMA_FULL = {
@@ -16,15 +42,15 @@ const SCHEMA_FULL = {
     category: {
       type: 'object',
       properties: {
-        id:     { type: 'string' },
-        title:  { type: 'string' },
+        id: {type: 'string'},
+        title: {type: 'string'},
         groups: {
           type: 'array',
           items: {
             type: 'object',
             properties: {
-              id:    { type: 'string' },
-              title: { type: 'string' },
+              id: {type: 'string'},
+              title: {type: 'string'},
             },
             required: ['id', 'title'],
           },
@@ -37,14 +63,19 @@ const SCHEMA_FULL = {
       items: {
         type: 'object',
         properties: {
-          id:          { type: 'string' },
-          title:       { type: 'string' },
-          description: { type: 'string' },
-          command:     { type: 'string' },
-          categoryId:  { type: 'string' },
-          groupIds:    { type: 'array', items: { type: 'string' } },
+          id: {type: 'string'},
+          title: {type: 'string'},
+          description: {type: 'string'},
+          command: {type: 'string'},
+          categoryId: {type: 'string'},
+          groupIds: {type: 'array', items: {type: 'string'}},
+          helpUrl: {type: 'string'},
+          variableMeta: {
+            type: 'object',
+            properties: {},
+          },
         },
-        required: ['id', 'title', 'description', 'command', 'categoryId', 'groupIds'],
+        required: ['id', 'title', 'description', 'command', 'categoryId', 'groupIds', 'helpUrl'],
       },
     },
   },
@@ -58,12 +89,17 @@ const SCHEMA_FULL = {
 const SCHEMA_SINGLE = {
   type: 'object',
   properties: {
-    id:          { type: 'string' },
-    title:       { type: 'string' },
-    description: { type: 'string' },
-    command:     { type: 'string' },
+    id: {type: 'string'},
+    title: {type: 'string'},
+    description: {type: 'string'},
+    command: {type: 'string'},
+    helpUrl: {type: 'string'},
+    variableMeta: {
+      type: 'object',
+      properties: {},
+    },
   },
-  required: ['id', 'title', 'description', 'command'],
+  required: ['id', 'title', 'description', 'command', 'helpUrl'],
 };
 
 /**
@@ -77,7 +113,7 @@ function addAdditionalPropertiesFalse(schema) {
     return schema;
   }
 
-  const result = { ...schema };
+  const result = {...schema};
 
   if (result.type === 'object') {
     result.additionalProperties = false;
@@ -97,4 +133,4 @@ function addAdditionalPropertiesFalse(schema) {
   return result;
 }
 
-module.exports = { SCHEMA_FULL, SCHEMA_SINGLE, addAdditionalPropertiesFalse };
+module.exports = {SCHEMA_FULL, SCHEMA_SINGLE, addAdditionalPropertiesFalse};

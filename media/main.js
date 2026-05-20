@@ -17,6 +17,8 @@ const uiState = {
     template: '',
     description: '',
     groupIds: [],
+    helpUrl: '',
+    variableMeta: {},
   },
   newCommandDraft: {
     visible: false,
@@ -24,6 +26,8 @@ const uiState = {
     template: '',
     description: '',
     groupIds: [],
+    helpUrl: '',
+    variableMeta: {},
   },
   columnVisibility: (function () {
     try {
@@ -41,6 +45,7 @@ const uiState = {
 };
 
 let noticeTimer = null;
+let noticeIsError = false;
 let runConfirmState = {
   commandId: null,
   resolvedCommand: '',
@@ -68,6 +73,18 @@ let manageModalState = {
   visible: false,
   mode: null, // 'add-category' | 'rename-category' | 'add-group' | 'rename-group'
   value: '',
+};
+
+// Enum Manager Modal state
+let enumManagerState = {
+  visible: false,
+  commandId: null,     // null = new command context, string = editing existing command
+  varName: '',
+  enumValues: [],      // working copy array of {title, value, description}
+  editIndex: null,     // index of item being edited inline, or null
+  editTitle: '',
+  editValue: '',
+  editDescription: '',
 };
 
 // AI feature state
@@ -353,7 +370,7 @@ function render() {
         </div>
       </header>
       <p class="meta">Workspace: <code>${escapeHtml(state.workspaceFolder || 'No workspace open')}</code></p>
-      ${uiState.noticeMessage ? `<div class="notice">${escapeHtml(uiState.noticeMessage)}</div>` : ''}
+      ${uiState.noticeMessage ? `<div class="notice${noticeIsError ? ' notice-error' : ''}">${escapeHtml(uiState.noticeMessage)}</div>` : ''}
 
       <section class="card tabs-section">
         <div class="tabs">
@@ -375,11 +392,16 @@ function render() {
       ${aiState.view === 'prompt' ? renderAiPromptModal() : ''}
       ${aiState.view === 'loading' ? renderAiLoadingOverlay() : ''}
       ${aiState.view === 'results' ? renderAiResultsModal() : ''}
+      ${enumManagerState.visible ? renderEnumManagerModal() : ''}
     </div>
   `;
 
   bindEvents();
   bindAiEvents();
+  bindCmdTitleLinks();
+  if (enumManagerState.visible) {
+    bindEnumManagerEvents();
+  }
 }
 
 function renderManageTab() {
@@ -540,6 +562,7 @@ function renderAddCommandTab(selectedCategory) {
 
   const groups = getSelectedCategoryGroups();
   const draft = uiState.newCommandDraft;
+  const detectedVars = draft.template ? collectVariables([draft.template]).filter(function (n) {return n !== 'workspaceFolder';}) : [];
 
   return `
     <section class="card">
@@ -548,6 +571,27 @@ function renderAddCommandTab(selectedCategory) {
         <label class="add-command-title">Command Title<input id="new-command-title" class="input" required value="${escapeAttr(draft.title)}" /></label>
         <label class="add-command-template">Command Template (Variables supported)<input id="new-command-template" class="input" required placeholder="npm install \${package_name}" value="${escapeAttr(draft.template)}" /></label>
         <label class="full-width">Description<textarea id="new-command-description" class="input" rows="2">${escapeAttr(draft.description)}</textarea></label>
+        <label class="full-width">Help URL (optional)<input id="new-command-help-url" class="input" placeholder="https://docs.example.com/command" value="${escapeAttr(draft.helpUrl || '')}" /></label>
+        ${detectedVars.length ? `
+        <div class="full-width mt-5">
+          <h3>Detected Variables — Set Enum (optional):</h3>
+          <div class="enum-var-list">
+            ${detectedVars.map(function (name) {
+    const meta = draft.variableMeta && draft.variableMeta[name];
+    const isEnum = meta && meta.type === 'enum';
+    const enumCount = isEnum ? meta.enumValues.length : 0;
+    return `
+              <div class="enum-var-row">
+                <code class="variable-name">\${${escapeHtml(name)}}</code>
+                <button type="button" class="btn small ${isEnum ? 'primary' : 'secondary'} btn-open-enum-manager" data-var-name="${escapeAttr(name)}" data-command-id="" title="Manage Enum values for this variable">
+                  ${isEnum ? `⚙️ Enum (${enumCount})` : '⚙️ Set Enum'}
+                </button>
+              </div>
+            `;
+  }).join('')}
+          </div>
+        </div>
+        ` : ''}
         <div class="full-width grouped-tags-wrap">
           <span class="groups-label">Groups:</span>
           <div class="inline-tags" id="new-command-groups-tags">
@@ -590,9 +634,12 @@ function renderCommandsTable(commands, groups) {
         </thead>
         <tbody>
           ${commands.map(function (command) {
+    const titleHtml = command.helpUrl
+      ? `<a class="cmd-title-link" data-url="${escapeAttr(command.helpUrl)}" title="Open documentation">${escapeHtml(command.title)}</a>`
+      : `<strong>${escapeHtml(command.title)}</strong>`;
     return `
               <tr>
-                <td><strong>${escapeHtml(command.title)}</strong><br><span class="muted">${escapeHtml(command.id)}</span></td>
+                <td>${titleHtml}<br><span class="muted">${escapeHtml(command.id)}</span></td>
                 <td>${escapeHtml(command.description || '-')}</td>
                 <td><pre class="template-cell">&gt; ${escapeHtml(command.command)}</pre></td>
                 <td>${escapeHtml(resolveGroupTitles(command.groupIds || [], groups))}</td>
@@ -650,12 +697,15 @@ function renderEditTab() {
     `;
   }
 
-  const groups = getSelectedCategoryGroups();
-  const variables = collectVariables([command.command]);
-  const commandDraft = getCommandDraft(command.id);
-  const commandRemember = getCommandRemember(command.id);
   syncEditCommandDraftFromCommand(command);
   const editDraft = uiState.editCommandDraft;
+  const commandCategory = (state.data.categories || []).find(function (cat) {
+    return cat.id === command.categoryId;
+  });
+  const groups = commandCategory ? (commandCategory.groups || []) : [];
+  const variables = collectVariables([editDraft.template || command.command]);
+  const commandDraft = getCommandDraft(command.id);
+  const commandRemember = getCommandRemember(command.id);
 
   return `
     <section class="card">
@@ -672,6 +722,7 @@ function renderEditTab() {
   }).join('')}
           </div>
         </div>
+        <label class="full-width">Help URL (optional)<input id="edit-command-help-url" class="input" placeholder="https://docs.example.com/command" value="${escapeAttr(editDraft.helpUrl || '')}" /></label>
         ${variables.length ? `
         <div class="full-width mt-5">
           <h3>Command Variables:</h3>
@@ -684,11 +735,15 @@ function renderEditTab() {
             ${variables.map(function (name) {
     const value = name === 'workspaceFolder' ? (state.workspaceFolder || '') : (commandDraft[name] || '');
     const rememberValue = name === 'workspaceFolder' ? null : (commandRemember[name] || 'off');
+    const meta = editDraft.variableMeta && editDraft.variableMeta[name];
+    const isEnum = meta && meta.type === 'enum';
+    const enumCount = isEnum ? meta.enumValues.length : 0;
     return `
               <div class="variable-row">
                 <label class="variable-name">\${${escapeHtml(name)}}</label>
                 <input class="input variable-input" data-command-id="${escapeAttr(command.id)}" data-variable-name="${escapeAttr(name)}" value="${escapeAttr(value)}" ${name === 'workspaceFolder' ? 'readonly' : ''} />
                 ${name === 'workspaceFolder' ? '<span></span>' : renderToggleSwitch3(command.id, name, rememberValue, 'variable-remember-toggle')}
+                ${name === 'workspaceFolder' ? '' : `<button type="button" class="btn small ${isEnum ? 'primary' : 'secondary'} btn-open-enum-manager" data-var-name="${escapeAttr(name)}" data-command-id="${escapeAttr(command.id)}" title="Manage Enum values">${isEnum ? `⚙️ Enum (${enumCount})` : '⚙️ Set Enum'}</button>`}
               </div>
             `;
   }).join('')}
@@ -799,6 +854,8 @@ function renderVariableInputModal() {
   }
 
   const vars = variableInputState.missingVariables;
+  // Get the command to check variableMeta
+  const cmdForMeta = (state.data.commands || []).find(function (c) {return c.id === variableInputState.commandId;});
 
   return `
     <div class="modal-overlay" id="variable-input-overlay">
@@ -817,6 +874,38 @@ function renderVariableInputModal() {
     const rememberValue = variableInputState.rememberFlags[name] !== undefined
       ? variableInputState.rememberFlags[name]
       : (getCommandRemember(variableInputState.commandId)[name] || 'off');
+    // Check if this variable has Enum metadata
+    const enumMeta = cmdForMeta && cmdForMeta.variableMeta && cmdForMeta.variableMeta[name];
+    const isEnum = enumMeta && enumMeta.type === 'enum' && enumMeta.enumValues && enumMeta.enumValues.length > 0;
+    // Check if current value is one of the enum values
+    const isCustomValue = isEnum && !enumMeta.enumValues.some(function (ev) {return ev.value === currentValue;});
+
+    if (isEnum) {
+      return `
+              <div class="variable-row variable-row-enum">
+                <label class="variable-name">\${${escapeHtml(name)}}</label>
+                <div class="enum-input-wrap">
+                  <div class="select-container" style="flex:1">
+                    <select class="input enum-var-modal-select" data-variable-name="${escapeAttr(name)}">
+                      ${enumMeta.enumValues.map(function (ev) {
+        return `<option value="${escapeAttr(ev.value)}" ${currentValue === ev.value ? 'selected' : ''} title="${escapeAttr(ev.description || '')}">${escapeHtml(ev.title)} — ${escapeHtml(ev.value)}</option>`;
+      }).join('')}
+                      <option value="__custom__" ${isCustomValue ? 'selected' : ''}>✏️ Custom value...</option>
+                    </select>
+                  </div>
+                  <input
+                    class="input variable-modal-input variable-modal-custom-input"
+                    data-variable-name="${escapeAttr(name)}"
+                    value="${escapeAttr(currentValue)}"
+                    placeholder="Enter custom value..."
+                    style="${isCustomValue ? '' : 'display:none'}"
+                  />
+                </div>
+                ${renderToggleSwitch3(variableInputState.commandId, name, rememberValue, 'variable-modal-remember-toggle')}
+              </div>
+            `;
+    }
+
     return `
               <div class="variable-row">
                 <label class="variable-name">\${${escapeHtml(name)}}</label>
@@ -920,9 +1009,12 @@ function renderRecentCommandsTab() {
           </thead>
           <tbody>
             ${recentCommands.map(function (command) {
+    const titleHtml = command.helpUrl
+      ? `<a class="cmd-title-link" data-url="${escapeAttr(command.helpUrl)}" title="Open documentation">${escapeHtml(command.title)}</a>`
+      : `<strong>${escapeHtml(command.title)}</strong>`;
     return `
                 <tr>
-                  <td><strong>${escapeHtml(command.title)}</strong></td>
+                  <td>${titleHtml}</td>
                   <td><pre class="template-cell">&gt; ${escapeHtml(command.command)}</pre></td>
                   <td style="white-space:nowrap" title="${escapeAttr(formatDateTime(command.lastRunAt))}">${escapeHtml(timeAgo(command.lastRunAt))}</td>
                   <td style="text-align:center;font-size:0.85rem"><strong>×${command.runCount || 0}</strong></td>
@@ -1491,6 +1583,7 @@ function bindAddCommandTabEvents() {
   const newCommandTitleInput = document.getElementById('new-command-title');
   const newCommandTemplateInput = document.getElementById('new-command-template');
   const newCommandDescriptionInput = document.getElementById('new-command-description');
+  const newCommandHelpUrlInput = document.getElementById('new-command-help-url');
 
   if (newCommandTitleInput) {
     newCommandTitleInput.addEventListener('input', function () {
@@ -1501,6 +1594,16 @@ function bindAddCommandTabEvents() {
   if (newCommandTemplateInput) {
     newCommandTemplateInput.addEventListener('input', function () {
       uiState.newCommandDraft.template = newCommandTemplateInput.value;
+      // Preserve cursor position before re-render
+      const cursorStart = newCommandTemplateInput.selectionStart;
+      const cursorEnd = newCommandTemplateInput.selectionEnd;
+      render();
+      // Restore focus and cursor after re-render
+      const restored = document.getElementById('new-command-template');
+      if (restored) {
+        restored.focus();
+        restored.setSelectionRange(cursorStart, cursorEnd);
+      }
     });
   }
 
@@ -1509,6 +1612,44 @@ function bindAddCommandTabEvents() {
       uiState.newCommandDraft.description = newCommandDescriptionInput.value;
     });
   }
+
+  if (newCommandHelpUrlInput) {
+    newCommandHelpUrlInput.addEventListener('input', function () {
+      uiState.newCommandDraft.helpUrl = newCommandHelpUrlInput.value;
+    });
+  }
+
+  // --- Enum Manager buttons (in Add Command tab) ---
+  document.querySelectorAll('.btn-open-enum-manager').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      const varName = btn.dataset.varName;
+      const commandId = btn.dataset.commandId || null;
+
+      // Get current enum values for this variable from the appropriate source
+      let currentEnumValues = [];
+      if (commandId === null || commandId === '') {
+        // New command context
+        const meta = uiState.newCommandDraft.variableMeta && uiState.newCommandDraft.variableMeta[varName];
+        currentEnumValues = (meta && meta.type === 'enum' && meta.enumValues) ? meta.enumValues.map(function (e) {return Object.assign({}, e);}) : [];
+      } else {
+        // Edit command context
+        const meta = uiState.editCommandDraft.variableMeta && uiState.editCommandDraft.variableMeta[varName];
+        currentEnumValues = (meta && meta.type === 'enum' && meta.enumValues) ? meta.enumValues.map(function (e) {return Object.assign({}, e);}) : [];
+      }
+
+      enumManagerState = {
+        visible: true,
+        commandId: commandId === '' ? null : commandId,
+        varName,
+        enumValues: currentEnumValues,
+        editIndex: null,
+        editTitle: '',
+        editValue: '',
+        editDescription: '',
+      };
+      render();
+    });
+  });
 
   document.querySelectorAll('.new-command-group-tag').forEach(function (tagButton) {
     tagButton.addEventListener('click', function () {
@@ -1529,7 +1670,7 @@ function bindAddCommandTabEvents() {
 
   if (cancelButton) {
     cancelButton.addEventListener('click', function () {
-      uiState.newCommandDraft = {visible: false, title: '', template: '', description: '', groupIds: []};
+      uiState.newCommandDraft = {visible: false, title: '', template: '', description: '', groupIds: [], helpUrl: '', variableMeta: {}};
       uiState.activeTab = 'commands';
       render();
     });
@@ -1549,20 +1690,29 @@ function bindAddCommandTabEvents() {
       const titleInput = document.getElementById('new-command-title');
       const descriptionInput = document.getElementById('new-command-description');
       const templateInput = document.getElementById('new-command-template');
+      const helpUrlInputEl = document.getElementById('new-command-help-url');
 
       const title = titleInput ? titleInput.value.trim() : '';
       const description = descriptionInput ? descriptionInput.value.trim() : '';
       const commandTemplate = templateInput ? templateInput.value.trim() : '';
+      const helpUrl = helpUrlInputEl ? helpUrlInputEl.value.trim() : '';
       const groupIds = uiState.newCommandDraft.groupIds;
+      const variableMeta = uiState.newCommandDraft.variableMeta || {};
 
-      if (!title || !commandTemplate) {
-        showNotice('Command title and template are required.');
+      if (title.length < 3) {
+        showError('Command Title must be at least 3 characters.');
+        render();
+        return;
+      }
+
+      if (!commandTemplate) {
+        showError('Command Template is required.');
         render();
         return;
       }
 
       if (!groupIds.length) {
-        showNotice('Select at least one group.');
+        showError('⚠️ Please select at least one group from the list below.');
         render();
         return;
       }
@@ -1574,10 +1724,12 @@ function bindAddCommandTabEvents() {
         command: commandTemplate,
         categoryId: selectedCategory.id,
         groupIds,
+        ...(helpUrl ? {helpUrl} : {}),
+        ...(Object.keys(variableMeta).length > 0 ? {variableMeta} : {}),
       };
 
       state.data.commands.push(newCommand);
-      uiState.newCommandDraft = {visible: false, title: '', template: '', description: '', groupIds: []};
+      uiState.newCommandDraft = {visible: false, title: '', template: '', description: '', groupIds: [], helpUrl: '', variableMeta: {}};
       uiState.activeTab = 'commands';
       persistDataThenRender('Command added and saved.');
     });
@@ -1597,14 +1749,27 @@ function bindEditTabEvents() {
     syncEditCommandDraftFromDom();
     const draft = uiState.editCommandDraft;
 
-    if (!draft.title || !draft.template) {
-      showNotice('Command title and template are required.');
+    const titleTrimmed = draft.title ? draft.title.trim() : '';
+    const templateTrimmed = draft.template ? draft.template.trim() : '';
+
+    if (titleTrimmed.length < 3) {
+      showError('Command Title must be at least 3 characters.');
       render();
       return;
     }
 
+    if (!templateTrimmed) {
+      showError('Command Template is required.');
+      render();
+      return;
+    }
+
+    // Apply trimmed values
+    draft.title = titleTrimmed;
+    draft.template = templateTrimmed;
+
     if (!draft.groupIds.length) {
-      showNotice('Select at least one group.');
+      showError('⚠️ Please select at least one group from the list below.');
       render();
       return;
     }
@@ -1613,6 +1778,13 @@ function bindEditTabEvents() {
     command.description = draft.description;
     command.command = draft.template;
     command.groupIds = [...draft.groupIds];
+
+    // Save helpUrl
+    if (draft.helpUrl) {
+      command.helpUrl = draft.helpUrl;
+    } else {
+      delete command.helpUrl;
+    }
 
     // Read variable values from DOM before re-render
     document.querySelectorAll('.variable-input').forEach(function (varInput) {
@@ -1666,6 +1838,16 @@ function bindEditTabEvents() {
   if (editCommandTemplateInput) {
     editCommandTemplateInput.addEventListener('input', function () {
       uiState.editCommandDraft.template = editCommandTemplateInput.value;
+      // Preserve cursor position before re-render (to update variables section)
+      const cursorStart = editCommandTemplateInput.selectionStart;
+      const cursorEnd = editCommandTemplateInput.selectionEnd;
+      render();
+      // Restore focus and cursor after re-render
+      const restored = document.getElementById('edit-command-template');
+      if (restored) {
+        restored.focus();
+        restored.setSelectionRange(cursorStart, cursorEnd);
+      }
     });
   }
 
@@ -1700,6 +1882,43 @@ function bindEditTabEvents() {
       draft[variableName] = input.value;
       uiState.commandDrafts[commandId] = draft;
       // No auto-save here — save happens on form submit
+    });
+  });
+
+  // Bind helpUrl input in edit tab
+  const editHelpUrlInput = document.getElementById('edit-command-help-url');
+  if (editHelpUrlInput) {
+    editHelpUrlInput.addEventListener('input', function () {
+      uiState.editCommandDraft.helpUrl = editHelpUrlInput.value;
+    });
+  }
+
+  // Bind Enum Manager buttons in edit tab
+  document.querySelectorAll('.btn-open-enum-manager').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      const varName = btn.dataset.varName;
+      const commandId = btn.dataset.commandId || null;
+
+      let currentEnumValues = [];
+      if (commandId === null || commandId === '') {
+        const meta = uiState.newCommandDraft.variableMeta && uiState.newCommandDraft.variableMeta[varName];
+        currentEnumValues = (meta && meta.type === 'enum' && meta.enumValues) ? meta.enumValues.map(function (e) {return Object.assign({}, e);}) : [];
+      } else {
+        const meta = uiState.editCommandDraft.variableMeta && uiState.editCommandDraft.variableMeta[varName];
+        currentEnumValues = (meta && meta.type === 'enum' && meta.enumValues) ? meta.enumValues.map(function (e) {return Object.assign({}, e);}) : [];
+      }
+
+      enumManagerState = {
+        visible: true,
+        commandId: commandId === '' ? null : commandId,
+        varName,
+        enumValues: currentEnumValues,
+        editIndex: null,
+        editTitle: '',
+        editValue: '',
+        editDescription: '',
+      };
+      render();
     });
   });
 
@@ -1826,6 +2045,8 @@ function bindCommandActionButtons() {
           template: command.command || '',
           description: command.description || '',
           groupIds: [...(command.groupIds || [])],
+          helpUrl: command.helpUrl || '',
+          variableMeta: command.variableMeta ? JSON.parse(JSON.stringify(command.variableMeta)) : {},
         };
       }
 
@@ -1969,6 +2190,31 @@ function bindCommandActionButtons() {
       render();
     });
   }
+
+  // Bind enum select in variable input modal — sync to hidden input
+  document.querySelectorAll('.enum-var-modal-select').forEach(function (select) {
+    select.addEventListener('change', function () {
+      const varName = select.dataset.variableName;
+      const wrap = select.closest('.enum-input-wrap');
+      const customInput = wrap ? wrap.querySelector('.variable-modal-custom-input') : null;
+      const selectedValue = select.value;
+
+      if (selectedValue === '__custom__') {
+        // Show custom input, clear the hidden input so user types
+        if (customInput) {
+          customInput.style.display = '';
+          customInput.focus();
+        }
+      } else {
+        // Set hidden input to the selected enum value, hide custom input
+        if (customInput) {
+          customInput.style.display = 'none';
+          customInput.value = selectedValue;
+        }
+        variableInputState.inputValues[varName] = selectedValue;
+      }
+    });
+  });
 
   // Bind toggle switches in variable input modal
   document.querySelectorAll('.variable-modal-remember-toggle').forEach(function (container) {
@@ -2212,6 +2458,7 @@ function syncEditCommandDraftFromDom() {
   const titleInput = document.getElementById('edit-command-title');
   const descriptionInput = document.getElementById('edit-command-description');
   const templateInput = document.getElementById('edit-command-template');
+  const helpUrlInput = document.getElementById('edit-command-help-url');
 
   if (!titleInput || !templateInput) {
     return;
@@ -2220,6 +2467,9 @@ function syncEditCommandDraftFromDom() {
   uiState.editCommandDraft.title = titleInput.value;
   uiState.editCommandDraft.description = descriptionInput ? descriptionInput.value : '';
   uiState.editCommandDraft.template = templateInput.value;
+  if (helpUrlInput) {
+    uiState.editCommandDraft.helpUrl = helpUrlInput.value;
+  }
 }
 
 function syncEditCommandDraftFromCommand(command) {
@@ -2233,11 +2483,14 @@ function syncEditCommandDraftFromCommand(command) {
       template: command.command || '',
       description: command.description || '',
       groupIds: [...(command.groupIds || [])],
+      helpUrl: command.helpUrl || '',
+      variableMeta: command.variableMeta ? JSON.parse(JSON.stringify(command.variableMeta)) : {},
     };
   }
 }
 
 function showNotice(message) {
+  noticeIsError = false;
   uiState.noticeMessage = message;
 
   if (noticeTimer) {
@@ -2246,9 +2499,26 @@ function showNotice(message) {
 
   noticeTimer = setTimeout(function () {
     uiState.noticeMessage = '';
+    noticeIsError = false;
     render();
     noticeTimer = null;
   }, 3000);
+}
+
+function showError(message) {
+  noticeIsError = true;
+  uiState.noticeMessage = message;
+
+  if (noticeTimer) {
+    clearTimeout(noticeTimer);
+  }
+
+  noticeTimer = setTimeout(function () {
+    uiState.noticeMessage = '';
+    noticeIsError = false;
+    render();
+    noticeTimer = null;
+  }, 4000);
 }
 
 function getMissingVariables(command) {
@@ -2463,6 +2733,268 @@ function escapeAttr(value) {
 
 function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// ─── Enum Manager & Help Link Functions ──────────────────────────────────────
+
+/**
+ * Renders the Enum Manager modal for a specific variable.
+ */
+function renderEnumManagerModal() {
+  const s = enumManagerState;
+  const values = s.enumValues || [];
+
+  const rowsHtml = values.map(function (item, idx) {
+    return `
+      <tr class="enum-row" data-idx="${idx}">
+        <td class="enum-cell-title">${escapeHtml(item.title)}</td>
+        <td class="enum-cell-value"><code>${escapeHtml(item.value)}</code></td>
+        <td class="enum-cell-desc">${escapeHtml(item.description)}</td>
+        <td class="enum-cell-actions">
+          <button type="button" class="btn small secondary btn-enum-edit" data-idx="${idx}" title="Edit">✏️</button>
+          <button type="button" class="btn small danger btn-enum-delete" data-idx="${idx}" title="Delete">✕</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  const editFormHtml = `
+    <div class="enum-add-form">
+      <h4 style="margin:0 0 8px">${s.editIndex !== null ? 'Edit Enum Value' : 'Add Enum Value'}</h4>
+      <div class="enum-form-grid">
+        <label>Title<input id="enum-input-title" class="input" placeholder="e.g. Silent" value="${escapeAttr(s.editTitle)}" autocomplete="off" /></label>
+        <label>Value<input id="enum-input-value" class="input" placeholder="e.g. silent" value="${escapeAttr(s.editValue)}" autocomplete="off" /></label>
+        <label class="enum-form-desc">Description<input id="enum-input-desc" class="input" placeholder="What this option does..." value="${escapeAttr(s.editDescription)}" autocomplete="off" /></label>
+      </div>
+      <div class="row justify-content-flex-end" style="gap:6px;margin-top:8px">
+        <button type="button" class="btn small primary" id="btn-enum-add-confirm">${s.editIndex !== null ? 'Update' : '+ Add'}</button>
+        ${s.editIndex !== null ? '<button type="button" class="btn small secondary action" id="btn-enum-edit-cancel">Cancel Edit</button>' : ''}
+      </div>
+    </div>
+  `;
+
+  return `
+    <div class="modal-overlay" id="enum-manager-overlay">
+      <div class="modal-box enum-manager-box">
+        <div class="row between" style="align-items:center">
+          <h3>Enum Values for <code>\${${escapeHtml(s.varName)}}</code></h3>
+        </div>
+        ${values.length > 0 ? `
+        <div class="table-wrap">
+          <table class="enum-table">
+            <thead><tr>
+              <th>Title</th><th>Value</th><th>Description</th><th style="width:1%"></th>
+            </tr></thead>
+            <tbody>${rowsHtml}</tbody>
+          </table>
+        </div>` : `<p class="muted" style="margin:0">No enum values yet. Add one below.</p>`}
+        ${editFormHtml}
+        <div class="row justify-content-flex-end mt-20">
+          <button class="btn small primary min-w65" id="btn-enum-manager-save">Save</button>
+          <button class="btn small secondary action min-w65" id="btn-enum-manager-cancel">Cancel</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Binds events for the Enum Manager modal.
+ */
+function bindEnumManagerEvents() {
+  // --- Add / Update enum value ---
+  const confirmBtn = document.getElementById('btn-enum-add-confirm');
+  if (confirmBtn) {
+    confirmBtn.addEventListener('click', function () {
+      const titleInput = document.getElementById('enum-input-title');
+      const valueInput = document.getElementById('enum-input-value');
+      const descInput = document.getElementById('enum-input-desc');
+
+      const title = titleInput ? titleInput.value.trim() : '';
+      const value = valueInput ? valueInput.value.trim() : '';
+      const description = descInput ? descInput.value.trim() : '';
+
+      if (!title || !value) {
+        showNotice('Title and Value are required.');
+        return;
+      }
+
+      if (enumManagerState.editIndex !== null) {
+        enumManagerState.enumValues[enumManagerState.editIndex] = {title, value, description};
+        enumManagerState.editIndex = null;
+        enumManagerState.editTitle = '';
+        enumManagerState.editValue = '';
+        enumManagerState.editDescription = '';
+      } else {
+        enumManagerState.enumValues.push({title, value, description});
+        enumManagerState.editTitle = '';
+        enumManagerState.editValue = '';
+        enumManagerState.editDescription = '';
+      }
+
+      render();
+    });
+  }
+
+  // --- Cancel edit ---
+  const cancelEditBtn = document.getElementById('btn-enum-edit-cancel');
+  if (cancelEditBtn) {
+    cancelEditBtn.addEventListener('click', function () {
+      enumManagerState.editIndex = null;
+      enumManagerState.editTitle = '';
+      enumManagerState.editValue = '';
+      enumManagerState.editDescription = '';
+      render();
+    });
+  }
+
+  // --- Edit row buttons ---
+  document.querySelectorAll('.btn-enum-edit').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      const idx = parseInt(btn.dataset.idx, 10);
+      const item = enumManagerState.enumValues[idx];
+      if (!item) {return;}
+      enumManagerState.editIndex = idx;
+      enumManagerState.editTitle = item.title;
+      enumManagerState.editValue = item.value;
+      enumManagerState.editDescription = item.description;
+      render();
+    });
+  });
+
+  // --- Delete row buttons ---
+  document.querySelectorAll('.btn-enum-delete').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      const idx = parseInt(btn.dataset.idx, 10);
+      enumManagerState.enumValues.splice(idx, 1);
+      if (enumManagerState.editIndex === idx) {
+        enumManagerState.editIndex = null;
+        enumManagerState.editTitle = '';
+        enumManagerState.editValue = '';
+        enumManagerState.editDescription = '';
+      }
+      render();
+    });
+  });
+
+  // --- Save enum to command state ---
+  const saveBtn = document.getElementById('btn-enum-manager-save');
+  if (saveBtn) {
+    saveBtn.addEventListener('click', function () {
+      const varName = enumManagerState.varName;
+      const commandId = enumManagerState.commandId;
+      const enumValues = enumManagerState.enumValues.slice();
+
+      // Apply to the correct draft's variableMeta
+      if (commandId === null) {
+        // New command context
+        if (!uiState.newCommandDraft.variableMeta) {
+          uiState.newCommandDraft.variableMeta = {};
+        }
+        if (enumValues.length > 0) {
+          uiState.newCommandDraft.variableMeta[varName] = {type: 'enum', enumValues};
+        } else {
+          delete uiState.newCommandDraft.variableMeta[varName];
+        }
+      } else {
+        // Edit command context — find command and update
+        const command = (state.data.commands || []).find(function (c) {return c.id === commandId;});
+        if (command) {
+          if (!command.variableMeta) {
+            command.variableMeta = {};
+          }
+          if (enumValues.length > 0) {
+            command.variableMeta[varName] = {type: 'enum', enumValues};
+          } else {
+            delete command.variableMeta[varName];
+            if (Object.keys(command.variableMeta).length === 0) {
+              delete command.variableMeta;
+            }
+          }
+        }
+        // Also update editCommandDraft
+        if (!uiState.editCommandDraft.variableMeta) {
+          uiState.editCommandDraft.variableMeta = {};
+        }
+        if (enumValues.length > 0) {
+          uiState.editCommandDraft.variableMeta[varName] = {type: 'enum', enumValues};
+        } else {
+          delete uiState.editCommandDraft.variableMeta[varName];
+        }
+      }
+
+      enumManagerState = {
+        visible: false, commandId: null, varName: '',
+        enumValues: [], editIndex: null,
+        editTitle: '', editValue: '', editDescription: '',
+      };
+      render();
+    });
+  }
+
+  // --- Cancel ---
+  const cancelBtn = document.getElementById('btn-enum-manager-cancel');
+  if (cancelBtn) {
+    cancelBtn.addEventListener('click', function () {
+      enumManagerState = {
+        visible: false, commandId: null, varName: '',
+        enumValues: [], editIndex: null,
+        editTitle: '', editValue: '', editDescription: '',
+      };
+      render();
+    });
+  }
+
+  // --- Click outside to close ---
+  const overlay = document.getElementById('enum-manager-overlay');
+  if (overlay) {
+    overlay.addEventListener('click', function (e) {
+      if (e.target === overlay) {
+        enumManagerState = {
+          visible: false, commandId: null, varName: '',
+          enumValues: [], editIndex: null,
+          editTitle: '', editValue: '', editDescription: '',
+        };
+        render();
+      }
+    });
+  }
+
+  // --- Live input tracking ---
+  const titleInput = document.getElementById('enum-input-title');
+  const valueInput = document.getElementById('enum-input-value');
+  const descInput = document.getElementById('enum-input-desc');
+
+  if (titleInput) {
+    titleInput.addEventListener('input', function () {
+      enumManagerState.editTitle = titleInput.value;
+    });
+  }
+  if (valueInput) {
+    valueInput.addEventListener('input', function () {
+      enumManagerState.editValue = valueInput.value;
+    });
+  }
+  if (descInput) {
+    descInput.addEventListener('input', function () {
+      enumManagerState.editDescription = descInput.value;
+    });
+  }
+}
+
+/**
+ * Binds click events on cmd-title-link elements (help links in tables).
+ */
+function bindCmdTitleLinks() {
+  document.querySelectorAll('.cmd-title-link').forEach(function (link) {
+    link.addEventListener('click', function (e) {
+      e.preventDefault();
+      const url = link.dataset.url;
+      if (url) {
+        vscode.postMessage({type: 'openExternalUrl', payload: {url}});
+      }
+    });
+  });
 }
 
 // ─── AI UI Render Functions ───────────────────────────────────────────────────
