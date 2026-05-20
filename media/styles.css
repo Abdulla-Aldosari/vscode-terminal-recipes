@@ -338,7 +338,7 @@ select.input:focus {
 }
 
 .delete-confirm-command-name {
-  font-size: 1.125rem;
+  font-size: 1rem;
   color: var(--vscode-textLink-foreground);
   margin: 0;
 }
@@ -442,7 +442,7 @@ td.actions-cell {
   font-size: 0.75rem;
 }
 
-.actions-cell {  
+.actions-cell {
   width: 1%;
   display: flex;
   flex-wrap: nowrap;
@@ -954,12 +954,51 @@ code {
   background: var(--vscode-list-hoverBackground, color-mix(in srgb, var(--vscode-editor-background) 80%, var(--vscode-foreground)));
 }
 
-.col-toggle-checkbox {
-  width: 13px;
-  height: 13px;
+/* ===== Custom Checkbox (VS Code style) ===== */
+
+input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
   flex-shrink: 0;
-  accent-color: var(--vscode-button-background);
   cursor: pointer;
+  border: 1px solid var(--vscode-settings-checkboxBorder, var(--vscode-input-border));
+  border-radius: 3px;
+  background: var(--vscode-settings-checkboxBackground, var(--vscode-input-background));
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  transition: background 0.1s, border-color 0.1s;
+}
+
+input[type="checkbox"]:focus {
+  outline: 1px solid var(--vscode-focusBorder);
+  outline-offset: -1px;
+}
+
+/* input[type="checkbox"]:checked {
+  background: var(--vscode-settings-checkboxBackground, var(--vscode-button-background));
+  border-color: var(--vscode-checkbox-selectBorder, var(--vscode-button-background));
+} */
+
+input[type="checkbox"]:checked::after {
+  content: '';
+  display: block;
+  width: 10.6px;
+  height: 5px;
+  border-left: 1.6px solid var(--vscode-foreground, var(--vscode-button-foreground));
+  border-bottom: 1.6px solid var(--vscode-foreground, var(--vscode-button-foreground));
+  transform: rotate(-45deg) translateX(1.6px) translateY(-1.5px);
+  position: absolute;
+}
+
+
+
+.col-toggle-checkbox {
+  flex-shrink: 0;
 }
 
 .col-toggle-label {
