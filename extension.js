@@ -3,6 +3,8 @@ const fs = require('fs/promises');
 const os = require('os');
 const path = require('path');
 const crypto = require('crypto');
+const { generateWithAI } = require('./ai/factory');
+const { DEFAULT_SYSTEM_INSTRUCTION } = require('./ai/systemInstruction');
 
 const GLOBAL_DIR = path.join(os.homedir(), '.vscode-terminal-recipes');
 const GLOBAL_COMMANDS_FILE = path.join(GLOBAL_DIR, 'commands.json');
@@ -70,6 +72,26 @@ function activate(context) {
 
         if (message.type === 'openLocalVariablesFile') {
           await openLocalVariablesFile();
+          return;
+        }
+
+        if (message.type === 'aiGetSettings') {
+          await handleAiGetSettings(panel, context);
+          return;
+        }
+
+        if (message.type === 'aiSaveSettings') {
+          await handleAiSaveSettings(panel, context, message.payload);
+          return;
+        }
+
+        if (message.type === 'aiGenerate') {
+          await handleAiGenerate(panel, context, message.payload);
+          return;
+        }
+
+        if (message.type === 'aiInsert') {
+          await handleAiInsert(panel, message.payload);
           return;
         }
       },
@@ -758,6 +780,230 @@ function getWebviewHtml(webview, extensionUri) {
   <script nonce="${nonce}" src="${scriptUri}"></script>
 </body>
 </html>`;
+}
+
+// ─── AI Handlers ─────────────────────────────────────────────────────────────
+
+/**
+ * Returns current AI provider name and whether each provider has a saved API key.
+ */
+async function handleAiGetSettings(panel, context) {
+  const providerName = vscode.workspace
+    .getConfiguration('terminalRecipes')
+    .get('aiProvider') || 'gemini';
+
+  const providers = ['gemini', 'openai', 'anthropic'];
+  const keyStatus = {};
+  for (const p of providers) {
+    const key = await context.secrets.get(`${p}_key`);
+    keyStatus[p] = Boolean(key && key.trim());
+  }
+
+  await panel.webview.postMessage({
+    type: 'aiSettingsResult',
+    payload: { providerName, keyStatus },
+  });
+}
+
+/**
+ * Saves AI provider selection and API key to VS Code secrets.
+ * @param {{ providerName: string, apiKey: string }} payload
+ */
+async function handleAiSaveSettings(panel, context, payload) {
+  try {
+    const providerName = payload && typeof payload.providerName === 'string' ? payload.providerName : '';
+    const apiKey = payload && typeof payload.apiKey === 'string' ? payload.apiKey.trim() : '';
+
+    if (!providerName) {
+      throw new Error('Provider name is required.');
+    }
+
+    await vscode.workspace
+      .getConfiguration('terminalRecipes')
+      .update('aiProvider', providerName, vscode.ConfigurationTarget.Global);
+
+    if (apiKey) {
+      await context.secrets.store(`${providerName}_key`, apiKey);
+    }
+
+    await panel.webview.postMessage({
+      type: 'aiSaveSettingsResult',
+      payload: { success: true },
+    });
+  } catch (error) {
+    await panel.webview.postMessage({
+      type: 'aiSaveSettingsResult',
+      payload: { success: false, message: error instanceof Error ? error.message : 'Unknown error' },
+    });
+  }
+}
+
+/**
+ * Runs AI generation and returns results back to the webview.
+ * @param {{ mode: 'full'|'single', prompt: string, categoryId?: string, groupId?: string }} payload
+ */
+async function handleAiGenerate(panel, context, payload) {
+  try {
+    const mode = payload && payload.mode === 'single' ? 'single' : 'full';
+    const prompt = payload && typeof payload.prompt === 'string' ? payload.prompt.trim() : '';
+    const categoryId = payload && typeof payload.categoryId === 'string' ? payload.categoryId : '';
+    const groupId = payload && typeof payload.groupId === 'string' ? payload.groupId : '';
+
+    if (!prompt) {
+      throw new Error('Prompt is required.');
+    }
+
+    const providerName = vscode.workspace
+      .getConfiguration('terminalRecipes')
+      .get('aiProvider') || 'gemini';
+
+    const apiKey = await context.secrets.get(`${providerName}_key`);
+    if (!apiKey || !apiKey.trim()) {
+      throw new Error(`No API key found for provider "${providerName}". Please configure it in AI Settings.`);
+    }
+
+    const customSystemInstruction = vscode.workspace
+      .getConfiguration('terminalRecipes')
+      .get('customSystemInstructions') || '';
+
+    const result = await generateWithAI({
+      providerName,
+      apiKey: apiKey.trim(),
+      prompt,
+      mode,
+      customSystemInstruction: customSystemInstruction.trim() || undefined,
+      categoryId,
+      groupId,
+    });
+
+    await panel.webview.postMessage({
+      type: 'aiGenerateResult',
+      payload: { success: true, mode, result },
+    });
+  } catch (error) {
+    await panel.webview.postMessage({
+      type: 'aiGenerateResult',
+      payload: { success: false, message: classifyAiError(error) },
+    });
+  }
+}
+
+/**
+ * Inserts selected AI-generated commands (and optionally a new category) into the data file.
+ * @param {{ mode: 'full'|'single', category?: object, commands: object[] }} payload
+ */
+async function handleAiInsert(panel, payload) {
+  try {
+    const mode = payload && payload.mode === 'single' ? 'single' : 'full';
+    const selectedCommands = Array.isArray(payload && payload.commands) ? payload.commands : [];
+
+    if (!selectedCommands.length) {
+      throw new Error('No commands selected for insertion.');
+    }
+
+    const data = await readGlobalCommandsData();
+
+    if (mode === 'full' && payload.category) {
+      // Add new category (only if it doesn't exist yet)
+      const existingCategory = data.categories.find(function (c) {
+        return c.id === payload.category.id;
+      });
+
+      if (!existingCategory) {
+        data.categories.push({
+          id: payload.category.id,
+          title: payload.category.title,
+          groups: payload.category.groups || [],
+        });
+      } else {
+        // Merge new groups into existing category
+        const existingGroupIds = new Set(existingCategory.groups.map(function (g) { return g.id; }));
+        for (const group of (payload.category.groups || [])) {
+          if (!existingGroupIds.has(group.id)) {
+            existingCategory.groups.push(group);
+          }
+        }
+      }
+    }
+
+    // Add selected commands (skip duplicates by ID)
+    const existingCommandIds = new Set(data.commands.map(function (c) { return c.id; }));
+    for (const cmd of selectedCommands) {
+      if (!existingCommandIds.has(cmd.id)) {
+        data.commands.push(cmd);
+        existingCommandIds.add(cmd.id);
+      }
+    }
+
+    const normalizedData = normalizeCommandsData(data);
+    await writeGlobalCommandsData(normalizedData);
+
+    await panel.webview.postMessage({
+      type: 'aiInsertResult',
+      payload: { success: true, count: selectedCommands.length },
+    });
+
+    await postState(panel);
+  } catch (error) {
+    await panel.webview.postMessage({
+      type: 'aiInsertResult',
+      payload: { success: false, message: error instanceof Error ? error.message : 'Unknown error' },
+    });
+  }
+}
+
+/**
+ * Classifies an AI provider error into a user-friendly message.
+ * Works universally across Gemini, OpenAI, and Anthropic since all use
+ * standard HTTP status codes and common error keywords.
+ *
+ * @param {Error} error
+ * @returns {string} A clean, readable error message
+ */
+function classifyAiError(error) {
+  const raw = (error && error.message) ? error.message.toLowerCase() : '';
+
+  if (raw.includes('401') || raw.includes('unauthorized') || raw.includes('api_key') || raw.includes('api key') || raw.includes('invalid key')) {
+    return 'Invalid or missing API key. Please check your AI Settings (⚙️ AI Settings button).';
+  }
+
+  if (raw.includes('403') || raw.includes('forbidden') || raw.includes('permission') || raw.includes('location') || raw.includes('region') || raw.includes('country')) {
+    return 'Access denied. The service may not be supported in your region, or your account lacks the required permissions.';
+  }
+
+  if (raw.includes('429') || raw.includes('rate limit') || raw.includes('quota') || raw.includes('exhausted') || raw.includes('too many requests')) {
+    return 'Rate limit exceeded. You have sent too many requests. Please wait a moment and try again.';
+  }
+
+  if (raw.includes('400') || raw.includes('bad request') || raw.includes('invalid json') || raw.includes('invalid request')) {
+    return 'Bad request. The AI provider rejected the input. Try rephrasing your prompt.';
+  }
+
+  if (raw.includes('404') || raw.includes('not found') || raw.includes('model') && raw.includes('supported')) {
+    return 'The selected AI model was not found or is no longer supported. Please check the provider settings.';
+  }
+
+  if (raw.includes('503') || raw.includes('500') || raw.includes('502') || raw.includes('overloaded') || raw.includes('high demand') || raw.includes('service unavailable') || raw.includes('capacity')) {
+    return 'The AI service is currently overloaded or temporarily unavailable. Please try again in a few moments.';
+  }
+
+  if (raw.includes('safety') || raw.includes('blocked') || raw.includes('content policy') || raw.includes('policy violation')) {
+    return 'The response was blocked by the provider\'s safety or content policy. Try rephrasing your prompt.';
+  }
+
+  if (raw.includes('timeout') || raw.includes('timed out') || raw.includes('etimedout') || raw.includes('econnrefused') || raw.includes('enotfound') || raw.includes('fetch') || raw.includes('network')) {
+    return 'Network error. Please check your internet connection and try again.';
+  }
+
+  // Fallback: return a cleaned version of the original error message
+  const originalMessage = (error && error.message) ? error.message : 'Unknown error';
+  // Strip verbose SDK prefixes like "[GoogleGenerativeAI Error]: Error fetching from ..."
+  const cleaned = originalMessage
+    .replace(/\[.*?Error\]:\s*/i, '')
+    .replace(/Error fetching from https?:\/\/[^\s]+:\s*/i, '')
+    .trim();
+
+  return cleaned || 'An unexpected error occurred. Please try again.';
 }
 
 module.exports = {

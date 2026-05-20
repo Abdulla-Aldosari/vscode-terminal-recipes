@@ -152,7 +152,7 @@ body {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
-  align-items: flex-end;
+  align-items: center;
 }
 
 .flex-end {
@@ -278,6 +278,7 @@ select.input:focus {
 .btn.secondary {
   background: var(--vscode-button-secondaryBackground);
   color: var(--vscode-button-secondaryForeground);
+  border-color: var(--vscode-button-border);
 }
 
 .btn.success {
@@ -430,6 +431,7 @@ td.actions-cell {
 .template-cell {
   white-space: pre-wrap;
   padding: 6px 8px;
+  margin-block: auto;
   border-radius: 4px;
   background-color: var(--vscode-textPreformat-background);
   color: var(--vscode-textPreformat-foreground);
@@ -440,11 +442,10 @@ td.actions-cell {
   font-size: 0.75rem;
 }
 
-.actions-cell {
-  vertical-align: middle !important;
-  min-width: 250px;
+.actions-cell {  
+  width: 1%;
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 6px;
 }
 
@@ -828,6 +829,7 @@ code {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
 /* ===== recent Table - Last Run Column ===== */
 .recent-table td:nth-child(3) {
   width: 1%;
@@ -837,6 +839,7 @@ code {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
 /* ===== recent Table - x Runs Column ===== */
 .recent-table td:nth-child(4) {
   width: 1%;
@@ -844,6 +847,7 @@ code {
   min-width: 70px;
   white-space: nowrap;
 }
+
 /* ===== recent Table - Actions Column ===== */
 .recent-table td:last-child {
   width: 1%;
@@ -853,7 +857,7 @@ code {
 
 /* ===== Commands Table - Title Column ===== */
 
-.commands-table td:first-child {
+.commands-table.main-table td:first-child {
   width: 1%;
   max-width: 250px;
   min-width: 145px;
@@ -863,12 +867,12 @@ code {
 }
 
 /* ===== Commands Table - Template Column ===== */
-.commands-table td:nth-child(3) {
+.commands-table.main-table td:nth-child(3) {
   min-width: 450px;
 }
 
 /* ===== Commands Table - Groups Column ===== */
-.commands-table td:nth-last-child(2) {
+.commands-table.main-table td:nth-last-child(2) {
   white-space: normal;
   width: 1%;
   max-width: 180px;
@@ -876,18 +880,18 @@ code {
 }
 
 /* ===== Commands Table - Actions Column ===== */
-.commands-table td:last-child {
+.commands-table.main-table td:last-child {
   width: 1%;
 }
 
 /* ===== Commands Table - Hide Columns ===== */
-.commands-table.hide-description th:nth-child(2),
-.commands-table.hide-description td:nth-child(2) {
+.commands-table.main-table.hide-description th:nth-child(2),
+.commands-table.main-table.hide-description td:nth-child(2) {
   display: none;
 }
 
-.commands-table.hide-groups th:nth-child(4),
-.commands-table.hide-groups td:nth-child(4) {
+.commands-table.main-table.hide-groups th:nth-child(4),
+.commands-table.main-table.hide-groups td:nth-child(4) {
   display: none;
 }
 
@@ -961,6 +965,128 @@ code {
 .col-toggle-label {
   flex: 1;
   white-space: nowrap;
+}
+
+/* ===== AI Feature Styles ===== */
+
+.ai-settings-btn {
+  border: 1px solid color-mix(in srgb, var(--vscode-button-background) 50%, transparent) !important;
+}
+
+.ai-create-btn {
+  white-space: nowrap;
+  flex-shrink: 0;
+  border: 1px solid color-mix(in srgb, var(--vscode-button-background) 50%, transparent) !important;
+  color: var(--vscode-button-secondaryForeground) !important;
+}
+
+.ai-create-btn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--vscode-button-background) 15%, var(--vscode-button-secondaryBackground)) !important;
+}
+
+/* AI Settings modal key status */
+.ai-key-status {
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+.ai-key-ok {
+  color: #2ea043;
+}
+
+.ai-key-missing {
+  opacity: 0.8;
+}
+
+/* AI Error message */
+.ai-error-msg {
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: color-mix(in srgb, #d1242f 12%, var(--vscode-editor-background));
+  border: 1px solid color-mix(in srgb, #d1242f 35%, transparent);
+  font-size: 0.83rem;
+  color: var(--vscode-editor-foreground);
+}
+
+/* AI Prompt modal */
+.ai-prompt-box {
+  max-width: 560px !important;
+}
+
+.ai-prompt-box h3 {
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+/* AI Loading overlay */
+.ai-loading-box {
+  width: auto !important;
+  min-width: 220px;
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px !important;
+  padding: 28px 36px !important;
+}
+
+/* AI Spinner */
+.ai-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid color-mix(in srgb, var(--vscode-button-background) 25%, transparent);
+  border-top-color: var(--vscode-button-background);
+  border-radius: 50%;
+  animation: ai-spin 0.8s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes ai-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* AI Results modal */
+.ai-results-box {
+  width: min(1300px, 96vw) !important;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+/* AI Results table */
+.ai-results-table {
+  min-width: 500px;
+}
+
+table.commands-table.ai-results-table td:first-child {
+  width: 1%;
+  min-width: 120px;
+  vertical-align: middle;
+  white-space: normal;
+}
+
+table.commands-table.ai-results-table td:nth-child(2) {
+  width: 1%;
+  min-width: 120px;
+  vertical-align: middle;
+  white-space: normal;
+}
+
+table.commands-table.ai-results-table td:nth-child(3) {
+  width: 1%;
+  min-width: 200px;
+  vertical-align: middle;
+}
+
+table.commands-table.ai-results-table td:last-child {
+  width: 0%;
+}
+
+
+/* Unchecked row styling */
+.ai-row-unchecked td {
+  opacity: 0.45;
 }
 
 @media (max-width: 920px) {

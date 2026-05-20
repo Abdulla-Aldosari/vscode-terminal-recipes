@@ -70,6 +70,23 @@ let manageModalState = {
   value: '',
 };
 
+// AI feature state
+let aiState = {
+  view: null,          // null | 'settings' | 'prompt' | 'loading' | 'results'
+  mode: null,          // 'full' | 'single'
+  prompt: '',
+  result: null,        // AI result object from extension
+  categoryId: '',      // for single mode: pre-selected category
+  groupId: '',         // for single mode: pre-selected group
+  checkedIds: {},      // { [commandId]: boolean }
+  filterGroupId: 'all',
+  providerName: 'gemini',
+  keyStatus: { gemini: false, openai: false, anthropic: false },
+  settingsProviderName: 'gemini',
+  apiKeyInput: '',
+  error: '',
+};
+
 const state = {
   data: {
     version: 1,
@@ -147,6 +164,65 @@ window.addEventListener('message', function (event) {
       }
     }
     // No render() here to avoid focus loss while editing
+  }
+
+  if (message.type === 'aiSettingsResult') {
+    if (message.payload) {
+      aiState.providerName = message.payload.providerName || 'gemini';
+      aiState.settingsProviderName = message.payload.providerName || 'gemini';
+      aiState.keyStatus = message.payload.keyStatus || { gemini: false, openai: false, anthropic: false };
+    }
+    render();
+    return;
+  }
+
+  if (message.type === 'aiSaveSettingsResult') {
+    if (message.payload && message.payload.success) {
+      // Re-fetch settings to refresh keyStatus
+      vscode.postMessage({ type: 'aiGetSettings' });
+      showNotice('AI settings saved.');
+    } else {
+      showNotice(`Failed to save settings: ${message.payload && message.payload.message ? message.payload.message : 'Unknown error'}`);
+      render();
+    }
+    return;
+  }
+
+  if (message.type === 'aiGenerateResult') {
+    if (message.payload && message.payload.success) {
+      aiState.result = message.payload.result;
+      aiState.mode = message.payload.mode;
+      // Initialize all commands as checked
+      const cmds = message.payload.mode === 'full'
+        ? (message.payload.result.commands || [])
+        : [message.payload.result];
+      const checked = {};
+      cmds.forEach(function (cmd) { checked[cmd.id] = true; });
+      aiState.checkedIds = checked;
+      aiState.filterGroupId = 'all';
+      aiState.error = '';
+      aiState.view = 'results';
+    } else {
+      aiState.error = message.payload && message.payload.message ? message.payload.message : 'Unknown error';
+      aiState.view = 'prompt';
+    }
+    render();
+    return;
+  }
+
+  if (message.type === 'aiInsertResult') {
+    if (message.payload && message.payload.success) {
+      aiState.view = null;
+      aiState.result = null;
+      aiState.prompt = '';
+      aiState.error = '';
+      showNotice(`✅ Inserted ${message.payload.count} command(s) successfully.`);
+    } else {
+      aiState.error = message.payload && message.payload.message ? message.payload.message : 'Unknown error';
+      aiState.view = 'results';
+    }
+    render();
+    return;
   }
 });
 
@@ -273,6 +349,7 @@ function render() {
           <button id="btn-open-local-variables-file" class="btn small secondary" ${state.workspaceFolder ? '' : 'disabled'} title="${state.workspaceFolder ? '' : 'No workspace open'}">Open Local Variables JSON</button>
           <button id="btn-open-global-variables-file" class="btn small secondary">Open Global Variables JSON</button>
           <button id="btn-open-commands-file" class="btn small secondary">Open Global JSON</button>
+          <button id="btn-ai-settings" class="btn small secondary ai-settings-btn" title="AI Settings">⚙️ AI Settings</button>
         </div>
       </header>
       <p class="meta">Workspace: <code>${escapeHtml(state.workspaceFolder || 'No workspace open')}</code></p>
@@ -294,10 +371,15 @@ function render() {
       ${renderVariableInputModal()}
       ${renderRunConfirmModal()}
       ${renderDeleteConfirmModal()}
+      ${aiState.view === 'settings' ? renderAiSettingsModal() : ''}
+      ${aiState.view === 'prompt' ? renderAiPromptModal() : ''}
+      ${aiState.view === 'loading' ? renderAiLoadingOverlay() : ''}
+      ${aiState.view === 'results' ? renderAiResultsModal() : ''}
     </div>
   `;
 
   bindEvents();
+  bindAiEvents();
 }
 
 function renderManageTab() {
@@ -313,7 +395,10 @@ function renderManageTab() {
         <div class="manage-panel">
           <div class="manage-panel-header">
             <h2 class="manage-panel-title">Categories</h2>
-            <button class="btn primary small" id="btn-open-add-category-modal">+ Add New Category</button>
+            <div class="row" style="gap:6px">
+              <button class="btn small secondary ai-create-btn" id="btn-create-with-ai" title="Generate a full category with groups and commands using AI">✨ Create with AI</button>
+              <button class="btn primary small" id="btn-open-add-category-modal">+ Add New Category</button>
+            </div>
           </div>
           <div class="manage-list">
             ${categories.length === 0 ? `<p class="muted manage-empty">No categories yet.</p>` : ''}
@@ -435,6 +520,7 @@ function renderCommandsTab(selectedCategory) {
         ${groups.map(function (group) {
     return `<button class="tag group-filter-tag ${uiState.selectedGroupId === group.id ? 'active' : ''}" data-group-id="${escapeAttr(group.id)}">${escapeHtml(group.title)}</button>`;
   }).join('')}
+        <button class="btn small secondary ai-create-btn" id="btn-add-with-ai" style="margin-left:auto" title="Generate a command using AI">✨ Add with AI</button>
       </div>
       <div class="table-panel">
         ${renderCommandsTable(commands, groups)}
@@ -485,7 +571,7 @@ function renderCommandsTable(commands, groups) {
   }
 
   const tableClasses = [
-    'commands-table',
+    'commands-table main-table',
     !uiState.columnVisibility.description ? 'hide-description' : '',
     !uiState.columnVisibility.groups ? 'hide-groups' : '',
   ].filter(Boolean).join(' ');
@@ -2377,6 +2463,386 @@ function escapeAttr(value) {
 
 function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// ─── AI UI Render Functions ───────────────────────────────────────────────────
+
+function renderAiSettingsModal() {
+  const providers = [
+    { value: 'gemini',    label: 'Google Gemini (gemini-flash-latest)' },
+    { value: 'openai',    label: 'OpenAI ChatGPT (gpt-4.1)' },
+    { value: 'anthropic', label: 'Anthropic Claude (claude-sonnet-4-6)' },
+  ];
+
+  const selectedProvider = aiState.settingsProviderName;
+  const hasKey = aiState.keyStatus[selectedProvider];
+
+  return `
+    <div class="modal-overlay" id="ai-settings-overlay">
+      <div class="modal-box">
+        <h3>⚙️ AI Settings</h3>
+        <label style="display:grid;gap:6px;font-size:0.86rem;">
+          AI Provider
+          <div class="select-container">
+            <select id="ai-provider-select" class="input">
+              ${providers.map(function (p) {
+                return `<option value="${escapeAttr(p.value)}" ${selectedProvider === p.value ? 'selected' : ''}>${escapeHtml(p.label)}</option>`;
+              }).join('')}
+            </select>
+          </div>
+        </label>
+        <label style="display:grid;gap:6px;font-size:0.86rem;">
+          API Key for <strong>${escapeHtml(selectedProvider)}</strong>
+          ${hasKey ? '<span class="ai-key-status ai-key-ok">✅ Key saved</span>' : '<span class="ai-key-status ai-key-missing">⚠️ No key saved</span>'}
+          <input
+            id="ai-api-key-input"
+            class="input"
+            type="password"
+            placeholder="${hasKey ? 'Enter new key to update...' : 'Enter your API key...'}"
+            value="${escapeAttr(aiState.apiKeyInput)}"
+            autocomplete="off"
+          />
+        </label>
+        <div class="row justify-content-flex-end mt-20">
+          <button class="btn small primary min-w65" id="btn-ai-settings-save">Save</button>
+          <button class="btn small secondary action min-w65" id="btn-ai-settings-cancel">Close</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderAiPromptModal() {
+  const isFullMode = aiState.mode === 'full';
+  const selectedCategory = getSelectedCategory();
+  const groups = getSelectedCategoryGroups();
+  const selectedGroup = groups.find(function (g) { return g.id === aiState.groupId; });
+  const contextLabel = isFullMode
+    ? '✨ Create a new category with all its groups and commands'
+    : `✨ Add a single command to group: <strong>${escapeHtml(selectedGroup ? selectedGroup.title : aiState.groupId)}</strong> in <strong>${escapeHtml(selectedCategory ? selectedCategory.title : aiState.categoryId)}</strong>`;
+
+  return `
+    <div class="modal-overlay" id="ai-prompt-overlay">
+      <div class="modal-box ai-prompt-box">
+        <h3>${contextLabel}</h3>
+        ${aiState.error ? `<p class="ai-error-msg">❌ ${escapeHtml(aiState.error)}</p>` : ''}
+        <label style="display:grid;gap:6px;font-size:0.86rem;">
+          Describe what you need
+          <textarea
+            id="ai-prompt-textarea"
+            class="input"
+            rows="4"
+            placeholder="${isFullMode ? 'e.g. All commands for CodeIgniter 4 framework' : 'e.g. A command to create a new CodeIgniter 4 model'}"
+          >${escapeHtml(aiState.prompt)}</textarea>
+        </label>
+        <div class="row justify-content-flex-end mt-20">
+          <button class="btn small primary" id="btn-ai-generate">✨ Generate</button>
+          <button class="btn small secondary action min-w65" id="btn-ai-prompt-cancel">Cancel</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderAiLoadingOverlay() {
+  return `
+    <div class="modal-overlay" id="ai-loading-overlay">
+      <div class="modal-box ai-loading-box">
+        <div class="ai-spinner" aria-label="Loading..."></div>
+        <p style="margin:0;font-size:0.9rem;opacity:0.8">Generating commands with AI...</p>
+      </div>
+    </div>
+  `;
+}
+
+function renderAiResultsModal() {
+  if (!aiState.result) {
+    return '';
+  }
+
+  const isFullMode = aiState.mode === 'full';
+  const allCommands = isFullMode ? (aiState.result.commands || []) : [aiState.result];
+  const category = isFullMode ? aiState.result.category : null;
+  const groups = isFullMode ? (aiState.result.category ? aiState.result.category.groups || [] : []) : getSelectedCategoryGroups();
+
+  // Filter commands by active group tab
+  const filteredCommands = aiState.filterGroupId === 'all'
+    ? allCommands
+    : allCommands.filter(function (cmd) {
+        return (cmd.groupIds || []).includes(aiState.filterGroupId);
+      });
+
+  const selectedCount = Object.values(aiState.checkedIds).filter(Boolean).length;
+
+  // Build group tabs for filtering
+  const groupTabs = isFullMode && groups.length > 0
+    ? `
+      <div class="group-tags-row">
+        <button class="tag group-filter-tag ${aiState.filterGroupId === 'all' ? 'active' : ''}" data-ai-filter="all">All (${allCommands.length})</button>
+        ${groups.map(function (g) {
+          const count = allCommands.filter(function (cmd) { return (cmd.groupIds || []).includes(g.id); }).length;
+          return `<button class="tag group-filter-tag ${aiState.filterGroupId === g.id ? 'active' : ''}" data-ai-filter="${escapeAttr(g.id)}">${escapeHtml(g.title)} (${count})</button>`;
+        }).join('')}
+      </div>`
+    : '';
+
+  return `
+    <div class="modal-overlay" id="ai-results-overlay">
+      <div class="modal-box ai-results-box">
+        <div class="row between" style="align-items:center">
+          <h3>✨ AI Generated Commands</h3>
+          ${isFullMode && category ? `<span class="muted" style="font-size:0.8rem">Category: <strong>${escapeHtml(category.title)}</strong></span>` : ''}
+        </div>
+        ${aiState.error ? `<p class="ai-error-msg">❌ ${escapeHtml(aiState.error)}</p>` : ''}
+        ${groupTabs}
+        <div class="table-wrap">
+          <table class="commands-table ai-results-table">
+            <thead>
+              <tr>
+              <th>Title</th>
+              <th>Description</th>
+              <th>Command</th>
+              <th style="width:32px"><input type="checkbox" id="ai-check-all" ${selectedCount === allCommands.length ? 'checked' : ''} /></th>
+                ${isFullMode ? '<th>Group</th>' : ''}
+              </tr>
+            </thead>
+            <tbody>
+              ${filteredCommands.map(function (cmd) {
+                const isChecked = aiState.checkedIds[cmd.id] !== false;
+                const cmdGroups = isFullMode
+                  ? (cmd.groupIds || []).map(function (gid) {
+                      const g = groups.find(function (gr) { return gr.id === gid; });
+                      return g ? g.title : gid;
+                    }).join(', ')
+                  : '';
+                return `
+                  <tr class="${isChecked ? '' : 'ai-row-unchecked'}">
+                  <td><strong>${escapeHtml(cmd.title)}</strong></td>
+                  <td>${escapeHtml(cmd.description || '-')}</td>
+                  <td><pre class="template-cell">&gt; ${escapeHtml(cmd.command)}</pre></td>
+                  <td style="text-align:center;vertical-align:middle">
+                    <input type="checkbox" class="ai-cmd-checkbox" data-cmd-id="${escapeAttr(cmd.id)}" ${isChecked ? 'checked' : ''} />
+                  </td>
+                    ${isFullMode ? `<td>${escapeHtml(cmdGroups || '-')}</td>` : ''}
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+        <div class="row justify-content-flex-end mt-20">
+          <span class="muted" style="margin-right:auto;font-size:0.8rem">${selectedCount} of ${allCommands.length} selected</span>
+          <button class="btn small primary" id="btn-ai-insert" ${selectedCount === 0 ? 'disabled' : ''}>Insert Selected (${selectedCount})</button>
+          <button class="btn small secondary action min-w65" id="btn-ai-results-cancel">Cancel</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ─── AI UI Bind Functions ─────────────────────────────────────────────────────
+
+function bindAiEvents() {
+  // ⚙️ AI Settings button (in header)
+  const aiSettingsBtn = document.getElementById('btn-ai-settings');
+  if (aiSettingsBtn) {
+    aiSettingsBtn.addEventListener('click', function () {
+      aiState.view = 'settings';
+      aiState.apiKeyInput = '';
+      // Fetch current settings from extension
+      vscode.postMessage({ type: 'aiGetSettings' });
+    });
+  }
+
+  // "Create with AI" button (in manage tab)
+  const createWithAiBtn = document.getElementById('btn-create-with-ai');
+  if (createWithAiBtn) {
+    createWithAiBtn.addEventListener('click', function () {
+      aiState.mode = 'full';
+      aiState.view = 'prompt';
+      aiState.prompt = '';
+      aiState.error = '';
+      render();
+    });
+  }
+
+  // "Add with AI" button (in commands tab)
+  const addWithAiBtn = document.getElementById('btn-add-with-ai');
+  if (addWithAiBtn) {
+    addWithAiBtn.addEventListener('click', function () {
+      const selectedCategory = getSelectedCategory();
+      if (!selectedCategory) { return; }
+      aiState.mode = 'single';
+      aiState.categoryId = selectedCategory.id;
+      aiState.groupId = uiState.selectedGroupId !== 'all' ? uiState.selectedGroupId : '';
+      aiState.view = 'prompt';
+      aiState.prompt = '';
+      aiState.error = '';
+      render();
+    });
+  }
+
+  // --- Settings modal events ---
+  if (aiState.view === 'settings') {
+    const providerSelect = document.getElementById('ai-provider-select');
+    if (providerSelect) {
+      providerSelect.addEventListener('change', function () {
+        aiState.settingsProviderName = providerSelect.value;
+        aiState.apiKeyInput = '';
+        render();
+      });
+    }
+
+    const apiKeyInput = document.getElementById('ai-api-key-input');
+    if (apiKeyInput) {
+      apiKeyInput.addEventListener('input', function () {
+        aiState.apiKeyInput = apiKeyInput.value;
+      });
+    }
+
+    const saveBtn = document.getElementById('btn-ai-settings-save');
+    if (saveBtn) {
+      saveBtn.addEventListener('click', function () {
+        vscode.postMessage({
+          type: 'aiSaveSettings',
+          payload: {
+            providerName: aiState.settingsProviderName,
+            apiKey: aiState.apiKeyInput,
+          },
+        });
+        aiState.view = null;
+        aiState.apiKeyInput = '';
+      });
+    }
+
+    const cancelBtn = document.getElementById('btn-ai-settings-cancel');
+    if (cancelBtn) {
+      cancelBtn.addEventListener('click', function () {
+        aiState.view = null;
+        aiState.apiKeyInput = '';
+        render();
+      });
+    }
+
+    const overlay = document.getElementById('ai-settings-overlay');
+    if (overlay) {
+      overlay.addEventListener('click', function (e) {
+        if (e.target === overlay) {
+          aiState.view = null;
+          aiState.apiKeyInput = '';
+          render();
+        }
+      });
+    }
+  }
+
+  // --- Prompt modal events ---
+  if (aiState.view === 'prompt') {
+    const textarea = document.getElementById('ai-prompt-textarea');
+    if (textarea) {
+      textarea.addEventListener('input', function () {
+        aiState.prompt = textarea.value;
+      });
+      // Focus textarea
+      setTimeout(function () { if (textarea) { textarea.focus(); } }, 50);
+    }
+
+    const generateBtn = document.getElementById('btn-ai-generate');
+    if (generateBtn) {
+      generateBtn.addEventListener('click', function () {
+        const prompt = document.getElementById('ai-prompt-textarea');
+        const promptValue = prompt ? prompt.value.trim() : aiState.prompt.trim();
+        if (!promptValue) {
+          aiState.error = 'Please enter a prompt.';
+          render();
+          return;
+        }
+        aiState.prompt = promptValue;
+        aiState.error = '';
+        aiState.view = 'loading';
+        render();
+
+        vscode.postMessage({
+          type: 'aiGenerate',
+          payload: {
+            mode: aiState.mode,
+            prompt: promptValue,
+            categoryId: aiState.categoryId,
+            groupId: aiState.groupId,
+          },
+        });
+      });
+    }
+
+    const cancelBtn = document.getElementById('btn-ai-prompt-cancel');
+    if (cancelBtn) {
+      cancelBtn.addEventListener('click', function () {
+        aiState.view = null;
+        aiState.error = '';
+        aiState.prompt = '';
+        render();
+      });
+    }
+  }
+
+  // --- Results modal events ---
+  if (aiState.view === 'results') {
+    const checkAll = document.getElementById('ai-check-all');
+    if (checkAll) {
+      checkAll.addEventListener('change', function () {
+        const allCommands = aiState.mode === 'full' ? (aiState.result.commands || []) : [aiState.result];
+        const newChecked = {};
+        allCommands.forEach(function (cmd) { newChecked[cmd.id] = checkAll.checked; });
+        aiState.checkedIds = newChecked;
+        render();
+      });
+    }
+
+    document.querySelectorAll('.ai-cmd-checkbox').forEach(function (checkbox) {
+      checkbox.addEventListener('change', function () {
+        aiState.checkedIds[checkbox.dataset.cmdId] = checkbox.checked;
+        render();
+      });
+    });
+
+    document.querySelectorAll('[data-ai-filter]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        aiState.filterGroupId = btn.dataset.aiFilter;
+        render();
+      });
+    });
+
+    const insertBtn = document.getElementById('btn-ai-insert');
+    if (insertBtn) {
+      insertBtn.addEventListener('click', function () {
+        const allCommands = aiState.mode === 'full' ? (aiState.result.commands || []) : [aiState.result];
+        const selectedCommands = allCommands.filter(function (cmd) {
+          return aiState.checkedIds[cmd.id] !== false;
+        });
+
+        if (!selectedCommands.length) { return; }
+
+        vscode.postMessage({
+          type: 'aiInsert',
+          payload: {
+            mode: aiState.mode,
+            category: aiState.mode === 'full' ? (aiState.result.category || null) : null,
+            commands: selectedCommands,
+          },
+        });
+      });
+    }
+
+    const cancelBtn = document.getElementById('btn-ai-results-cancel');
+    if (cancelBtn) {
+      cancelBtn.addEventListener('click', function () {
+        aiState.view = null;
+        aiState.result = null;
+        aiState.error = '';
+        render();
+      });
+    }
+  }
 }
 
 // Disable right-click context menu unless text is selected
