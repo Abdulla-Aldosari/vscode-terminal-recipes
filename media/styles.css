@@ -361,7 +361,7 @@ select.input:focus {
 .group-tags-row {
   display: flex;
   align-items: center;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   gap: 8px;
   overflow-x: auto;
   padding-bottom: 4px;
@@ -1098,6 +1098,7 @@ input[type="checkbox"]:checked::after {
   min-width: 500px;
 }
 
+/* Title column in ai results table */
 table.commands-table.ai-results-table td:first-child {
   width: 1%;
   min-width: 120px;
@@ -1105,21 +1106,30 @@ table.commands-table.ai-results-table td:first-child {
   white-space: normal;
 }
 
+/* Description column in ai results table */
 table.commands-table.ai-results-table td:nth-child(2) {
   width: 1%;
-  min-width: 120px;
+  min-width: 200px;
   vertical-align: middle;
   white-space: normal;
 }
 
+/* Template column in ai results table */
 table.commands-table.ai-results-table td:nth-child(3) {
+  min-width: 200px;
+  vertical-align: middle;
+}
+
+/* Group column in ai results table (Full Mode Only) */
+table.commands-table.ai-results-table td.ai-Group {
   width: 1%;
   min-width: 200px;
   vertical-align: middle;
 }
 
+/* checkbox Action column in ai results table */
 table.commands-table.ai-results-table td:last-child {
-  width: 0%;
+  width: 0% !important;
 }
 
 

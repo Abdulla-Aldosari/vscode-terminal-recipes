@@ -6,7 +6,7 @@ const uiState = {
   selectedCategoryId: (function () {
     try {
       return localStorage.getItem('selectedCategoryId') || '';
-    } catch { return ''; }
+    } catch {return '';}
   }()),
   selectedGroupId: 'all',
   editingCommandId: null,
@@ -35,7 +35,7 @@ const uiState = {
           groups: parsed.groups !== undefined ? parsed.groups : true,
         };
       }
-    } catch {}
+    } catch { }
     return {description: true, groups: true};
   }()),
 };
@@ -81,7 +81,7 @@ let aiState = {
   checkedIds: {},      // { [commandId]: boolean }
   filterGroupId: 'all',
   providerName: 'gemini',
-  keyStatus: { gemini: false, openai: false, anthropic: false },
+  keyStatus: {gemini: false, openai: false, anthropic: false},
   settingsProviderName: 'gemini',
   apiKeyInput: '',
   error: '',
@@ -170,7 +170,7 @@ window.addEventListener('message', function (event) {
     if (message.payload) {
       aiState.providerName = message.payload.providerName || 'gemini';
       aiState.settingsProviderName = message.payload.providerName || 'gemini';
-      aiState.keyStatus = message.payload.keyStatus || { gemini: false, openai: false, anthropic: false };
+      aiState.keyStatus = message.payload.keyStatus || {gemini: false, openai: false, anthropic: false};
     }
     render();
     return;
@@ -179,7 +179,7 @@ window.addEventListener('message', function (event) {
   if (message.type === 'aiSaveSettingsResult') {
     if (message.payload && message.payload.success) {
       // Re-fetch settings to refresh keyStatus
-      vscode.postMessage({ type: 'aiGetSettings' });
+      vscode.postMessage({type: 'aiGetSettings'});
       showNotice('AI settings saved.');
     } else {
       showNotice(`Failed to save settings: ${message.payload && message.payload.message ? message.payload.message : 'Unknown error'}`);
@@ -197,7 +197,7 @@ window.addEventListener('message', function (event) {
         ? (message.payload.result.commands || [])
         : [message.payload.result];
       const checked = {};
-      cmds.forEach(function (cmd) { checked[cmd.id] = true; });
+      cmds.forEach(function (cmd) {checked[cmd.id] = true;});
       aiState.checkedIds = checked;
       aiState.filterGroupId = 'all';
       aiState.error = '';
@@ -238,7 +238,7 @@ function hydrateState(payload) {
   if (runConfirmState.selectedShellName === null) {
     const profiles = state.terminalProfiles.profiles || [];
     const defaultName = state.terminalProfiles.defaultProfile || '';
-    const defaultProfileEntry = profiles.find(function (p) { return p.name === defaultName; }) || profiles[0] || null;
+    const defaultProfileEntry = profiles.find(function (p) {return p.name === defaultName;}) || profiles[0] || null;
     runConfirmState.selectedShellName = defaultProfileEntry ? defaultProfileEntry.name : null;
     runConfirmState.selectedShellPath = defaultProfileEntry ? defaultProfileEntry.shellPath : null;
   }
@@ -297,7 +297,7 @@ function setSelectedCategory(categoryId) {
   uiState.selectedCategoryId = categoryId;
   try {
     localStorage.setItem('selectedCategoryId', categoryId);
-  } catch {}
+  } catch { }
 }
 
 function getSelectedCategory() {
@@ -1469,7 +1469,7 @@ function bindCommandsTabEvents() {
           // Persist to localStorage
           try {
             localStorage.setItem('columnVisibility', JSON.stringify(uiState.columnVisibility));
-          } catch {}
+          } catch { }
           // Re-render just the table panel without closing the menu
           const tablePanel = document.querySelector('.table-panel');
           if (tablePanel) {
@@ -2469,9 +2469,9 @@ function escapeRegExp(value) {
 
 function renderAiSettingsModal() {
   const providers = [
-    { value: 'gemini',    label: 'Google Gemini (gemini-flash-latest)' },
-    { value: 'openai',    label: 'OpenAI ChatGPT (gpt-4.1)' },
-    { value: 'anthropic', label: 'Anthropic Claude (claude-sonnet-4-6)' },
+    {value: 'gemini', label: 'Google Gemini (gemini-flash-latest)'},
+    {value: 'openai', label: 'OpenAI ChatGPT (gpt-4.1)'},
+    {value: 'anthropic', label: 'Anthropic Claude (claude-sonnet-4-6)'},
   ];
 
   const selectedProvider = aiState.settingsProviderName;
@@ -2486,8 +2486,8 @@ function renderAiSettingsModal() {
           <div class="select-container">
             <select id="ai-provider-select" class="input">
               ${providers.map(function (p) {
-                return `<option value="${escapeAttr(p.value)}" ${selectedProvider === p.value ? 'selected' : ''}>${escapeHtml(p.label)}</option>`;
-              }).join('')}
+    return `<option value="${escapeAttr(p.value)}" ${selectedProvider === p.value ? 'selected' : ''}>${escapeHtml(p.label)}</option>`;
+  }).join('')}
             </select>
           </div>
         </label>
@@ -2516,7 +2516,7 @@ function renderAiPromptModal() {
   const isFullMode = aiState.mode === 'full';
   const selectedCategory = getSelectedCategory();
   const groups = getSelectedCategoryGroups();
-  const selectedGroup = groups.find(function (g) { return g.id === aiState.groupId; });
+  const selectedGroup = groups.find(function (g) {return g.id === aiState.groupId;});
   const contextLabel = isFullMode
     ? '✨ Create a new category with all its groups and commands'
     : `✨ Add a single command to group: <strong>${escapeHtml(selectedGroup ? selectedGroup.title : aiState.groupId)}</strong> in <strong>${escapeHtml(selectedCategory ? selectedCategory.title : aiState.categoryId)}</strong>`;
@@ -2569,8 +2569,8 @@ function renderAiResultsModal() {
   const filteredCommands = aiState.filterGroupId === 'all'
     ? allCommands
     : allCommands.filter(function (cmd) {
-        return (cmd.groupIds || []).includes(aiState.filterGroupId);
-      });
+      return (cmd.groupIds || []).includes(aiState.filterGroupId);
+    });
 
   const selectedCount = Object.values(aiState.checkedIds).filter(Boolean).length;
 
@@ -2580,9 +2580,9 @@ function renderAiResultsModal() {
       <div class="group-tags-row">
         <button class="tag group-filter-tag ${aiState.filterGroupId === 'all' ? 'active' : ''}" data-ai-filter="all">All (${allCommands.length})</button>
         ${groups.map(function (g) {
-          const count = allCommands.filter(function (cmd) { return (cmd.groupIds || []).includes(g.id); }).length;
-          return `<button class="tag group-filter-tag ${aiState.filterGroupId === g.id ? 'active' : ''}" data-ai-filter="${escapeAttr(g.id)}">${escapeHtml(g.title)} (${count})</button>`;
-        }).join('')}
+      const count = allCommands.filter(function (cmd) {return (cmd.groupIds || []).includes(g.id);}).length;
+      return `<button class="tag group-filter-tag ${aiState.filterGroupId === g.id ? 'active' : ''}" data-ai-filter="${escapeAttr(g.id)}">${escapeHtml(g.title)} (${count})</button>`;
+    }).join('')}
       </div>`
     : '';
 
@@ -2602,31 +2602,31 @@ function renderAiResultsModal() {
               <th>Title</th>
               <th>Description</th>
               <th>Command</th>
+              ${isFullMode ? '<th>Group</th>' : ''}
               <th style="width:32px"><input type="checkbox" id="ai-check-all" ${selectedCount === allCommands.length ? 'checked' : ''} /></th>
-                ${isFullMode ? '<th>Group</th>' : ''}
               </tr>
             </thead>
             <tbody>
               ${filteredCommands.map(function (cmd) {
-                const isChecked = aiState.checkedIds[cmd.id] !== false;
-                const cmdGroups = isFullMode
-                  ? (cmd.groupIds || []).map(function (gid) {
-                      const g = groups.find(function (gr) { return gr.id === gid; });
-                      return g ? g.title : gid;
-                    }).join(', ')
-                  : '';
-                return `
+    const isChecked = aiState.checkedIds[cmd.id] !== false;
+    const cmdGroups = isFullMode
+      ? (cmd.groupIds || []).map(function (gid) {
+        const g = groups.find(function (gr) {return gr.id === gid;});
+        return g ? g.title : gid;
+      }).join(', ')
+      : '';
+    return `
                   <tr class="${isChecked ? '' : 'ai-row-unchecked'}">
-                  <td><strong>${escapeHtml(cmd.title)}</strong></td>
-                  <td>${escapeHtml(cmd.description || '-')}</td>
-                  <td><pre class="template-cell">&gt; ${escapeHtml(cmd.command)}</pre></td>
-                  <td style="text-align:center;vertical-align:middle">
-                    <input type="checkbox" class="ai-cmd-checkbox" data-cmd-id="${escapeAttr(cmd.id)}" ${isChecked ? 'checked' : ''} />
-                  </td>
+                    <td><strong>${escapeHtml(cmd.title)}</strong></td>
+                    <td>${escapeHtml(cmd.description || '-')}</td>
+                    <td><pre class="template-cell">&gt; ${escapeHtml(cmd.command)}</pre></td>
                     ${isFullMode ? `<td>${escapeHtml(cmdGroups || '-')}</td>` : ''}
+                    <td style="text-align:center;vertical-align:middle">
+                      <input type="checkbox" class="ai-cmd-checkbox" data-cmd-id="${escapeAttr(cmd.id)}" ${isChecked ? 'checked' : ''} />
+                    </td>
                   </tr>
                 `;
-              }).join('')}
+  }).join('')}
             </tbody>
           </table>
         </div>
@@ -2650,7 +2650,7 @@ function bindAiEvents() {
       aiState.view = 'settings';
       aiState.apiKeyInput = '';
       // Fetch current settings from extension
-      vscode.postMessage({ type: 'aiGetSettings' });
+      vscode.postMessage({type: 'aiGetSettings'});
     });
   }
 
@@ -2671,7 +2671,7 @@ function bindAiEvents() {
   if (addWithAiBtn) {
     addWithAiBtn.addEventListener('click', function () {
       const selectedCategory = getSelectedCategory();
-      if (!selectedCategory) { return; }
+      if (!selectedCategory) {return;}
       aiState.mode = 'single';
       aiState.categoryId = selectedCategory.id;
       aiState.groupId = uiState.selectedGroupId !== 'all' ? uiState.selectedGroupId : '';
@@ -2744,7 +2744,7 @@ function bindAiEvents() {
         aiState.prompt = textarea.value;
       });
       // Focus textarea
-      setTimeout(function () { if (textarea) { textarea.focus(); } }, 50);
+      setTimeout(function () {if (textarea) {textarea.focus();} }, 50);
     }
 
     const generateBtn = document.getElementById('btn-ai-generate');
@@ -2792,7 +2792,7 @@ function bindAiEvents() {
       checkAll.addEventListener('change', function () {
         const allCommands = aiState.mode === 'full' ? (aiState.result.commands || []) : [aiState.result];
         const newChecked = {};
-        allCommands.forEach(function (cmd) { newChecked[cmd.id] = checkAll.checked; });
+        allCommands.forEach(function (cmd) {newChecked[cmd.id] = checkAll.checked;});
         aiState.checkedIds = newChecked;
         render();
       });
@@ -2820,7 +2820,7 @@ function bindAiEvents() {
           return aiState.checkedIds[cmd.id] !== false;
         });
 
-        if (!selectedCommands.length) { return; }
+        if (!selectedCommands.length) {return;}
 
         vscode.postMessage({
           type: 'aiInsert',
