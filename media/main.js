@@ -733,7 +733,7 @@ function renderEditTab() {
   }).join('')}
             </select>
           </div>
-          ${isMoved ? `<span class="muted" style="font-size:0.8rem;color:var(--vscode-charts-yellow,#e9b44c)">⚠️ Moving to new category — (Please select a group from the list below)</span>` : ''}
+          ${isMoved ? `<span class="muted move-category-warning">⚠️ Moving to new category — (Please select a group from the list below)</span>` : ''}
         </div>
         <div class="full-width grouped-tags-wrap">
           <span class="groups-label">Groups:</span>
@@ -907,7 +907,7 @@ function renderVariableInputModal() {
               <div class="variable-row variable-row-enum">
                 <label class="variable-name">\${${escapeHtml(name)}}</label>
                 <div class="enum-input-wrap">
-                  <div class="select-container" style="flex:1">
+                  <div class="select-container select-container-flex">
                     <select class="input enum-var-modal-select" data-variable-name="${escapeAttr(name)}">
                       ${enumMeta.enumValues.map(function (ev) {
         return `<option value="${escapeAttr(ev.value)}" ${currentValue === ev.value ? 'selected' : ''} title="${escapeAttr(ev.description || '')}">${escapeHtml(ev.title)} — ${escapeHtml(ev.value)}</option>`;
@@ -916,11 +916,10 @@ function renderVariableInputModal() {
                     </select>
                   </div>
                   <input
-                    class="input variable-modal-input variable-modal-custom-input"
+                    class="input variable-modal-input variable-modal-custom-input${isCustomValue ? '' : ' hidden'}"
                     data-variable-name="${escapeAttr(name)}"
                     value="${escapeAttr(currentValue)}"
                     placeholder="Enter custom value..."
-                    style="${isCustomValue ? '' : 'display:none'}"
                   />
                 </div>
                 ${renderToggleSwitch3(variableInputState.commandId, name, rememberValue, 'variable-modal-remember-toggle')}
@@ -1024,8 +1023,8 @@ function renderRecentCommandsTab() {
             <tr>
               <th>Title</th>
               <th>Template</th>
-              <th style="white-space:nowrap">Last Run</th>
-              <th style="text-align:center">×Runs</th>
+              <th>Last Run</th>
+              <th>×Runs</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -1038,8 +1037,8 @@ function renderRecentCommandsTab() {
                 <tr>
                   <td>${titleHtml}</td>
                   <td><pre class="template-cell">${escapeHtml(command.command)}</pre></td>
-                  <td style="white-space:nowrap" title="${escapeAttr(formatDateTime(command.lastRunAt))}">${escapeHtml(timeAgo(command.lastRunAt))}</td>
-                  <td style="text-align:center;font-size:0.85rem"><strong>×${command.runCount || 0}</strong></td>
+                  <td title="${escapeAttr(formatDateTime(command.lastRunAt))}">${escapeHtml(timeAgo(command.lastRunAt))}</td>
+                  <td><strong>×${command.runCount || 0}</strong></td>
                   <td>
                     <div class="actions-cell">
                       <button class="btn small success btn-run" data-command-id="${escapeAttr(command.id)}">Run</button>
@@ -1455,7 +1454,7 @@ function renderColumnToggleDropdown() {
   }).join('');
 
   return `
-    <div class="cs-wrap col-toggle-wrap" id="col-toggle-wrap" style="margin-left:auto">
+    <div class="cs-wrap col-toggle-wrap" id="col-toggle-wrap">
       <button class="cs-btn cs-btn-col-toggle" type="button" aria-haspopup="menu" aria-expanded="false" id="col-toggle-btn" title="Show/Hide Columns">
         ${columnSvg}
         <span class="cs-btn-label col-toggle-btn-label">Columns</span>
@@ -2228,13 +2227,13 @@ function bindCommandActionButtons() {
       if (selectedValue === '__custom__') {
         // Show custom input, clear the hidden input so user types
         if (customInput) {
-          customInput.style.display = '';
+          customInput.classList.remove('hidden');
           customInput.focus();
         }
       } else {
         // Set hidden input to the selected enum value, hide custom input
         if (customInput) {
-          customInput.style.display = 'none';
+          customInput.classList.add('hidden');
           customInput.value = selectedValue;
         }
         variableInputState.inputValues[varName] = selectedValue;
@@ -2783,7 +2782,7 @@ function renderEnumManagerModal() {
 
   const editFormHtml = `
     <div class="enum-add-form">
-      <h4 style="margin:0 0 8px">${s.editIndex !== null ? 'Edit Enum Value' : 'Add Enum Value'}</h4>
+      <h4>${s.editIndex !== null ? 'Edit Enum Value' : 'Add Enum Value'}</h4>
       <div class="enum-form-grid">
         <label>Title<input id="enum-input-title" class="input" placeholder="e.g. Silent" value="${escapeAttr(s.editTitle)}" autocomplete="off" /></label>
         <label>Value<input id="enum-input-value" class="input" placeholder="e.g. silent" value="${escapeAttr(s.editValue)}" autocomplete="off" /></label>
@@ -2799,18 +2798,18 @@ function renderEnumManagerModal() {
   return `
     <div class="modal-overlay" id="enum-manager-overlay">
       <div class="modal-box enum-manager-box">
-        <div class="row between" style="align-items:center">
+        <div class="row between">
           <h3>Enum Values for <code>\${${escapeHtml(s.varName)}}</code></h3>
         </div>
         ${values.length > 0 ? `
         <div class="table-wrap">
           <table class="enum-table">
             <thead><tr>
-              <th>Title</th><th>Value</th><th>Description</th><th style="width:1%"></th>
+              <th>Title</th><th>Value</th><th>Description</th><th></th>
             </tr></thead>
             <tbody>${rowsHtml}</tbody>
           </table>
-        </div>` : `<p class="muted" style="margin:0">No enum values yet. Add one below.</p>`}
+        </div>` : `<p class="muted muted-no-margin">No enum values yet. Add one below.</p>`}
         ${editFormHtml}
         <div class="row justify-content-flex-end mt-20">
           <button class="btn small primary min-w65" id="btn-enum-manager-save">Save</button>
@@ -3036,7 +3035,7 @@ function renderAiSettingsModal() {
     <div class="modal-overlay" id="ai-settings-overlay">
       <div class="modal-box">
         <h3>⚙️ AI Settings</h3>
-        <label style="display:grid;gap:6px;font-size:0.86rem;">
+        <label>
           AI Provider
           <div class="select-container">
             <select id="ai-provider-select" class="input">
@@ -3046,7 +3045,7 @@ function renderAiSettingsModal() {
             </select>
           </div>
         </label>
-        <label style="display:grid;gap:6px;font-size:0.86rem;">
+        <label>
           API Key for <strong>${escapeHtml(selectedProvider)}</strong>
           ${hasKey ? '<span class="ai-key-status ai-key-ok">✅ Key saved</span>' : '<span class="ai-key-status ai-key-missing">⚠️ No key saved</span>'}
           <input
@@ -3081,7 +3080,7 @@ function renderAiPromptModal() {
       <div class="modal-box ai-prompt-box">
         <h3>${contextLabel}</h3>
         ${aiState.error ? `<p class="ai-error-msg">❌ ${escapeHtml(aiState.error)}</p>` : ''}
-        <label style="display:grid;gap:6px;font-size:0.86rem;">
+        <label>
           Describe what you need
           <textarea
             id="ai-prompt-textarea"
@@ -3104,7 +3103,7 @@ function renderAiLoadingOverlay() {
     <div class="modal-overlay" id="ai-loading-overlay">
       <div class="modal-box ai-loading-box">
         <div class="ai-spinner" aria-label="Loading..."></div>
-        <p style="margin:0;font-size:0.9rem;opacity:0.8">Generating commands with AI...</p>
+        <p class="ai-loading-text">Generating commands with AI...</p>
       </div>
     </div>
   `;
@@ -3144,9 +3143,9 @@ function renderAiResultsModal() {
   return `
     <div class="modal-overlay" id="ai-results-overlay">
       <div class="modal-box ai-results-box">
-        <div class="row between" style="align-items:center">
+        <div class="row between">
           <h3>✨ AI Generated Commands</h3>
-          ${isFullMode && category ? `<span class="muted" style="font-size:0.8rem">Category: <strong>${escapeHtml(category.title)}</strong></span>` : ''}
+          ${isFullMode && category ? `<span class="muted ai-category-label">Category: <strong>${escapeHtml(category.title)}</strong></span>` : ''}
         </div>
         ${aiState.error ? `<p class="ai-error-msg">❌ ${escapeHtml(aiState.error)}</p>` : ''}
         ${groupTabs}
@@ -3158,7 +3157,7 @@ function renderAiResultsModal() {
               <th>Description</th>
               <th>Command</th>
               ${isFullMode ? '<th>Group</th>' : ''}
-              <th style="width:32px"><input type="checkbox" id="ai-check-all" ${selectedCount === allCommands.length ? 'checked' : ''} /></th>
+              <th><input type="checkbox" id="ai-check-all" ${selectedCount === allCommands.length ? 'checked' : ''} /></th>
               </tr>
             </thead>
             <tbody>
@@ -3173,7 +3172,7 @@ function renderAiResultsModal() {
                     <td>${escapeHtml(cmd.description || '-')}</td>
                     <td><pre class="template-cell">${escapeHtml(cmd.command)}</pre></td>
                     ${isFullMode ? `<td>${escapeHtml(cmdGroups || '-')}</td>` : ''}
-                    <td style="text-align:center;vertical-align:middle">
+                    <td>
                       <input type="checkbox" class="ai-cmd-checkbox" data-cmd-id="${escapeAttr(cmd.id)}" ${isChecked ? 'checked' : ''} />
                     </td>
                   </tr>
@@ -3183,7 +3182,7 @@ function renderAiResultsModal() {
           </table>
         </div>
         <div class="row justify-content-flex-end mt-20">
-          <span class="muted" style="margin-right:auto;font-size:0.8rem">${selectedCount} of ${allCommands.length} selected</span>
+          <span class="muted ai-results-count">${selectedCount} of ${allCommands.length} selected</span>
           <button class="btn small primary" id="btn-ai-insert" ${selectedCount === 0 ? 'disabled' : ''}>Insert Selected (${selectedCount})</button>
           <button class="btn small secondary action min-w65" id="btn-ai-results-cancel">Cancel</button>
         </div>
