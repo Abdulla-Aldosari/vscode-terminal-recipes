@@ -429,7 +429,10 @@ function renderManageTab() {
     const isActive = category.id === uiState.selectedCategoryId;
     return `
               <div class="manage-item ${isActive ? 'active' : ''}" data-category-id="${escapeAttr(category.id)}">
-                <span class="manage-item-label">${escapeHtml(category.title)}</span>
+                <div class="manage-item-info">
+                  <span class="manage-item-label">${escapeHtml(category.title)}</span>
+                  <code class="manage-item-count">${(state.data.commands || []).filter(function (c) {return c.categoryId === category.id;}).length}</code>
+                </div>
                 <div class="manage-item-actions">
                   <button class="btn small secondary btn-rename-category" data-category-id="${escapeAttr(category.id)}" data-category-title="${escapeAttr(category.title)}" title="Rename">Rename</button>
                   <button class="btn small danger btn-delete-category" data-category-id="${escapeAttr(category.id)}" data-category-title="${escapeAttr(category.title)}" title="Delete">Delete</button>
@@ -453,7 +456,10 @@ function renderManageTab() {
     const isActive = group.id === uiState.selectedGroupId;
     return `
               <div class="manage-item ${isActive ? 'active' : ''}" data-group-id="${escapeAttr(group.id)}">
-                <span class="manage-item-label">${escapeHtml(group.title)}</span>
+                <div class="manage-item-info">
+                  <span class="manage-item-label">${escapeHtml(group.title)}</span>
+                  <code class="manage-item-count">${(state.data.commands || []).filter(function (c) {return c.categoryId === uiState.selectedCategoryId && c.groupId === group.id;}).length}</code>
+                </div>
                 <div class="manage-item-actions">
                   <button class="btn small secondary btn-rename-group" data-group-id="${escapeAttr(group.id)}" data-group-title="${escapeAttr(group.title)}" title="Rename">Rename</button>
                   <button class="btn small danger btn-delete-group" data-group-id="${escapeAttr(group.id)}" data-group-title="${escapeAttr(group.title)}" title="Delete">Delete</button>
@@ -720,7 +726,7 @@ function renderEditTab() {
         <label class="full-width">Description<textarea id="edit-command-description" class="input" rows="2">${escapeHtml(editDraft.description)}</textarea></label>
         <div class="full-width grouped-tags-wrap">
           <span class="groups-label">Category:</span>
-          <div class="select-container" style="flex:1;max-width:280px">
+          <div class="select-container select-container-category">
             <select id="edit-command-category" class="input">
               ${allCategories.map(function (cat) {
     return `<option value="${escapeAttr(cat.id)}" ${cat.id === targetCategoryId ? 'selected' : ''}>${escapeHtml(cat.title)}</option>`;

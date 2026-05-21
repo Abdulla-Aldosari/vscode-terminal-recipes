@@ -1157,6 +1157,8 @@ table.commands-table.ai-results-table td.ai-Group {
 /* checkbox Action column in ai results table */
 table.commands-table.ai-results-table td:last-child {
   width: 0% !important;
+  text-align: center;
+  vertical-align: middle;
 }
 
 
@@ -1300,6 +1302,81 @@ table.commands-table.ai-results-table td:last-child {
 
 .enum-form-desc {
   grid-column: 1 / -1;
+}
+
+/* ===== Utility: Hidden ===== */
+.hidden {
+  display: none;
+}
+
+/* ===== Edit Command: Category Select Container ===== */
+.select-container-category {
+  flex: 1;
+  max-width: 280px;
+}
+
+/* ===== Edit Command: Move Category Warning ===== */
+.move-category-warning {
+  font-size: 0.8rem;
+  color: var(--vscode-charts-yellow, #e9b44c);
+}
+
+/* ===== Variable Modal: Enum Select Container ===== */
+.select-container-flex {
+  flex: 1;
+}
+
+/* ===== Recent Commands Table: ×Runs column ===== */
+.recent-table th:nth-child(4) {
+  text-align: center;
+}
+
+.recent-table td:nth-child(4) {
+  text-align: center;
+  font-size: 0.85rem;
+}
+
+/* ===== Column Toggle: push to right ===== */
+.col-toggle-wrap {
+  margin-left: auto;
+}
+
+/* ===== Enum Manager: Add/Edit form heading ===== */
+.enum-add-form h4 {
+  margin: 0 0 8px;
+}
+
+/* ===== Enum Manager: Actions column header ===== */
+.enum-table th:last-child {
+  width: 1%;
+}
+
+/* ===== Enum Manager: No margin muted paragraph ===== */
+.muted-no-margin {
+  margin: 0;
+}
+
+/* ===== AI Loading Overlay: description text ===== */
+.ai-loading-text {
+  margin: 0;
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+/* ===== AI Results: Category label ===== */
+.ai-category-label {
+  font-size: 0.8rem;
+}
+
+/* ===== AI Results: Checkbox header column ===== */
+.ai-results-table th:last-child {
+  width: 32px;
+}
+
+/* ===== AI Results: Selected count footer span ===== */
+.ai-results-count {
+  margin-right: auto;
+  font-size: 0.8rem;
 }
 
 @media (max-width: 920px) {
