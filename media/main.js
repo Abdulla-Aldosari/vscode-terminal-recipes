@@ -1,5 +1,22 @@
 const vscode = acquireVsCodeApi();
 
+// ===== SVG Icon Helpers =====
+function iconRun() {
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.5" d="M20.409 9.353a2.998 2.998 0 0 1 0 5.294L7.597 21.614C5.534 22.737 3 21.277 3 18.968V5.033c0-2.31 2.534-3.769 4.597-2.648z"/></svg>`;
+}
+function iconUse() {
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"><path d="M3 15c0 2.828 0 4.243.879 5.121C4.757 21 6.172 21 9 21h6c2.828 0 4.243 0 5.121-.879C21 19.243 21 17.828 21 15" opacity=".5"/><path d="M12 3v13m0 0l4-4.375M12 16l-4-4.375"/></g></svg>`;
+}
+function iconCopy() {
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 11c0-2.828 0-4.243.879-5.121C7.757 5 9.172 5 12 5h3c2.828 0 4.243 0 5.121.879C21 6.757 21 8.172 21 11v5c0 2.828 0 4.243-.879 5.121C19.243 22 17.828 22 15 22h-3c-2.828 0-4.243 0-5.121-.879C6 20.243 6 18.828 6 16z"/><path d="M6 19a3 3 0 0 1-3-3v-6c0-3.771 0-5.657 1.172-6.828S7.229 2 11 2h4a3 3 0 0 1 3 3"/></g></svg>`;
+}
+function iconEdit() {
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.5" d="m14.36 4.079l.927-.927a3.932 3.932 0 0 1 5.561 5.561l-.927.927m-5.56-5.561s.115 1.97 1.853 3.707C17.952 9.524 19.92 9.64 19.92 9.64m-5.56-5.561l-8.522 8.52c-.577.578-.866.867-1.114 1.185a6.6 6.6 0 0 0-.749 1.211c-.173.364-.302.752-.56 1.526l-1.094 3.281m17.6-10.162L11.4 18.16c-.577.577-.866.866-1.184 1.114a6.6 6.6 0 0 1-1.211.749c-.364.173-.751.302-1.526.56l-3.281 1.094m0 0l-.802.268a1.06 1.06 0 0 1-1.342-1.342l.268-.802m1.876 1.876l-1.876-1.876"/></svg>`;
+}
+function iconDelete() {
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.5" d="M9.17 4a3.001 3.001 0 0 1 5.66 0m5.67 2h-17m15.333 2.5l-.46 6.9c-.177 2.654-.265 3.981-1.13 4.79s-2.196.81-4.856.81h-.774c-2.66 0-3.991 0-4.856-.81c-.865-.809-.954-2.136-1.13-4.79l-.46-6.9M9.5 11l.5 5m4.5-5l-.5 5"/></svg>`;
+}
+
 const uiState = {
   activeTab: 'recent',
   noticeMessage: '',
@@ -652,11 +669,11 @@ function renderCommandsTable(commands, groups) {
                 <td>${escapeHtml(resolveGroupTitle(command.groupId || '', groups))}</td>
                 <td>
                 <div class="actions-cell">
-                  <button class="btn small success btn-run" data-command-id="${escapeAttr(command.id)}">Run</button>
-                  <button class="btn small secondary btn-use action" data-command-id="${escapeAttr(command.id)}">Use</button>
-                  <button class="btn small secondary btn-copy action" data-command-id="${escapeAttr(command.id)}">Copy</button>
-                  <button class="btn small secondary btn-edit action" data-command-id="${escapeAttr(command.id)}">Edit</button>
-                  <button class="btn small danger btn-delete-command" data-command-id="${escapeAttr(command.id)}">Delete</button>                
+                  <button class="btn icon-btn success btn-run" data-command-id="${escapeAttr(command.id)}" title="Run command">${iconRun()}</button>
+                  <button class="btn icon-btn secondary btn-use action" data-command-id="${escapeAttr(command.id)}" title="Use in terminal">${iconUse()}</button>
+                  <button class="btn icon-btn secondary btn-copy action" data-command-id="${escapeAttr(command.id)}" title="Copy to clipboard">${iconCopy()}</button>
+                  <button class="btn icon-btn secondary btn-edit action" data-command-id="${escapeAttr(command.id)}" title="Edit command">${iconEdit()}</button>
+                  <button class="btn icon-btn danger btn-delete-command" data-command-id="${escapeAttr(command.id)}" title="Delete command">${iconDelete()}</button>
                 </div>
                 </td>
               </tr>
@@ -1041,10 +1058,10 @@ function renderRecentCommandsTab() {
                   <td><strong>×${command.runCount || 0}</strong></td>
                   <td>
                     <div class="actions-cell">
-                      <button class="btn small success btn-run" data-command-id="${escapeAttr(command.id)}">Run</button>
-                      <button class="btn small secondary btn-use action" data-command-id="${escapeAttr(command.id)}">Use</button>
-                      <button class="btn small secondary btn-copy action" data-command-id="${escapeAttr(command.id)}">Copy</button>
-                      <button class="btn small secondary btn-edit action" data-command-id="${escapeAttr(command.id)}">Edit</button>
+                      <button class="btn icon-btn success btn-run" data-command-id="${escapeAttr(command.id)}" title="Run command">${iconRun()}</button>
+                      <button class="btn icon-btn secondary btn-use action" data-command-id="${escapeAttr(command.id)}" title="Use in terminal">${iconUse()}</button>
+                      <button class="btn icon-btn secondary btn-copy action" data-command-id="${escapeAttr(command.id)}" title="Copy to clipboard">${iconCopy()}</button>
+                      <button class="btn icon-btn secondary btn-edit action" data-command-id="${escapeAttr(command.id)}" title="Edit command">${iconEdit()}</button>
                     </div>
                   </td>
                 </tr>
