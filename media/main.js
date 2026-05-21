@@ -536,6 +536,7 @@ function renderCommandsTab(selectedCategory) {
         <h2 class="pb-5">Commands Browser</h2>
         ${renderCustomCategorySelect()}
         ${renderColumnToggleDropdown()}
+        <button class="btn small secondary ai-create-btn" id="btn-add-with-ai" title="${uiState.selectedGroupId === 'all' ? 'Select a real group first' : 'Generate a command using AI'}" ${uiState.selectedGroupId === 'all' ? 'disabled' : ''}>✨ Add with AI</button>
       </div>
       <div class="group-tags-row">
         <span class="groups-label">Groups:</span>
@@ -543,7 +544,6 @@ function renderCommandsTab(selectedCategory) {
         ${groups.map(function (group) {
     return `<button class="tag group-filter-tag ${uiState.selectedGroupId === group.id ? 'active' : ''}" data-group-id="${escapeAttr(group.id)}">${escapeHtml(group.title)}</button>`;
   }).join('')}
-        <button class="btn small secondary ai-create-btn" id="btn-add-with-ai" style="margin-left:auto" title="Generate a command using AI">✨ Add with AI</button>
       </div>
       <div class="table-panel">
         ${renderCommandsTable(commands, groups)}
