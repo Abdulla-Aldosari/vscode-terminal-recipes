@@ -58,7 +58,7 @@ Examples of TYPE B (Enum):
       prefer is Enum: dist | source
 
 Examples of TYPE A (NOT Enum — free input):
-  - "php artisan make:model \${ModelName}"   → ModelName is free text
+  - "php artisan make:model \${ModelName}"  → ModelName is free text
   - "mkdir \${DirectoryName}"               → DirectoryName is free text
   - "git checkout -b \${BranchName}"        → BranchName is free text
   - "npm install \${PackageName}"           → PackageName is free text
@@ -70,6 +70,13 @@ Examples of TYPE A (NOT Enum — free input):
         - "title": human-readable label (e.g., "Silent")
         - "value": the exact string value used in the command (e.g., "silent")
         - "description": a clear one-sentence explanation of what this option does
+
+⚠️  CRITICAL RULE — COMPLETE ENUM VALUES:
+    You MUST include EVERY documented valid value for the CLI option in "enumValues".
+    Do NOT filter, omit, or select only values that match the user's request context.
+    The user needs the FULL list to choose from — not a curated subset.
+    Even if the user asks for "only errors and warnings", you must still include
+    ALL valid log levels (silent, error, warn, notice, http, timing, info, verbose, silly).
 
 Example of correct "variableMeta" for the command "npm install --loglevel=\${loglevel}":
 {
