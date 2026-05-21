@@ -876,8 +876,8 @@ code {
 /* ===== recent Table - Last Run Column ===== */
 .recent-table td:nth-child(3) {
   width: 1%;
-  max-width: 250px;
-  min-width: 145px;
+  max-width: 150px;
+  min-width: 80px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -901,12 +901,17 @@ code {
 /* ===== Commands Table - Title Column ===== */
 
 .commands-table.main-table td:first-child {
-  width: 1%;
+  /* width: 1%; */
   max-width: 250px;
   min-width: 145px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  /* white-space: nowrap; */
+  /* overflow: hidden; */
+  /* text-overflow: ellipsis; */
+}
+
+/* ===== Commands Table - Description Column ===== */
+.commands-table.main-table td:nth-child(2) {
+  color: var(--vscode-descriptionForeground);
 }
 
 /* ===== Commands Table - Template Column ===== */
@@ -916,10 +921,10 @@ code {
 
 /* ===== Commands Table - Groups Column ===== */
 .commands-table.main-table td:nth-last-child(2) {
-  white-space: normal;
+  white-space: nowrap;
   width: 1%;
-  max-width: 180px;
-  min-width: 180px;
+  max-width: 150px;
+  min-width: 80px;
 }
 
 /* ===== Commands Table - Actions Column ===== */
