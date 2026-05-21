@@ -16,16 +16,17 @@ const uiState = {
     title: '',
     template: '',
     description: '',
-    groupIds: [],
+    groupId: '',
     helpUrl: '',
     variableMeta: {},
+    targetCategoryId: '',
   },
   newCommandDraft: {
     visible: false,
     title: '',
     template: '',
     description: '',
-    groupIds: [],
+    groupId: '',
     helpUrl: '',
     variableMeta: {},
   },
@@ -338,7 +339,7 @@ function getVisibleCommands() {
       return true;
     }
 
-    return (command.groupIds || []).includes(uiState.selectedGroupId);
+    return command.groupId === uiState.selectedGroupId;
   });
 }
 
@@ -596,7 +597,7 @@ function renderAddCommandTab(selectedCategory) {
           <span class="groups-label">Groups:</span>
           <div class="inline-tags" id="new-command-groups-tags">
             ${groups.map(function (group) {
-    return `<button type="button" class="tag new-command-group-tag ${draft.groupIds.includes(group.id) ? 'active' : ''}" data-group-id="${escapeAttr(group.id)}">${escapeHtml(group.title)}</button>`;
+    return `<button type="button" class="tag new-command-group-tag ${draft.groupId === group.id ? 'active' : ''}" data-group-id="${escapeAttr(group.id)}">${escapeHtml(group.title)}</button>`;
   }).join('')}
           </div>
         </div>
@@ -642,7 +643,7 @@ function renderCommandsTable(commands, groups) {
                 <td>${titleHtml}<br><span class="muted">${escapeHtml(command.id)}</span></td>
                 <td>${escapeHtml(command.description || '-')}</td>
                 <td><pre class="template-cell">&gt; ${escapeHtml(command.command)}</pre></td>
-                <td>${escapeHtml(resolveGroupTitles(command.groupIds || [], groups))}</td>
+                <td>${escapeHtml(resolveGroupTitle(command.groupId || '', groups))}</td>
                 <td>
                 <div class="actions-cell">
                   <button class="btn small success btn-run" data-command-id="${escapeAttr(command.id)}">Run</button>
@@ -674,7 +675,7 @@ function renderNewCommandForm(groups, draft) {
         <span class="groups-label">Groups:</span>
         <div class="inline-tags" id="new-command-groups-tags">
           ${groups.map(function (group) {
-    return `<button type="button" class="tag new-command-group-tag ${draft.groupIds.includes(group.id) ? 'active' : ''}" data-group-id="${escapeAttr(group.id)}">${escapeHtml(group.title)}</button>`;
+    return `<button type="button" class="tag new-command-group-tag ${draft.groupId === group.id ? 'active' : ''}" data-group-id="${escapeAttr(group.id)}">${escapeHtml(group.title)}</button>`;
   }).join('')}
         </div>
       </div>
@@ -699,13 +700,16 @@ function renderEditTab() {
 
   syncEditCommandDraftFromCommand(command);
   const editDraft = uiState.editCommandDraft;
-  const commandCategory = (state.data.categories || []).find(function (cat) {
-    return cat.id === command.categoryId;
+  const targetCategoryId = editDraft.targetCategoryId || command.categoryId;
+  const allCategories = state.data.categories || [];
+  const targetCategory = allCategories.find(function (cat) {
+    return cat.id === targetCategoryId;
   });
-  const groups = commandCategory ? (commandCategory.groups || []) : [];
+  const groups = targetCategory ? (targetCategory.groups || []) : [];
   const variables = collectVariables([editDraft.template || command.command]);
   const commandDraft = getCommandDraft(command.id);
   const commandRemember = getCommandRemember(command.id);
+  const isMoved = targetCategoryId !== command.categoryId;
 
   return `
     <section class="card">
@@ -715,10 +719,22 @@ function renderEditTab() {
         <label class="add-command-template">Command Template<input id="edit-command-template" class="input" required value="${escapeAttr(editDraft.template)}" /></label>
         <label class="full-width">Description<textarea id="edit-command-description" class="input" rows="2">${escapeHtml(editDraft.description)}</textarea></label>
         <div class="full-width grouped-tags-wrap">
+          <span class="groups-label">Category:</span>
+          <div class="select-container" style="flex:1;max-width:280px">
+            <select id="edit-command-category" class="input">
+              ${allCategories.map(function (cat) {
+    return `<option value="${escapeAttr(cat.id)}" ${cat.id === targetCategoryId ? 'selected' : ''}>${escapeHtml(cat.title)}</option>`;
+  }).join('')}
+            </select>
+          </div>
+          ${isMoved ? `<span class="muted" style="font-size:0.8rem;color:var(--vscode-charts-yellow,#e9b44c)">⚠️ Moving to new category — (Please select a group from the list below)</span>` : ''}
+        </div>
+        <div class="full-width grouped-tags-wrap">
           <span class="groups-label">Groups:</span>
           <div class="inline-tags" id="edit-command-groups-tags">
+            ${groups.length === 0 ? `<span class="muted" style="font-size:0.82rem">No groups in this category.</span>` : ''}
             ${groups.map(function (group) {
-    return `<button type="button" class="tag edit-command-group-tag ${editDraft.groupIds.includes(group.id) ? 'active' : ''}" data-group-id="${escapeAttr(group.id)}">${escapeHtml(group.title)}</button>`;
+    return `<button type="button" class="tag edit-command-group-tag ${editDraft.groupId === group.id ? 'active' : ''}" data-group-id="${escapeAttr(group.id)}">${escapeHtml(group.title)}</button>`;
   }).join('')}
           </div>
         </div>
@@ -1135,7 +1151,7 @@ function bindTabs() {
       // Switching tabs while editing → discard editing state
       if (uiState.editingCommandId && nextTab !== uiState.activeTab) {
         uiState.editingCommandId = null;
-        uiState.editCommandDraft = {title: '', template: '', description: '', groupIds: []};
+        uiState.editCommandDraft = {title: '', template: '', description: '', groupId: ''};
       }
 
       uiState.activeTab = nextTab;
@@ -1654,23 +1670,14 @@ function bindAddCommandTabEvents() {
   document.querySelectorAll('.new-command-group-tag').forEach(function (tagButton) {
     tagButton.addEventListener('click', function () {
       const groupId = tagButton.dataset.groupId;
-      const selected = uiState.newCommandDraft.groupIds;
-
-      if (selected.includes(groupId)) {
-        uiState.newCommandDraft.groupIds = selected.filter(function (id) {
-          return id !== groupId;
-        });
-      } else {
-        uiState.newCommandDraft.groupIds = [...selected, groupId];
-      }
-
+      uiState.newCommandDraft.groupId = uiState.newCommandDraft.groupId === groupId ? '' : groupId;
       render();
     });
   });
 
   if (cancelButton) {
     cancelButton.addEventListener('click', function () {
-      uiState.newCommandDraft = {visible: false, title: '', template: '', description: '', groupIds: [], helpUrl: '', variableMeta: {}};
+      uiState.newCommandDraft = {visible: false, title: '', template: '', description: '', groupId: '', helpUrl: '', variableMeta: {}};
       uiState.activeTab = 'commands';
       render();
     });
@@ -1696,7 +1703,7 @@ function bindAddCommandTabEvents() {
       const description = descriptionInput ? descriptionInput.value.trim() : '';
       const commandTemplate = templateInput ? templateInput.value.trim() : '';
       const helpUrl = helpUrlInputEl ? helpUrlInputEl.value.trim() : '';
-      const groupIds = uiState.newCommandDraft.groupIds;
+      const groupId = uiState.newCommandDraft.groupId;
       const variableMeta = uiState.newCommandDraft.variableMeta || {};
 
       if (title.length < 3) {
@@ -1711,7 +1718,7 @@ function bindAddCommandTabEvents() {
         return;
       }
 
-      if (!groupIds.length) {
+      if (!groupId) {
         showError('⚠️ Please select at least one group from the list below.');
         render();
         return;
@@ -1723,13 +1730,13 @@ function bindAddCommandTabEvents() {
         description,
         command: commandTemplate,
         categoryId: selectedCategory.id,
-        groupIds,
+        groupId,
         ...(helpUrl ? {helpUrl} : {}),
         ...(Object.keys(variableMeta).length > 0 ? {variableMeta} : {}),
       };
 
       state.data.commands.push(newCommand);
-      uiState.newCommandDraft = {visible: false, title: '', template: '', description: '', groupIds: [], helpUrl: '', variableMeta: {}};
+      uiState.newCommandDraft = {visible: false, title: '', template: '', description: '', groupId: '', helpUrl: '', variableMeta: {}};
       uiState.activeTab = 'commands';
       persistDataThenRender('Command added and saved.');
     });
@@ -1768,7 +1775,7 @@ function bindEditTabEvents() {
     draft.title = titleTrimmed;
     draft.template = templateTrimmed;
 
-    if (!draft.groupIds.length) {
+    if (!draft.groupId) {
       showError('⚠️ Please select at least one group from the list below.');
       render();
       return;
@@ -1777,7 +1784,12 @@ function bindEditTabEvents() {
     command.title = draft.title;
     command.description = draft.description;
     command.command = draft.template;
-    command.groupIds = [...draft.groupIds];
+    command.groupId = draft.groupId;
+
+    // Apply category move if changed
+    if (draft.targetCategoryId && draft.targetCategoryId !== command.categoryId) {
+      command.categoryId = draft.targetCategoryId;
+    }
 
     // Save helpUrl
     if (draft.helpUrl) {
@@ -1810,7 +1822,7 @@ function bindEditTabEvents() {
     });
 
     uiState.editingCommandId = null;
-    uiState.editCommandDraft = {title: '', template: '', description: '', groupIds: []};
+    uiState.editCommandDraft = {title: '', template: '', description: '', groupId: ''};
     uiState.activeTab = 'commands';
     persistDataThenRender('Command updated and saved.');
     persistCommandVariables();
@@ -1820,7 +1832,7 @@ function bindEditTabEvents() {
   if (cancelEditButton) {
     cancelEditButton.addEventListener('click', function () {
       uiState.editingCommandId = null;
-      uiState.editCommandDraft = {title: '', template: '', description: '', groupIds: []};
+      uiState.editCommandDraft = {title: '', template: '', description: '', groupId: ''};
       render();
     });
   }
@@ -1860,16 +1872,7 @@ function bindEditTabEvents() {
   document.querySelectorAll('.edit-command-group-tag').forEach(function (tabButton) {
     tabButton.addEventListener('click', function () {
       const groupId = tabButton.dataset.groupId;
-      const selected = uiState.editCommandDraft.groupIds;
-
-      if (selected.includes(groupId)) {
-        uiState.editCommandDraft.groupIds = selected.filter(function (id) {
-          return id !== groupId;
-        });
-      } else {
-        uiState.editCommandDraft.groupIds = [...selected, groupId];
-      }
-
+      uiState.editCommandDraft.groupId = uiState.editCommandDraft.groupId === groupId ? '' : groupId;
       render();
     });
   });
@@ -1884,6 +1887,22 @@ function bindEditTabEvents() {
       // No auto-save here — save happens on form submit
     });
   });
+
+  // Bind category selector in edit tab
+  const editCategorySelect = document.getElementById('edit-command-category');
+  if (editCategorySelect) {
+    editCategorySelect.addEventListener('change', function () {
+      const newCategoryId = editCategorySelect.value;
+      uiState.editCommandDraft.targetCategoryId = newCategoryId;
+      // If the user reverts to the original category, restore the original groupId
+      if (newCategoryId === command.categoryId) {
+        uiState.editCommandDraft.groupId = command.groupId || '';
+      } else {
+        uiState.editCommandDraft.groupId = ''; // reset group — it belongs to the new category
+      }
+      render();
+    });
+  }
 
   // Bind helpUrl input in edit tab
   const editHelpUrlInput = document.getElementById('edit-command-help-url');
@@ -2044,9 +2063,10 @@ function bindCommandActionButtons() {
           title: command.title || '',
           template: command.command || '',
           description: command.description || '',
-          groupIds: [...(command.groupIds || [])],
+          groupId: command.groupId || '',
           helpUrl: command.helpUrl || '',
           variableMeta: command.variableMeta ? JSON.parse(JSON.stringify(command.variableMeta)) : {},
+          targetCategoryId: command.categoryId || '',
         };
       }
 
@@ -2378,7 +2398,7 @@ function executeDeleteConfirm() {
 
       if (!editCmd) {
         uiState.editingCommandId = null;
-        uiState.editCommandDraft = {title: '', template: '', description: '', groupIds: []};
+        uiState.editCommandDraft = {title: '', template: '', description: '', groupId: ''};
       }
     }
 
@@ -2395,10 +2415,8 @@ function executeDeleteConfirm() {
       });
 
       (state.data.commands || []).forEach(function (command) {
-        if (command.categoryId === selectedCategory.id) {
-          command.groupIds = (command.groupIds || []).filter(function (gid) {
-            return gid !== id;
-          });
+        if (command.categoryId === selectedCategory.id && command.groupId === id) {
+          command.groupId = '';
         }
       });
     }
@@ -2429,7 +2447,7 @@ function executeDeleteConfirm() {
 
     if (uiState.editingCommandId === id) {
       uiState.editingCommandId = null;
-      uiState.editCommandDraft = {title: '', template: '', description: '', groupIds: []};
+      uiState.editCommandDraft = {title: '', template: '', description: '', groupId: ''};
       runConfirmState = {commandId: null, resolvedCommand: ''};
       uiState.activeTab = 'commands';
     }
@@ -2477,14 +2495,15 @@ function syncEditCommandDraftFromCommand(command) {
     return;
   }
 
-  if (!uiState.editCommandDraft.title && !uiState.editCommandDraft.template && !uiState.editCommandDraft.description && !uiState.editCommandDraft.groupIds.length) {
+  if (!uiState.editCommandDraft.title && !uiState.editCommandDraft.template && !uiState.editCommandDraft.description && !uiState.editCommandDraft.groupId) {
     uiState.editCommandDraft = {
       title: command.title || '',
       template: command.command || '',
       description: command.description || '',
-      groupIds: [...(command.groupIds || [])],
+      groupId: command.groupId || '',
       helpUrl: command.helpUrl || '',
       variableMeta: command.variableMeta ? JSON.parse(JSON.stringify(command.variableMeta)) : {},
+      targetCategoryId: command.categoryId || '',
     };
   }
 }
@@ -2699,18 +2718,16 @@ function collectVariables(commandTemplates) {
   return Array.from(names.values());
 }
 
-function resolveGroupTitles(groupIds, groups) {
-  if (!groupIds.length) {
+function resolveGroupTitle(groupId, groups) {
+  if (!groupId) {
     return '-';
   }
 
-  return groupIds.map(function (groupId) {
-    const group = groups.find(function (item) {
-      return item.id === groupId;
-    });
+  const group = groups.find(function (item) {
+    return item.id === groupId;
+  });
 
-    return group ? group.title : groupId;
-  }).join(', ');
+  return group ? group.title : groupId;
 }
 
 function generateEntityId(prefix) {
@@ -3101,7 +3118,7 @@ function renderAiResultsModal() {
   const filteredCommands = aiState.filterGroupId === 'all'
     ? allCommands
     : allCommands.filter(function (cmd) {
-      return (cmd.groupIds || []).includes(aiState.filterGroupId);
+      return cmd.groupId === aiState.filterGroupId;
     });
 
   const selectedCount = Object.values(aiState.checkedIds).filter(Boolean).length;
@@ -3112,7 +3129,7 @@ function renderAiResultsModal() {
       <div class="group-tags-row">
         <button class="tag group-filter-tag ${aiState.filterGroupId === 'all' ? 'active' : ''}" data-ai-filter="all">All (${allCommands.length})</button>
         ${groups.map(function (g) {
-      const count = allCommands.filter(function (cmd) {return (cmd.groupIds || []).includes(g.id);}).length;
+      const count = allCommands.filter(function (cmd) {return cmd.groupId === g.id;}).length;
       return `<button class="tag group-filter-tag ${aiState.filterGroupId === g.id ? 'active' : ''}" data-ai-filter="${escapeAttr(g.id)}">${escapeHtml(g.title)} (${count})</button>`;
     }).join('')}
       </div>`
@@ -3142,10 +3159,7 @@ function renderAiResultsModal() {
               ${filteredCommands.map(function (cmd) {
     const isChecked = aiState.checkedIds[cmd.id] !== false;
     const cmdGroups = isFullMode
-      ? (cmd.groupIds || []).map(function (gid) {
-        const g = groups.find(function (gr) {return gr.id === gid;});
-        return g ? g.title : gid;
-      }).join(', ')
+      ? (function () {const g = groups.find(function (gr) {return gr.id === cmd.groupId;}); return g ? g.title : (cmd.groupId || '');})()
       : '';
     return `
                   <tr class="${isChecked ? '' : 'ai-row-unchecked'}">

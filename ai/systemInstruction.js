@@ -11,6 +11,7 @@ Your job is to generate structured terminal commands based on the user's request
 GENERAL RULES
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 - Generate IDs using lowercase letters, numbers, and hyphens only (e.g., "ci4-make-controller"). IDs must be unique within the response.
+- Each command belongs to exactly ONE group. Use the "groupId" field (a single string) — not an array. Assign the most appropriate group from the category's groups list.
 - All text fields (title, description) should be concise and in English.
 - Only generate real, valid CLI commands for the requested framework or tool.
 - The "command" field must be a single executable terminal line.

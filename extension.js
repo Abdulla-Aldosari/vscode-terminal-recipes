@@ -625,15 +625,15 @@ function normalizeCommandsData(input) {
       return group.id;
     }));
 
-    const groupIds = Array.isArray(rawCommand.groupIds)
-      ? rawCommand.groupIds
-        .map(function (groupId) {
-          return sanitizeId(groupId);
-        })
-        .filter(function (groupId, index, values) {
-          return Boolean(groupId) && allowedGroups.has(groupId) && values.indexOf(groupId) === index;
-        })
-      : [];
+    // Support groupId (new) and groupIds[] (legacy migration — take first valid)
+    let groupId = '';
+    if (typeof rawCommand.groupId === 'string') {
+      const s = sanitizeId(rawCommand.groupId);
+      groupId = allowedGroups.has(s) ? s : '';
+    } else if (Array.isArray(rawCommand.groupIds) && rawCommand.groupIds.length > 0) {
+      const s = sanitizeId(rawCommand.groupIds[0]);
+      groupId = allowedGroups.has(s) ? s : '';
+    }
 
     const lastRunAt = typeof rawCommand.lastRunAt === 'string' ? rawCommand.lastRunAt : null;
     const runCount = typeof rawCommand.runCount === 'number' && rawCommand.runCount > 0 ? rawCommand.runCount : 0;
@@ -646,7 +646,7 @@ function normalizeCommandsData(input) {
       description,
       command,
       categoryId,
-      groupIds,
+      groupId,
       ...(lastRunAt ? {lastRunAt} : {}),
       ...(runCount ? {runCount} : {}),
       ...(helpUrl ? {helpUrl} : {}),

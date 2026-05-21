@@ -60,9 +60,8 @@ function remapFullModeIds(aiResult) {
   const remappedCommands = (aiResult.commands || []).map(function (cmd) {
     const newCmdId = generateLocalId();
     const mappedCategoryId = idMap[cmd.categoryId] || newCategoryId;
-    const mappedGroupIds = (cmd.groupIds || [])
-      .map(function (gid) {return idMap[gid] || gid;})
-      .filter(Boolean);
+    const rawGroupId = cmd.groupId || '';
+    const mappedGroupId = idMap[rawGroupId] || rawGroupId || '';
 
     return {
       id: newCmdId,
@@ -70,7 +69,7 @@ function remapFullModeIds(aiResult) {
       description: cmd.description,
       command: cmd.command,
       categoryId: mappedCategoryId,
-      groupIds: mappedGroupIds,
+      groupId: mappedGroupId,
       ...(cmd.helpUrl ? {helpUrl: cmd.helpUrl} : {}),
       ...(cmd.variableMeta && Object.keys(cmd.variableMeta).length > 0 ? {variableMeta: cmd.variableMeta} : {}),
     };
@@ -98,7 +97,7 @@ function remapSingleModeResult(aiResult, categoryId, groupId) {
     description: aiResult.description,
     command: aiResult.command,
     categoryId,
-    groupIds: groupId ? [groupId] : [],
+    groupId: groupId || '',
     ...(aiResult.helpUrl ? {helpUrl: aiResult.helpUrl} : {}),
     ...(aiResult.variableMeta && Object.keys(aiResult.variableMeta).length > 0 ? {variableMeta: aiResult.variableMeta} : {}),
   };
