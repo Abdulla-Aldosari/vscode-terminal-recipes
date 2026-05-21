@@ -438,6 +438,12 @@ td.actions-cell {
   color: var(--vscode-textPreformat-foreground);
 }
 
+.template-cell::before {
+  content: '> ';
+  user-select: none;
+  opacity: 0.5;
+}
+
 .muted {
   opacity: 0.7;
   font-size: 0.75rem;
@@ -505,6 +511,12 @@ td.actions-cell {
   overflow: auto;
   font-family: Consolas, monospace;
   font-size: 0.9rem;
+}
+
+.modal-command-preview::before {
+  content: '> ';
+  user-select: none;
+  opacity: 0.5;
 }
 
 .variables-list {
@@ -798,13 +810,27 @@ code {
   border-left: 3px solid var(--vscode-button-background);
 }
 
+.manage-item-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
 .manage-item-label {
   font-size: 0.85rem;
-  flex: 1;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.manage-item-count {
+  font-size: 0.75rem;
+  padding: 2px 2px;
+  min-width: 24px;
+  text-align: center;
 }
 
 .manage-item-actions {

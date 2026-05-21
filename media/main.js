@@ -642,7 +642,7 @@ function renderCommandsTable(commands, groups) {
               <tr>
                 <td>${titleHtml}<br><span class="muted">${escapeHtml(command.id)}</span></td>
                 <td>${escapeHtml(command.description || '-')}</td>
-                <td><pre class="template-cell">&gt; ${escapeHtml(command.command)}</pre></td>
+                <td><pre class="template-cell">${escapeHtml(command.command)}</pre></td>
                 <td>${escapeHtml(resolveGroupTitle(command.groupId || '', groups))}</td>
                 <td>
                 <div class="actions-cell">
@@ -851,7 +851,7 @@ function renderRunConfirmModal() {
     <div class="modal-overlay" id="run-confirm-overlay">
       <div class="modal-box">
         <h3>Do you want to run this command?</h3>
-        <pre class="modal-command-preview">&gt; ${escapeHtml(runConfirmState.resolvedCommand)}</pre>
+        <pre class="modal-command-preview">${escapeHtml(runConfirmState.resolvedCommand)}</pre>
         <p class="muted">⚠️ This command will be executed immediately</p>
         <div class="row justify-content-flex-end">
         ${hasVariables ? `<button class="btn small secondary min-w65" id="btn-confirm-run-variables">Edit Variables</button>` : ''}
@@ -963,7 +963,7 @@ function renderDeleteConfirmModal() {
     heading = `Do you want to delete this command?`;
     detailHtml = `
       <p class="delete-confirm-command-name">${escapeHtml(deleteConfirmState.title)}</p>
-      <pre class="modal-command-preview">&gt; ${escapeHtml(deleteConfirmState.template)}</pre>
+      <pre class="modal-command-preview">${escapeHtml(deleteConfirmState.template)}</pre>
     `;
   } else {
     heading = `Do you want to delete this ${escapeHtml(deleteConfirmState.type)}?`;
@@ -1031,7 +1031,7 @@ function renderRecentCommandsTab() {
     return `
                 <tr>
                   <td>${titleHtml}</td>
-                  <td><pre class="template-cell">&gt; ${escapeHtml(command.command)}</pre></td>
+                  <td><pre class="template-cell">${escapeHtml(command.command)}</pre></td>
                   <td style="white-space:nowrap" title="${escapeAttr(formatDateTime(command.lastRunAt))}">${escapeHtml(timeAgo(command.lastRunAt))}</td>
                   <td style="text-align:center;font-size:0.85rem"><strong>×${command.runCount || 0}</strong></td>
                   <td>
@@ -3165,7 +3165,7 @@ function renderAiResultsModal() {
                   <tr class="${isChecked ? '' : 'ai-row-unchecked'}">
                     <td><strong>${escapeHtml(cmd.title)}</strong></td>
                     <td>${escapeHtml(cmd.description || '-')}</td>
-                    <td><pre class="template-cell">&gt; ${escapeHtml(cmd.command)}</pre></td>
+                    <td><pre class="template-cell">${escapeHtml(cmd.command)}</pre></td>
                     ${isFullMode ? `<td>${escapeHtml(cmdGroups || '-')}</td>` : ''}
                     <td style="text-align:center;vertical-align:middle">
                       <input type="checkbox" class="ai-cmd-checkbox" data-cmd-id="${escapeAttr(cmd.id)}" ${isChecked ? 'checked' : ''} />
