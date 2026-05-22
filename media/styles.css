@@ -419,7 +419,7 @@ select.input:focus {
 .tag.active {
   background: color-mix(in srgb, var(--vscode-editor-background) 83%, var(--vscode-foreground));
   /* background: color-mix(in srgb, var(--vscode-button-background) 74%, var(--vscode-editor-background)); */
-  color: var(--vscode-button-foreground);
+  color: var(--vscode-editor-foreground);
   border-color: transparent;
 }
 
@@ -506,7 +506,7 @@ td.actions-cell {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
+  background: rgba(0, 0, 0, 0.25);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1071,6 +1071,12 @@ input[type="checkbox"]:checked::after {
 
 /* ===== AI Feature Styles ===== */
 
+#btn-ai-generate {
+  display: flex;
+  gap: 5px;
+}
+
+
 .ai-settings-btn {
   border: 1px solid color-mix(in srgb, var(--vscode-button-background) 50%, transparent) !important;
 }
@@ -1200,8 +1206,7 @@ table.commands-table.ai-results-table td:last-child {
 
 /* ===== Row Highlight (after Edit/Add) ===== */
 tr.row-highlight td {
-  background-color: var(--vscode-editor-selectionHighlightBackground, rgba(173, 214, 255, 0.15)) !important;
-  /* transition: background-color 0s ease; */
+  background-color: color-mix(in srgb, #0096f4 30%, var(--vscode-editor-background)) !important;
   transition: none;
 }
 

@@ -1,4 +1,4 @@
-const vscode = acquireVsCodeApi();
+﻿const vscode = acquireVsCodeApi();
 
 // ===== SVG Icon Helpers =====
 function iconRun() {
@@ -16,6 +16,12 @@ function iconEdit() {
 function iconDelete() {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.5" d="M9.17 4a3.001 3.001 0 0 1 5.66 0m5.67 2h-17m15.333 2.5l-.46 6.9c-.177 2.654-.265 3.981-1.13 4.79s-2.196.81-4.856.81h-.774c-2.66 0-3.991 0-4.856-.81c-.865-.809-.954-2.136-1.13-4.79l-.46-6.9M9.5 11l.5 5m4.5-5l-.5 5"/></svg>`;
 }
+function sparklesIcon() {
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-sparkles">
+	<path stroke="none" d="M0 0h24v24H0z" fill="none" />
+	<path d="M16 18a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2m0 -12a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2m-7 12a6 6 0 0 1 6 -6a6 6 0 0 1 -6 -6a6 6 0 0 1 -6 6a6 6 0 0 1 6 6" />
+</svg>`;
+}
 
 const uiState = {
   activeTab: 'recent',
@@ -28,6 +34,7 @@ const uiState = {
   selectedGroupId: 'all',
   editingCommandId: null,
   editSourceTab: null,
+  pendingScrollCommandId: null,
   commandDrafts: {},
   commandRemember: {},
   editCommandDraft: {
@@ -423,6 +430,13 @@ function render() {
   if (enumManagerState.visible) {
     bindEnumManagerEvents();
   }
+
+  // Scroll & highlight a pending row (set before render() was called)
+  if (uiState.pendingScrollCommandId) {
+    var _pendingId = uiState.pendingScrollCommandId;
+    uiState.pendingScrollCommandId = null;
+    setTimeout(function () {scrollToAndHighlight(_pendingId);}, 30);
+  }
 }
 
 function renderManageTab() {
@@ -439,7 +453,7 @@ function renderManageTab() {
           <div class="manage-panel-header">
             <h2 class="manage-panel-title">Categories</h2>
             <div class="row" style="gap:6px">
-              <button class="btn small secondary ai-create-btn" id="btn-create-with-ai" title="Generate a full category with groups and commands using AI">✨ Create with AI</button>
+              <button class="btn small secondary ai-create-btn" id="btn-create-with-ai" title="Generate a full category with groups and commands using AI">${sparklesIcon()} Create with AI</button>
               <button class="btn primary small" id="btn-open-add-category-modal">+ Add New Category</button>
             </div>
           </div>
@@ -562,7 +576,7 @@ function renderCommandsTab(selectedCategory) {
         <h2 class="pb-5">Commands Browser</h2>
         ${renderCustomCategorySelect()}
         ${renderColumnToggleDropdown()}
-        <button class="btn small secondary ai-create-btn" id="btn-add-with-ai" title="${uiState.selectedGroupId === 'all' ? 'Select a real group first' : 'Generate a command using AI'}" ${uiState.selectedGroupId === 'all' ? 'disabled' : ''}>✨ Add with AI</button>
+        <button class="btn small secondary ai-create-btn" id="btn-add-with-ai" title="${uiState.selectedGroupId === 'all' ? 'Select a real group first' : 'Generate a command using AI'}" ${uiState.selectedGroupId === 'all' ? 'disabled' : ''}>${sparklesIcon()} Add with AI</button>
       </div>
       <div class="group-tags-row">
         <span class="groups-label">Groups:</span>
@@ -1768,9 +1782,8 @@ function bindAddCommandTabEvents() {
       state.data.commands.push(newCommand);
       uiState.newCommandDraft = {visible: false, title: '', template: '', description: '', groupId: '', helpUrl: '', variableMeta: {}};
       uiState.activeTab = 'commands';
+      uiState.pendingScrollCommandId = newCommandId;
       persistDataThenRender('Command added and saved.');
-      // Scroll to and highlight the new row after render
-      setTimeout(function () {scrollToAndHighlight(newCommandId);}, 50);
     });
   }
 }
@@ -1859,10 +1872,9 @@ function bindEditTabEvents() {
     uiState.editCommandDraft = {title: '', template: '', description: '', groupId: ''};
     uiState.editSourceTab = null;
     uiState.activeTab = returnTab;
+    uiState.pendingScrollCommandId = savedCommandId;
     persistDataThenRender('Command updated and saved.');
     persistCommandVariables();
-    // Scroll to and highlight the saved row after render
-    setTimeout(function () {scrollToAndHighlight(savedCommandId);}, 50);
   });
 
   const cancelEditButton = document.getElementById('btn-cancel-edit-command');
@@ -1874,9 +1886,8 @@ function bindEditTabEvents() {
       uiState.editCommandDraft = {title: '', template: '', description: '', groupId: ''};
       uiState.editSourceTab = null;
       uiState.activeTab = returnTab;
+      uiState.pendingScrollCommandId = savedCommandId;
       render();
-      // Scroll to and highlight the row after render
-      setTimeout(function () {scrollToAndHighlight(savedCommandId);}, 50);
     });
   }
 
@@ -3112,8 +3123,8 @@ function renderAiPromptModal() {
   const groups = getSelectedCategoryGroups();
   const selectedGroup = groups.find(function (g) {return g.id === aiState.groupId;});
   const contextLabel = isFullMode
-    ? '✨ Create a new category with all its groups and commands'
-    : `✨ Add a single command to group: <strong>${escapeHtml(selectedGroup ? selectedGroup.title : aiState.groupId)}</strong> in <strong>${escapeHtml(selectedCategory ? selectedCategory.title : aiState.categoryId)}</strong>`;
+    ? '${sparklesIcon()} Create a new category with all its groups and commands'
+    : `${sparklesIcon()} Add a single command to group: <strong>${escapeHtml(selectedGroup ? selectedGroup.title : aiState.groupId)}</strong> in <strong>${escapeHtml(selectedCategory ? selectedCategory.title : aiState.categoryId)}</strong>`;
 
   return `
     <div class="modal-overlay" id="ai-prompt-overlay">
@@ -3130,7 +3141,7 @@ function renderAiPromptModal() {
           >${escapeHtml(aiState.prompt)}</textarea>
         </label>
         <div class="row justify-content-flex-end mt-20">
-          <button class="btn small primary" id="btn-ai-generate">✨ Generate</button>
+          <button class="btn small primary" id="btn-ai-generate">${sparklesIcon()} Generate</button>
           <button class="btn small secondary action min-w65" id="btn-ai-prompt-cancel">Cancel</button>
         </div>
       </div>
@@ -3184,7 +3195,7 @@ function renderAiResultsModal() {
     <div class="modal-overlay" id="ai-results-overlay">
       <div class="modal-box ai-results-box">
         <div class="row between">
-          <h3>✨ AI Generated Commands</h3>
+          <h3>${sparklesIcon()} AI Generated Commands</h3>
           ${isFullMode && category ? `<span class="muted ai-category-label">Category: <strong>${escapeHtml(category.title)}</strong></span>` : ''}
         </div>
         ${aiState.error ? `<p class="ai-error-msg">❌ ${escapeHtml(aiState.error)}</p>` : ''}
