@@ -27,6 +27,7 @@ const uiState = {
   }()),
   selectedGroupId: 'all',
   editingCommandId: null,
+  editSourceTab: null,
   commandDrafts: {},
   commandRemember: {},
   editCommandDraft: {
@@ -392,17 +393,19 @@ function render() {
 
       <section class="card tabs-section">
         <div class="tabs">
-          <button class="tab ${uiState.activeTab === 'recent' ? 'active' : ''}" data-tab="recent">Recent Commands</button>
-          <button class="tab ${uiState.activeTab === 'manage' ? 'active' : ''}" data-tab="manage">Categories & Groups</button>
-          <button class="tab ${uiState.activeTab === 'commands' ? 'active' : ''}" data-tab="commands">Commands</button>
-          <button class="tab tab-push-right ${uiState.activeTab === 'add' ? 'active' : ''}" data-tab="add" ${selectedCategory ? '' : 'disabled'}>Add New Command</button>
+          <button class="tab ${!uiState.editingCommandId && uiState.activeTab === 'recent' ? 'active' : ''}" data-tab="recent">Recent Commands</button>
+          <button class="tab ${!uiState.editingCommandId && uiState.activeTab === 'manage' ? 'active' : ''}" data-tab="manage">Categories & Groups</button>
+          <button class="tab ${!uiState.editingCommandId && uiState.activeTab === 'commands' ? 'active' : ''}" data-tab="commands">Commands</button>
+          <button class="tab tab-push-right ${!uiState.editingCommandId && uiState.activeTab === 'add' ? 'active' : ''}" data-tab="add" ${selectedCategory ? '' : 'disabled'}>Add New Command</button>
         </div>
       </section>
 
-      ${uiState.activeTab === 'recent' ? renderRecentCommandsTab() : ''}
-      ${uiState.activeTab === 'manage' ? renderManageTab() : ''}
-      ${uiState.activeTab === 'commands' ? renderCommandsTab(selectedCategory) : ''}
-      ${uiState.activeTab === 'add' ? renderAddCommandTab(selectedCategory) : ''}
+      ${uiState.editingCommandId ? renderEditTab() : (
+      uiState.activeTab === 'recent' ? renderRecentCommandsTab() :
+        uiState.activeTab === 'manage' ? renderManageTab() :
+          uiState.activeTab === 'commands' ? renderCommandsTab(selectedCategory) :
+            uiState.activeTab === 'add' ? renderAddCommandTab(selectedCategory) : ''
+    )}
       ${renderVariableInputModal()}
       ${renderRunConfirmModal()}
       ${renderDeleteConfirmModal()}
@@ -639,7 +642,7 @@ function renderCommandsTable(commands, groups) {
   }
 
   const tableClasses = [
-    'commands-table main-table',
+    'cmds-table commands-table main-table',
     !uiState.columnVisibility.description ? 'hide-description' : '',
     !uiState.columnVisibility.groups ? 'hide-groups' : '',
   ].filter(Boolean).join(' ');
@@ -1035,7 +1038,7 @@ function renderRecentCommandsTab() {
         </div>
       </div>
       <div class="table-wrap recent-commands">
-        <table class="recent-table">
+        <table class="cmds-table recent-table">
           <thead>
             <tr>
               <th>Title</th>
@@ -1103,6 +1106,13 @@ function bindEvents() {
   bindTopActions();
   bindTabs();
 
+  // If currently editing, only bind edit tab events (regardless of activeTab)
+  if (uiState.editingCommandId) {
+    bindEditTabEvents();
+    bindCommandActionButtons();
+    return;
+  }
+
   if (uiState.activeTab === 'recent') {
     bindRecentTabEvents();
   }
@@ -1113,9 +1123,6 @@ function bindEvents() {
 
   if (uiState.activeTab === 'commands') {
     bindCommandsTabEvents();
-    if (uiState.editingCommandId) {
-      bindEditTabEvents();
-    }
   }
 
   if (uiState.activeTab === 'add') {
@@ -1757,10 +1764,13 @@ function bindAddCommandTabEvents() {
         ...(Object.keys(variableMeta).length > 0 ? {variableMeta} : {}),
       };
 
+      const newCommandId = newCommand.id;
       state.data.commands.push(newCommand);
       uiState.newCommandDraft = {visible: false, title: '', template: '', description: '', groupId: '', helpUrl: '', variableMeta: {}};
       uiState.activeTab = 'commands';
       persistDataThenRender('Command added and saved.');
+      // Scroll to and highlight the new row after render
+      setTimeout(function () {scrollToAndHighlight(newCommandId);}, 50);
     });
   }
 }
@@ -1843,19 +1853,30 @@ function bindEditTabEvents() {
       }
     });
 
+    const savedCommandId = command.id;
+    const returnTab = uiState.editSourceTab || 'commands';
     uiState.editingCommandId = null;
     uiState.editCommandDraft = {title: '', template: '', description: '', groupId: ''};
-    uiState.activeTab = 'commands';
+    uiState.editSourceTab = null;
+    uiState.activeTab = returnTab;
     persistDataThenRender('Command updated and saved.');
     persistCommandVariables();
+    // Scroll to and highlight the saved row after render
+    setTimeout(function () {scrollToAndHighlight(savedCommandId);}, 50);
   });
 
   const cancelEditButton = document.getElementById('btn-cancel-edit-command');
   if (cancelEditButton) {
     cancelEditButton.addEventListener('click', function () {
+      const savedCommandId = command.id;
+      const returnTab = uiState.editSourceTab || 'commands';
       uiState.editingCommandId = null;
       uiState.editCommandDraft = {title: '', template: '', description: '', groupId: ''};
+      uiState.editSourceTab = null;
+      uiState.activeTab = returnTab;
       render();
+      // Scroll to and highlight the row after render
+      setTimeout(function () {scrollToAndHighlight(savedCommandId);}, 50);
     });
   }
 
@@ -2078,6 +2099,8 @@ function bindCommandActionButtons() {
         return item.id === commandId;
       });
 
+      // Save the tab we came from so we can return to it
+      uiState.editSourceTab = uiState.activeTab;
       uiState.editingCommandId = commandId;
 
       if (command) {
@@ -2092,7 +2115,7 @@ function bindCommandActionButtons() {
         };
       }
 
-      uiState.activeTab = 'commands';
+      // Do NOT change activeTab — keep it as-is, tabs will show no active selection
       render();
     });
   });
@@ -3167,7 +3190,7 @@ function renderAiResultsModal() {
         ${aiState.error ? `<p class="ai-error-msg">❌ ${escapeHtml(aiState.error)}</p>` : ''}
         ${groupTabs}
         <div class="table-wrap">
-          <table class="commands-table ai-results-table">
+          <table class="cmds-table commands-table ai-results-table">
             <thead>
               <tr>
               <th>Title</th>
@@ -3411,6 +3434,25 @@ function bindAiEvents() {
       });
     }
   }
+}
+
+/**
+ * Scrolls to a row with the given commandId and temporarily highlights it.
+ * Works for both the commands table and the recent commands table.
+ * @param {string} commandId
+ */
+function scrollToAndHighlight(commandId) {
+  if (!commandId) {return;}
+  // Find a button inside the row that carries the commandId
+  var btn = document.querySelector('[data-command-id="' + commandId + '"]');
+  if (!btn) {return;}
+  var row = btn.closest('tr');
+  if (!row) {return;}
+  row.classList.add('row-highlight');
+  row.scrollIntoView({behavior: 'smooth', block: 'center'});
+  setTimeout(function () {
+    row.classList.remove('row-highlight');
+  }, 2000);
 }
 
 // Disable right-click context menu unless text is selected

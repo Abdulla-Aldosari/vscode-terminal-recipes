@@ -445,6 +445,21 @@ td.actions-cell {
   vertical-align: middle;
 }
 
+.cmds-table td {
+  transition: background-color 1.6s ease;
+}
+
+.cmds-table tr {
+  transition: background-color 0.1s ease;
+}
+
+.cmds-table tr:hover {
+  background-color: color-mix(in srgb, var(--vscode-editor-background) 93%, var(--vscode-foreground)) !important;
+  /* transition: none; */
+  transition: background-color 0.1s ease;
+}
+
+
 .template-cell {
   white-space: pre-wrap;
   padding: 6px 8px;
@@ -1182,6 +1197,13 @@ table.commands-table.ai-results-table td:last-child {
   vertical-align: middle;
 }
 
+
+/* ===== Row Highlight (after Edit/Add) ===== */
+tr.row-highlight td {
+  background-color: var(--vscode-editor-selectionHighlightBackground, rgba(173, 214, 255, 0.15)) !important;
+  /* transition: background-color 0s ease; */
+  transition: none;
+}
 
 /* Unchecked row styling */
 .ai-row-unchecked td {
