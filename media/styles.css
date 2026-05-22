@@ -263,6 +263,9 @@ select.input:focus {
   padding: 4px 5px;
   font-size: 0.82rem;
   cursor: pointer;
+  display: flex;
+  gap: 5px;
+  justify-content: center;
 }
 
 .btn:disabled {
@@ -1070,12 +1073,6 @@ input[type="checkbox"]:checked::after {
 }
 
 /* ===== AI Feature Styles ===== */
-
-#btn-ai-generate {
-  display: flex;
-  gap: 5px;
-}
-
 
 .ai-settings-btn {
   border: 1px solid color-mix(in srgb, var(--vscode-button-background) 50%, transparent) !important;

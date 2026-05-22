@@ -16,12 +16,44 @@ function iconEdit() {
 function iconDelete() {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.5" d="M9.17 4a3.001 3.001 0 0 1 5.66 0m5.67 2h-17m15.333 2.5l-.46 6.9c-.177 2.654-.265 3.981-1.13 4.79s-2.196.81-4.856.81h-.774c-2.66 0-3.991 0-4.856-.81c-.865-.809-.954-2.136-1.13-4.79l-.46-6.9M9.5 11l.5 5m4.5-5l-.5 5"/></svg>`;
 }
-function sparklesIcon() {
+function iconSparkles() {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-sparkles">
 	<path stroke="none" d="M0 0h24v24H0z" fill="none" />
 	<path d="M16 18a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2m0 -12a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2m-7 12a6 6 0 0 1 6 -6a6 6 0 0 1 -6 -6a6 6 0 0 1 -6 6a6 6 0 0 1 6 6" />
 </svg>`;
 }
+function iconAISettings() {
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-settings-spark">
+	<path stroke="none" d="M0 0h24v24H0z" fill="none" />
+	<path d="M11.992 21c-.728 -.003 -1.455 -.442 -1.667 -1.317a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c.882 .214 1.32 .95 1.317 1.684" />
+	<path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" />
+	<path d="M19 22.5a4.75 4.75 0 0 1 3.5 -3.5a4.75 4.75 0 0 1 -3.5 -3.5a4.75 4.75 0 0 1 -3.5 3.5a4.75 4.75 0 0 1 3.5 3.5" />
+</svg>`;
+}
+function iconSettings() {
+  return ``;
+}
+
+function iconAdjustmentsSettings() {
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-adjustments-horizontal">
+	<path stroke="none" d="M0 0h24v24H0z" fill="none" />
+	<path d="M12 6a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
+	<path d="M4 6l8 0" />
+	<path d="M16 6l4 0" />
+	<path d="M6 12a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
+	<path d="M4 12l2 0" />
+	<path d="M10 12l10 0" />
+	<path d="M15 18a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
+	<path d="M4 18l11 0" />
+	<path d="M19 18l1 0" />
+</svg>`;
+}
+
+
+
+
+
+
 
 const uiState = {
   activeTab: 'recent',
@@ -392,7 +424,7 @@ function render() {
           <button id="btn-open-local-variables-file" class="btn small secondary" ${state.workspaceFolder ? '' : 'disabled'} title="${state.workspaceFolder ? '' : 'No workspace open'}">Open Local Variables JSON</button>
           <button id="btn-open-global-variables-file" class="btn small secondary">Open Global Variables JSON</button>
           <button id="btn-open-commands-file" class="btn small secondary">Open Global JSON</button>
-          <button id="btn-ai-settings" class="btn small secondary ai-settings-btn" title="AI Settings">⚙️ AI Settings</button>
+          <button id="btn-ai-settings" class="btn small secondary ai-settings-btn" title="AI Settings">${iconAISettings()} AI Settings</button>
         </div>
       </header>
       <p class="meta">Workspace: <code>${escapeHtml(state.workspaceFolder || 'No workspace open')}</code></p>
@@ -453,7 +485,7 @@ function renderManageTab() {
           <div class="manage-panel-header">
             <h2 class="manage-panel-title">Categories</h2>
             <div class="row" style="gap:6px">
-              <button class="btn small secondary ai-create-btn" id="btn-create-with-ai" title="Generate a full category with groups and commands using AI">${sparklesIcon()} Create with AI</button>
+              <button class="btn small secondary ai-create-btn" id="btn-create-with-ai" title="Generate a full category with groups and commands using AI">${iconSparkles()} Create with AI</button>
               <button class="btn primary small" id="btn-open-add-category-modal">+ Add New Category</button>
             </div>
           </div>
@@ -576,7 +608,7 @@ function renderCommandsTab(selectedCategory) {
         <h2 class="pb-5">Commands Browser</h2>
         ${renderCustomCategorySelect()}
         ${renderColumnToggleDropdown()}
-        <button class="btn small secondary ai-create-btn" id="btn-add-with-ai" title="${uiState.selectedGroupId === 'all' ? 'Select a real group first' : 'Generate a command using AI'}" ${uiState.selectedGroupId === 'all' ? 'disabled' : ''}>${sparklesIcon()} Add with AI</button>
+        <button class="btn small secondary ai-create-btn" id="btn-add-with-ai" title="${uiState.selectedGroupId === 'all' ? 'Select a real group first' : 'Generate a command using AI'}" ${uiState.selectedGroupId === 'all' ? 'disabled' : ''}>${iconSparkles()} Add with AI</button>
       </div>
       <div class="group-tags-row">
         <span class="groups-label">Groups:</span>
@@ -604,6 +636,8 @@ function renderAddCommandTab(selectedCategory) {
   const groups = getSelectedCategoryGroups();
   const draft = uiState.newCommandDraft;
   const detectedVars = draft.template ? collectVariables([draft.template]).filter(function (n) {return n !== 'workspaceFolder';}) : [];
+  const newCommandDraft = getCommandDraft('__new__');
+  const newCommandRemember = getCommandRemember('__new__');
 
   return `
     <section class="card">
@@ -612,27 +646,6 @@ function renderAddCommandTab(selectedCategory) {
         <label class="add-command-title">Command Title<input id="new-command-title" class="input" required value="${escapeAttr(draft.title)}" /></label>
         <label class="add-command-template">Command Template (Variables supported)<input id="new-command-template" class="input" required placeholder="npm install \${package_name}" value="${escapeAttr(draft.template)}" /></label>
         <label class="full-width">Description<textarea id="new-command-description" class="input" rows="2">${escapeAttr(draft.description)}</textarea></label>
-        <label class="full-width">Help URL (optional)<input id="new-command-help-url" class="input" placeholder="https://docs.example.com/command" value="${escapeAttr(draft.helpUrl || '')}" /></label>
-        ${detectedVars.length ? `
-        <div class="full-width mt-5">
-          <h3>Detected Variables — Set Enum (optional):</h3>
-          <div class="enum-var-list">
-            ${detectedVars.map(function (name) {
-    const meta = draft.variableMeta && draft.variableMeta[name];
-    const isEnum = meta && meta.type === 'enum';
-    const enumCount = isEnum ? meta.enumValues.length : 0;
-    return `
-              <div class="enum-var-row">
-                <code class="variable-name">\${${escapeHtml(name)}}</code>
-                <button type="button" class="btn small ${isEnum ? 'primary' : 'secondary'} btn-open-enum-manager" data-var-name="${escapeAttr(name)}" data-command-id="" title="Manage Enum values for this variable">
-                  ${isEnum ? `⚙️ Enum (${enumCount})` : '⚙️ Set Enum'}
-                </button>
-              </div>
-            `;
-  }).join('')}
-          </div>
-        </div>
-        ` : ''}
         <div class="full-width grouped-tags-wrap">
           <span class="groups-label">Groups:</span>
           <div class="inline-tags" id="new-command-groups-tags">
@@ -641,6 +654,36 @@ function renderAddCommandTab(selectedCategory) {
   }).join('')}
           </div>
         </div>
+        <label class="full-width">Help URL (optional)<input id="new-command-help-url" class="input" placeholder="https://docs.example.com/command" value="${escapeAttr(draft.helpUrl || '')}" /></label>
+        ${detectedVars.length ? `
+        <div class="full-width mt-5">
+          <h3>Command Variables:</h3>
+          <div class="variables-list">
+            <div class="variable-row vars-store-row">
+              <span></span>
+              <span></span>
+              <span class="muted vars-store-location">Variables store location</span>
+            </div>
+            ${detectedVars.map(function (name) {
+    const value = newCommandDraft[name] || '';
+    const rememberValue = newCommandRemember[name] || 'off';
+    const meta = draft.variableMeta && draft.variableMeta[name];
+    const isEnum = meta && meta.type === 'enum';
+    const enumCount = isEnum ? meta.enumValues.length : 0;
+    return `
+              <div class="variable-row">
+                <label class="variable-name">\${${escapeHtml(name)}}</label>
+                <input class="input variable-input" data-command-id="__new__" data-variable-name="${escapeAttr(name)}" value="${escapeAttr(value)}" />
+                ${renderToggleSwitch3('__new__', name, rememberValue, 'variable-remember-toggle')}
+                <button type="button" class="btn small ${isEnum ? 'primary' : 'secondary'} btn-open-enum-manager" data-var-name="${escapeAttr(name)}" data-command-id="" title="Manage Enum values for this variable">
+                  ${iconAdjustmentsSettings()} ${isEnum ? `Enum (${enumCount})` : 'Set Enum'}
+                </button>
+              </div>
+            `;
+  }).join('')}
+          </div>
+        </div>
+        ` : ''}
         <div class="row full-width justify-content-flex-end mt-20">
           <button type="submit" class="btn medium primary">Add Command</button>
           <button type="button" id="btn-cancel-add-command" class="btn medium secondary action">Cancel</button>
@@ -799,7 +842,7 @@ function renderEditTab() {
                 <label class="variable-name">\${${escapeHtml(name)}}</label>
                 <input class="input variable-input" data-command-id="${escapeAttr(command.id)}" data-variable-name="${escapeAttr(name)}" value="${escapeAttr(value)}" ${name === 'workspaceFolder' ? 'readonly' : ''} />
                 ${name === 'workspaceFolder' ? '<span></span>' : renderToggleSwitch3(command.id, name, rememberValue, 'variable-remember-toggle')}
-                ${name === 'workspaceFolder' ? '' : `<button type="button" class="btn small ${isEnum ? 'primary' : 'secondary'} btn-open-enum-manager" data-var-name="${escapeAttr(name)}" data-command-id="${escapeAttr(command.id)}" title="Manage Enum values">${isEnum ? `⚙️ Enum (${enumCount})` : '⚙️ Set Enum'}</button>`}
+                ${name === 'workspaceFolder' ? '' : `<button type="button" class="btn small ${isEnum ? 'primary' : 'secondary'} btn-open-enum-manager" data-var-name="${escapeAttr(name)}" data-command-id="${escapeAttr(command.id)}" title="Manage Enum values">${iconAdjustmentsSettings()} ${isEnum ? `Enum (${enumCount})` : 'Set Enum'}</button>`}
               </div>
             `;
   }).join('')}
@@ -1710,6 +1753,32 @@ function bindAddCommandTabEvents() {
     });
   });
 
+  // --- Variable inputs in Add Command tab ---
+  document.querySelectorAll('.variable-input[data-command-id="__new__"]').forEach(function (input) {
+    input.addEventListener('input', function () {
+      const variableName = input.dataset.variableName;
+      const draft = getCommandDraft('__new__');
+      draft[variableName] = input.value;
+      uiState.commandDrafts['__new__'] = draft;
+    });
+  });
+
+  // --- Toggle switches in Add Command tab ---
+  document.querySelectorAll('.variable-remember-toggle[data-command-id="__new__"]').forEach(function (container) {
+    container.querySelectorAll('.toggle-option-3').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        if (btn.disabled) {return;}
+        container.querySelectorAll('.toggle-option-3').forEach(function (b) {b.classList.remove('active');});
+        btn.classList.add('active');
+        const variableName = container.dataset.variableName;
+        const value = btn.dataset.value;
+        const rememberMap = getCommandRemember('__new__');
+        rememberMap[variableName] = value;
+        uiState.commandRemember['__new__'] = rememberMap;
+      });
+    });
+  });
+
   document.querySelectorAll('.new-command-group-tag').forEach(function (tagButton) {
     tagButton.addEventListener('click', function () {
       const groupId = tagButton.dataset.groupId;
@@ -1721,6 +1790,8 @@ function bindAddCommandTabEvents() {
   if (cancelButton) {
     cancelButton.addEventListener('click', function () {
       uiState.newCommandDraft = {visible: false, title: '', template: '', description: '', groupId: '', helpUrl: '', variableMeta: {}};
+      delete uiState.commandDrafts['__new__'];
+      delete uiState.commandRemember['__new__'];
       uiState.activeTab = 'commands';
       render();
     });
@@ -1780,10 +1851,41 @@ function bindAddCommandTabEvents() {
 
       const newCommandId = newCommand.id;
       state.data.commands.push(newCommand);
+
+      // Read latest variable values from DOM before state is cleared
+      document.querySelectorAll('.variable-input[data-command-id="__new__"]').forEach(function (varInput) {
+        const vname = varInput.dataset.variableName;
+        if (vname) {
+          const d = getCommandDraft('__new__');
+          d[vname] = varInput.value;
+        }
+      });
+
+      // Read latest toggle states from DOM
+      document.querySelectorAll('.variable-remember-toggle[data-command-id="__new__"]').forEach(function (container) {
+        const vname = container.dataset.variableName;
+        const activeBtn = container.querySelector('.toggle-option-3.active');
+        if (vname && activeBtn) {
+          const rm = getCommandRemember('__new__');
+          rm[vname] = activeBtn.dataset.value;
+        }
+      });
+
+      // Transfer variable data from '__new__' to the real newCommandId
+      if (uiState.commandDrafts['__new__']) {
+        uiState.commandDrafts[newCommandId] = uiState.commandDrafts['__new__'];
+        delete uiState.commandDrafts['__new__'];
+      }
+      if (uiState.commandRemember['__new__']) {
+        uiState.commandRemember[newCommandId] = uiState.commandRemember['__new__'];
+        delete uiState.commandRemember['__new__'];
+      }
+
       uiState.newCommandDraft = {visible: false, title: '', template: '', description: '', groupId: '', helpUrl: '', variableMeta: {}};
       uiState.activeTab = 'commands';
       uiState.pendingScrollCommandId = newCommandId;
       persistDataThenRender('Command added and saved.');
+      persistCommandVariables();
     });
   }
 }
@@ -3085,7 +3187,7 @@ function renderAiSettingsModal() {
   return `
     <div class="modal-overlay" id="ai-settings-overlay">
       <div class="modal-box">
-        <h3>⚙️ AI Settings</h3>
+        <h3>${iconAISettings()} AI Settings</h3>
         <label>
           AI Provider
           <div class="select-container">
@@ -3123,8 +3225,8 @@ function renderAiPromptModal() {
   const groups = getSelectedCategoryGroups();
   const selectedGroup = groups.find(function (g) {return g.id === aiState.groupId;});
   const contextLabel = isFullMode
-    ? '${sparklesIcon()} Create a new category with all its groups and commands'
-    : `${sparklesIcon()} Add a single command to group: <strong>${escapeHtml(selectedGroup ? selectedGroup.title : aiState.groupId)}</strong> in <strong>${escapeHtml(selectedCategory ? selectedCategory.title : aiState.categoryId)}</strong>`;
+    ? `${iconSparkles()} Create a new category with all its groups and commands`
+    : `${iconSparkles()} Add a single command to group: <strong>${escapeHtml(selectedGroup ? selectedGroup.title : aiState.groupId)}</strong> in <strong>${escapeHtml(selectedCategory ? selectedCategory.title : aiState.categoryId)}</strong>`;
 
   return `
     <div class="modal-overlay" id="ai-prompt-overlay">
@@ -3141,7 +3243,7 @@ function renderAiPromptModal() {
           >${escapeHtml(aiState.prompt)}</textarea>
         </label>
         <div class="row justify-content-flex-end mt-20">
-          <button class="btn small primary" id="btn-ai-generate">${sparklesIcon()} Generate</button>
+          <button class="btn small primary" id="btn-ai-generate">${iconSparkles()} Generate</button>
           <button class="btn small secondary action min-w65" id="btn-ai-prompt-cancel">Cancel</button>
         </div>
       </div>
@@ -3195,7 +3297,7 @@ function renderAiResultsModal() {
     <div class="modal-overlay" id="ai-results-overlay">
       <div class="modal-box ai-results-box">
         <div class="row between">
-          <h3>${sparklesIcon()} AI Generated Commands</h3>
+          <h3>${iconSparkles()} AI Generated Commands</h3>
           ${isFullMode && category ? `<span class="muted ai-category-label">Category: <strong>${escapeHtml(category.title)}</strong></span>` : ''}
         </div>
         ${aiState.error ? `<p class="ai-error-msg">❌ ${escapeHtml(aiState.error)}</p>` : ''}
