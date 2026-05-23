@@ -3053,12 +3053,14 @@ function renderEnumManagerModal() {
         </div>
         ${values.length > 0 ? `
         <div class="table-wrap">
-          <table class="enum-table">
-            <thead><tr>
-              <th>Title</th><th>Value</th><th>Description</th><th></th>
-            </tr></thead>
-            <tbody>${rowsHtml}</tbody>
-          </table>
+          <div class="enum-table-scroll">
+            <table class="enum-table">
+              <thead><tr>
+                <th>Title</th><th>Value</th><th>Description</th><th></th>
+              </tr></thead>
+              <tbody>${rowsHtml}</tbody>
+            </table>
+          </div>
         </div>` : `<p class="muted muted-no-margin">No enum values yet. Add one below.</p>`}
         ${editFormHtml}
         <div class="row justify-content-flex-end mt-20">

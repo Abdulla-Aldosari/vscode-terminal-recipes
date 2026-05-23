@@ -1275,8 +1275,37 @@ tr.row-highlight td {
 
 .enum-manager-box {
   width: min(760px, 96vw) !important;
-  max-height: 90vh;
+  max-height: 85vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.enum-manager-box .table-wrap {
+  flex-shrink: 1;
+  min-height: 0;
+  border: 1px solid var(--vscode-panel-border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.enum-table-scroll {
   overflow-y: auto;
+  max-height: 283px;
+}
+
+.enum-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--vscode-editor-background);
+  box-shadow: inset 0 -1px 0 var(--vscode-panel-border);
+  border-bottom: unset;
+}
+
+.enum-table tbody tr:last-child td {
+  border-bottom: none;
 }
 
 .enum-table {
