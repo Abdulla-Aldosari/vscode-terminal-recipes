@@ -310,7 +310,7 @@ function hydrateState(payload) {
   state.terminalProfiles = payload && payload.terminalProfiles ? payload.terminalProfiles : {defaultProfile: '', profiles: []};
 
   // Initialize selected shell from default profile if not already set
-  if (runConfirmState.selectedShellName === null) {
+  if (runConfirmState.selectedShellName == null) {
     const profiles = state.terminalProfiles.profiles || [];
     const defaultName = state.terminalProfiles.defaultProfile || '';
     const defaultProfileEntry = profiles.find(function (p) {return p.name === defaultName;}) || profiles[0] || null;
@@ -913,7 +913,7 @@ function renderRunConfirmModal() {
       <div class="modal-box">
         <h3>Do you want to run this command?</h3>
         <pre class="modal-command-preview">${escapeHtml(runConfirmState.resolvedCommand)}</pre>
-        <p class="muted">⚠️ This command will be executed immediately</p>
+        <span class="muted">⚠️ This command will be executed immediately</span>
         <div class="row justify-content-flex-end">
         ${hasVariables ? `<button class="btn small secondary min-w65" id="btn-confirm-run-variables">Edit Variables</button>` : ''}
           ${renderShellSelector()}
@@ -2414,7 +2414,7 @@ function bindCommandActionButtons() {
 
   if (confirmRunNoButton) {
     confirmRunNoButton.addEventListener('click', function () {
-      runConfirmState = {commandId: null, resolvedCommand: ''};
+      runConfirmState = {commandId: null, resolvedCommand: '', selectedShellPath: runConfirmState.selectedShellPath, selectedShellName: runConfirmState.selectedShellName};
       render();
     });
   }
@@ -2589,7 +2589,7 @@ function bindCommandActionButtons() {
       variableInputState = {commandId: null, action: null, missingVariables: [], inputValues: {}, rememberFlags: {}, returnToRunConfirm: false};
 
       if (!returnToRunConfirm) {
-        runConfirmState = {commandId: null, resolvedCommand: ''};
+        runConfirmState = {commandId: null, resolvedCommand: '', selectedShellPath: runConfirmState.selectedShellPath, selectedShellName: runConfirmState.selectedShellName};
       }
 
       render();
@@ -2700,7 +2700,7 @@ function executeDeleteConfirm() {
     if (uiState.editingCommandId === id) {
       uiState.editingCommandId = null;
       uiState.editCommandDraft = {title: '', template: '', description: '', groupId: ''};
-      runConfirmState = {commandId: null, resolvedCommand: ''};
+      runConfirmState = {commandId: null, resolvedCommand: '', selectedShellPath: runConfirmState.selectedShellPath, selectedShellName: runConfirmState.selectedShellName};
       uiState.activeTab = 'commands';
     }
 
@@ -3064,8 +3064,8 @@ function renderEnumManagerModal() {
         </div>` : `<p class="muted muted-no-margin">No enum values yet. Add one below.</p>`}
         ${editFormHtml}
         <div class="row justify-content-flex-end mt-20">
-          <button class="btn small primary min-w65" id="btn-enum-manager-save">Save</button>
-          <button class="btn small secondary action min-w65" id="btn-enum-manager-cancel">Cancel</button>
+          <button class="btn medium primary min-w65" id="btn-enum-manager-save">Save</button>
+          <button class="btn medium secondary action min-w65" id="btn-enum-manager-cancel">Cancel</button>
         </div>
       </div>
     </div>

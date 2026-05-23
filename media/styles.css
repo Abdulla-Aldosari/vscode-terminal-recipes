@@ -36,6 +36,11 @@ body {
   gap: 8px;
 }
 
+.header-actions .btn.small {
+  font-size: 0.60rem;
+  padding: 4.2px 7px;
+}
+
 .notice {
   position: fixed;
   top: 14px;
@@ -44,7 +49,7 @@ body {
   max-width: min(420px, calc(100vw - 24px));
   padding: 9px 12px;
   border: 1px solid var(--vscode-inputOption-activeBorder);
-  border-radius: 8px;
+  border-radius: 5px;
   background: color-mix(in srgb, var(--vscode-editor-background) 70%, var(--vscode-button-background));
   box-shadow: 0 8px 18px rgba(0, 0, 0, 0.28);
 }
@@ -55,17 +60,9 @@ body {
   opacity: 0.85;
 }
 
-.status {
-  margin: 0;
-  padding: 8px 10px;
-  border: 1px solid var(--vscode-inputOption-activeBorder);
-  border-radius: 6px;
-  background: color-mix(in srgb, var(--vscode-editor-background) 82%, var(--vscode-button-background));
-}
-
 .card {
   border: 1px solid var(--vscode-panel-border);
-  border-radius: 8px;
+  border-radius: 5px;
   padding: 12px;
   display: grid;
   gap: 10px;
@@ -155,10 +152,6 @@ body {
   align-items: center;
 }
 
-.flex-end {
-  align-items: flex-end;
-}
-
 .align-items-center {
   align-items: center;
 }
@@ -193,7 +186,7 @@ label {
 
 .input {
   width: 100%;
-  border-radius: 6px;
+  border-radius: 4px;
   border: 1px solid var(--vscode-input-border);
   background: var(--vscode-input-background);
   color: var(--vscode-input-foreground);
@@ -228,6 +221,7 @@ textarea {
   display: flex;
   gap: 5px;
   justify-content: center;
+  align-items: center;
 }
 
 .btn:disabled {
@@ -308,6 +302,12 @@ textarea {
   margin: 0;
 }
 
+.modal-description {
+  margin: 0;
+  font-size: 0.88rem;
+  opacity: 0.85;
+}
+
 .btn.small {
   font-size: 0.76rem;
   padding: 5.3px 8px;
@@ -332,7 +332,7 @@ textarea {
 
 .btn.medium {
   font-size: 0.8rem;
-  padding: 7px 11px;
+  padding: 4px 9px;
 }
 
 
@@ -363,7 +363,7 @@ textarea {
 
 .tags-panel {
   border: 1px solid var(--vscode-panel-border);
-  border-radius: 8px;
+  border-radius: 5px;
   padding: 10px;
   display: grid;
   gap: 8px;
@@ -372,10 +372,10 @@ textarea {
 
 .tag {
   border: 1px solid var(--vscode-input-border);
-  border-radius: 6px;
+  border-radius: 4px;
   background: transparent;
   color: var(--vscode-editor-foreground);
-  padding: 5px 9px;
+  padding: 4px 7px;
   text-align: left;
   cursor: pointer;
   font-size: 0.8rem;
@@ -482,7 +482,7 @@ td.actions-cell {
 .modal-box {
   width: min(640px, 100%);
   border: 1px solid var(--vscode-panel-border);
-  border-radius: 8px;
+  border-radius: 5px;
   background: var(--vscode-editor-background);
   padding: 14px;
   display: grid;
@@ -497,9 +497,9 @@ td.actions-cell {
 .modal-command-preview {
   margin: 0;
   border: 1px solid var(--vscode-panel-border);
-  border-radius: 6px;
+  border-radius: 5px;
   background: var(--vscode-input-background);
-  color: var(--vscode-input-foreground);
+  color: var(--vscode-textPreformat-foreground);
   padding: 10px;
   white-space: pre-wrap;
   word-break: break-word;
@@ -552,10 +552,6 @@ td.actions-cell {
   width: 100%;
 }
 
-.max-width-300 {
-  max-width: 300px;
-}
-
 .recent-commands th {
   white-space: nowrap;
   border-bottom: 1px solid var(--vscode-panel-border);
@@ -602,10 +598,10 @@ td.actions-cell {
 .toggle-switch-3 {
   display: inline-flex;
   border: 1px solid var(--vscode-input-border);
-  border-radius: 6px;
+  border-radius: 4px;
   background: var(--vscode-input-background);
   overflow: hidden;
-  min-width: 135px;
+  min-width: 129px;
 }
 
 .toggle-option-3 {
@@ -613,7 +609,7 @@ td.actions-cell {
   border-radius: 0;
   background: transparent;
   color: var(--vscode-editor-foreground);
-  padding: 5px 8px;
+  padding: 4.8px 7px;
   font-size: 0.8rem;
   cursor: pointer;
   opacity: 0.6;
@@ -656,9 +652,9 @@ code {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 5px 8px;
+  padding: 4px 8px;
   border: 1px solid color-mix(in srgb, var(--vscode-panel-border) 75%, transparent);
-  border-radius: 6px;
+  border-radius: 4px;
   background: color-mix(in srgb, var(--vscode-editor-background) 96%, var(--vscode-foreground));
   color: var(--vscode-editor-foreground);
   font-size: 0.82rem;
@@ -691,7 +687,7 @@ code {
   min-width: max(100%, 160px);
   background: color-mix(in srgb, var(--vscode-settings-dropdownBackground) 40%, var(--vscode-editor-background));
   border: 1px solid var(--vscode-panel-border);
-  border-radius: 6px;
+  border-radius: 4px;
   padding: 4px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
 }
@@ -701,7 +697,7 @@ code {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 6px 8px;
+  padding: 4px 8px;
   border-radius: 4px;
   font-size: 0.82rem;
   cursor: pointer;
@@ -771,7 +767,7 @@ code {
 
 .manage-panel {
   border: 1px solid var(--vscode-panel-border);
-  border-radius: 8px;
+  border-radius: 5px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -822,8 +818,8 @@ code {
   border-bottom: none;
 }
 
-.manage-item:hover {
-  background: color-mix(in srgb, var(--vscode-editor-background) 80%, var(--vscode-foreground));
+.manage-item:hover:not(.active) {
+  background-color: color-mix(in srgb, var(--vscode-editor-background) 95%, var(--vscode-foreground)) !important;
 }
 
 .manage-item.active {
@@ -1108,7 +1104,7 @@ input[type="checkbox"]:checked::after {
 .ai-error-msg {
   margin: 0;
   padding: 8px 10px;
-  border-radius: 6px;
+  border-radius: 5px;
   background: color-mix(in srgb, #d1242f 12%, var(--vscode-editor-background));
   border: 1px solid color-mix(in srgb, #d1242f 35%, transparent);
   font-size: 0.83rem;
@@ -1183,13 +1179,6 @@ table.commands-table.ai-results-table td:nth-child(2) {
 
 /* Template column in ai results table */
 table.commands-table.ai-results-table td:nth-child(3) {
-  min-width: 200px;
-  vertical-align: middle;
-}
-
-/* Group column in ai results table (Full Mode Only) */
-table.commands-table.ai-results-table td.ai-Group {
-  width: 1%;
   min-width: 200px;
   vertical-align: middle;
 }
@@ -1269,6 +1258,7 @@ tr.row-highlight td {
 .btn-open-enum-manager {
   min-width: 95px;
   text-align: left;
+  padding: 6.4px 6px !important;
 }
 
 /* ===== Enum Manager Modal ===== */
@@ -1286,7 +1276,7 @@ tr.row-highlight td {
   flex-shrink: 1;
   min-height: 0;
   border: 1px solid var(--vscode-panel-border);
-  border-radius: 6px;
+  border-radius: 5px;
   overflow: hidden;
 }
 
@@ -1367,7 +1357,7 @@ tr.row-highlight td {
 
 .enum-add-form {
   border: 1px solid var(--vscode-panel-border);
-  border-radius: 6px;
+  border-radius: 5px;
   padding: 10px 12px;
   background: color-mix(in srgb, var(--vscode-editor-background) 95%, var(--vscode-foreground));
   margin-top: 8px;
