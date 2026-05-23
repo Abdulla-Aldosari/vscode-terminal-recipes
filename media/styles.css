@@ -212,48 +212,6 @@ label {
 }
 
 
-.select-container {
-  position: relative;
-  display: inline-block;
-}
-
-.select-container.full-width {
-  display: block;
-  width: 100%;
-}
-
-.select-container::after {
-  content: '';
-  display: block;
-  width: 7px;
-  height: 7px;
-  border-right: 1.7px solid currentColor;
-  border-bottom: 1.7px solid currentColor;
-  transform: translateY(-65%) rotate(45deg);
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  pointer-events: none;
-  color: var(--vscode-settings-dropdownForeground);
-  opacity: 0.75;
-}
-
-select,
-select.input {
-  appearance: none;
-  -webkit-appearance: none;
-  background-color: var(--vscode-settings-dropdownBackground) !important;
-  color: var(--vscode-settings-dropdownForeground) !important;
-  border: 1px solid var(--vscode-settings-dropdownBorder) !important;
-  padding-right: 28px !important;
-  padding-left: 9px;
-  width: 100%;
-  border-radius: var(--vscode-cornerRadius-small);
-}
-
-select.input:focus {
-  outline-color: var(--vscode-focusBorder) !important;
-}
 
 
 
@@ -586,6 +544,14 @@ td.actions-cell {
   padding-bottom: 5px;
 }
 
+.width-100 {
+  width: 100%;
+}
+
+.max-width-300 {
+  max-width: 300px;
+}
+
 .recent-commands th {
   white-space: nowrap;
   border-bottom: 1px solid var(--vscode-panel-border);
@@ -756,6 +722,23 @@ code {
   opacity: 0.85;
 }
 
+/* ===== Full-width custom select ===== */
+
+.cs-wrap-full {
+  display: block;
+  width: 100%;
+}
+
+.cs-wrap-full .cs-btn {
+  width: 100%;
+  min-width: unset;
+}
+
+.cs-wrap-full .cs-menu {
+  width: 100%;
+  min-width: unset;
+}
+
 /* ===== Shell Selector (Run Confirm Modal) ===== */
 
 .cs-btn-sm {
@@ -891,6 +874,12 @@ code {
   text-overflow: ellipsis;
 }
 
+
+/* ===== recent Table - Template Column ===== */
+.recent-table td:nth-child(2) {
+  min-width: 350px;
+}
+
 /* ===== recent Table - Last Run Column ===== */
 .recent-table td:nth-child(3) {
   width: 1%;
@@ -907,6 +896,8 @@ code {
   max-width: 70px;
   min-width: 70px;
   white-space: nowrap;
+  text-align: center;
+  font-size: 0.85rem;
 }
 
 /* ===== recent Table - Actions Column ===== */
@@ -914,14 +905,19 @@ code {
   width: 1%;
 }
 
+/* ===== Recent Commands Table: ×Runs column ===== */
+.recent-table th:nth-child(4) {
+  text-align: center;
+}
+
 
 
 /* ===== Commands Table - Title Column ===== */
 
 .commands-table.main-table td:first-child {
-  /* width: 1%; */
+  width: 1%;
   max-width: 250px;
-  min-width: 145px;
+  min-width: 200px;
   /* white-space: nowrap; */
   /* overflow: hidden; */
   /* text-overflow: ellipsis; */
@@ -930,6 +926,7 @@ code {
 /* ===== Commands Table - Description Column ===== */
 .commands-table.main-table td:nth-child(2) {
   color: var(--vscode-descriptionForeground);
+  min-width: 200px;
 }
 
 /* ===== Commands Table - Template Column ===== */
@@ -1354,32 +1351,13 @@ tr.row-highlight td {
   display: none;
 }
 
-/* ===== Edit Command: Category Select Container ===== */
-.select-container-category {
-  flex: 1;
-  max-width: 280px;
-}
-
 /* ===== Edit Command: Move Category Warning ===== */
 .move-category-warning {
   font-size: 0.8rem;
   color: var(--vscode-charts-yellow, #e9b44c);
 }
 
-/* ===== Variable Modal: Enum Select Container ===== */
-.select-container-flex {
-  flex: 1;
-}
 
-/* ===== Recent Commands Table: ×Runs column ===== */
-.recent-table th:nth-child(4) {
-  text-align: center;
-}
-
-.recent-table td:nth-child(4) {
-  text-align: center;
-  font-size: 0.85rem;
-}
 
 /* ===== Column Toggle: push to right ===== */
 .col-toggle-wrap {

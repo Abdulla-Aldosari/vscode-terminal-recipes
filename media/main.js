@@ -803,13 +803,16 @@ function renderEditTab() {
         <label class="full-width">Description<textarea id="edit-command-description" class="input" rows="2">${escapeHtml(editDraft.description)}</textarea></label>
         <div class="full-width grouped-tags-wrap">
           <span class="groups-label">Category:</span>
-          <div class="select-container select-container-category">
-            <select id="edit-command-category" class="input">
-              ${allCategories.map(function (cat) {
-    return `<option value="${escapeAttr(cat.id)}" ${cat.id === targetCategoryId ? 'selected' : ''}>${escapeHtml(cat.title)}</option>`;
-  }).join('')}
-            </select>
-          </div>
+          ${renderCustomSelect(
+    'edit-category-select-wrap',
+    'edit-category-select-btn',
+    'edit-category-select-menu',
+    allCategories.map(function (cat) {return {value: cat.id, label: cat.title};}),
+    targetCategoryId,
+    'cs-btn-sm cs-btn-category',  // btnExtraClass
+    false, // menuUp
+    'cs-wrap-full' // `wrapExtraClass`
+  )}
           ${isMoved ? `<span class="muted move-category-warning">⚠️ Moving to new category — (Please select a group from the list below)</span>` : ''}
         </div>
         <div class="full-width grouped-tags-wrap">
@@ -980,18 +983,24 @@ function renderVariableInputModal() {
     const isCustomValue = isEnum && !enumMeta.enumValues.some(function (ev) {return ev.value === currentValue;});
 
     if (isEnum) {
+      const enumOptions = enumMeta.enumValues.map(function (ev) {
+        return {value: ev.value, label: ev.title + ' — ' + ev.value};
+      }).concat([{value: '__custom__', label: '✏️ Custom value...'}]);
+      const enumSelectedVal = isCustomValue ? '__custom__' : currentValue;
       return `
               <div class="variable-row variable-row-enum">
                 <label class="variable-name">\${${escapeHtml(name)}}</label>
-                <div class="enum-input-wrap">
-                  <div class="select-container select-container-flex">
-                    <select class="input enum-var-modal-select" data-variable-name="${escapeAttr(name)}">
-                      ${enumMeta.enumValues.map(function (ev) {
-        return `<option value="${escapeAttr(ev.value)}" ${currentValue === ev.value ? 'selected' : ''} title="${escapeAttr(ev.description || '')}">${escapeHtml(ev.title)} — ${escapeHtml(ev.value)}</option>`;
-      }).join('')}
-                      <option value="__custom__" ${isCustomValue ? 'selected' : ''}>✏️ Custom value...</option>
-                    </select>
-                  </div>
+                <div class="enum-input-wrap" data-variable-name="${escapeAttr(name)}">
+                  ${renderCustomSelect(
+        'enum-var-wrap-' + escapeAttr(name),
+        'enum-var-btn-' + escapeAttr(name),
+        'enum-var-menu-' + escapeAttr(name),
+        enumOptions,
+        enumSelectedVal,
+        'cs-btn-sm cs-btn-enum-var', // btnExtraClass
+        false, // menuUp
+        'cs-wrap-full'  // 
+      )}
                   <input
                     class="input variable-modal-input variable-modal-custom-input${isCustomValue ? '' : ' hidden'}"
                     data-variable-name="${escapeAttr(name)}"
@@ -1479,6 +1488,114 @@ function executeManageModalConfirm() {
     persistDataThenRender('Group renamed and saved.');
     return;
   }
+}
+
+/**
+ * Generic custom dropdown renderer.
+ * @param {string} wrapperId      - id for the .cs-wrap element
+ * @param {string} btnId          - id for the toggle button
+ * @param {string} menuId         - id for the .cs-menu element
+ * @param {Array<{value:string, label:string}>} options - list of items
+ * @param {string} selectedValue  - currently selected value
+ * @param {string} [btnExtraClass]  - extra CSS class(es) for the button
+ * @param {boolean} [menuUp]        - open the menu upward (cs-menu-up)
+ * @param {string} [wrapExtraClass] - extra CSS class(es) for the .cs-wrap wrapper
+ *   Use 'cs-wrap-full' to make the dropdown stretch to 100% width.
+ * @returns {string} HTML string
+ */
+function renderCustomSelect(wrapperId, btnId, menuId, options, selectedValue, btnExtraClass, menuUp, wrapExtraClass) {
+  const chevronSvg = `<svg viewBox="0 0 21 21" width="14" height="14" class="cs-chevron" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="m6 9l6 6l6-6"></path></svg>`;
+  const checkSvg = `<svg viewBox="0 0 24 24" width="12" height="12" class="cs-check" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 6L9 17l-5-5"></path></svg>`;
+
+  const selectedOption = options.find(function (o) {return o.value === selectedValue;});
+  const selectedLabel = selectedOption ? selectedOption.label : (options.length ? options[0].label : '—');
+
+  const items = options.map(function (opt) {
+    const isSelected = opt.value === selectedValue;
+    return `
+      <div class="cs-item" role="menuitem" tabindex="-1" data-value="${escapeAttr(opt.value)}">
+        <span class="cs-item-label">${escapeHtml(opt.label)}</span>
+        ${isSelected ? checkSvg : ''}
+      </div>
+    `;
+  }).join('');
+
+  const menuClass = `cs-menu${menuUp ? ' cs-menu-up' : ''}`;
+  const wrapClass = `cs-wrap${wrapExtraClass ? ' ' + wrapExtraClass : ''}`;
+
+  return `
+    <div class="${wrapClass}" id="${escapeAttr(wrapperId)}">
+      <button class="cs-btn${btnExtraClass ? ' ' + btnExtraClass : ''}" type="button" aria-haspopup="menu" aria-expanded="false" id="${escapeAttr(btnId)}">
+        <span class="cs-btn-label">${escapeHtml(selectedLabel)}</span>
+        ${chevronSvg}
+      </button>
+      <div class="${menuClass}" role="menu" id="${escapeAttr(menuId)}" hidden>
+        ${items}
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Generic custom dropdown event binder.
+ * @param {string} wrapperId - id of the .cs-wrap element
+ * @param {string} btnId     - id of the toggle button
+ * @param {string} menuId    - id of the .cs-menu element
+ * @param {function(string):void} onChange - callback receiving the selected value
+ */
+function bindCustomSelect(wrapperId, btnId, menuId, onChange) {
+  const wrap = document.getElementById(wrapperId);
+  const btn = document.getElementById(btnId);
+  const menu = document.getElementById(menuId);
+
+  if (!btn || !menu) {return;}
+
+  function closeMenu() {
+    if (!menu.hidden) {
+      menu.hidden = true;
+      btn.setAttribute('aria-expanded', 'false');
+    }
+    document.removeEventListener('pointerdown', onPointerDown, true);
+    window.removeEventListener('blur', onWindowBlur);
+  }
+
+  function onPointerDown(e) {
+    if (wrap && !wrap.contains(e.target)) {closeMenu();}
+  }
+
+  function onWindowBlur() {closeMenu();}
+
+  btn.addEventListener('click', function (e) {
+    e.stopPropagation();
+    if (!menu.hidden) {
+      closeMenu();
+    } else {
+      menu.hidden = false;
+      btn.setAttribute('aria-expanded', 'true');
+      document.addEventListener('pointerdown', onPointerDown, true);
+      window.addEventListener('blur', onWindowBlur);
+    }
+  });
+
+  var checkSvgHtml = '<svg viewBox="0 0 24 24" width="12" height="12" class="cs-check" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 6L9 17l-5-5"></path></svg>';
+
+  menu.querySelectorAll('.cs-item').forEach(function (item) {
+    item.addEventListener('click', function () {
+      // Update button label to reflect the newly selected item
+      var labelEl = btn.querySelector('.cs-btn-label');
+      var itemLabelEl = item.querySelector('.cs-item-label');
+      if (labelEl && itemLabelEl) {
+        labelEl.textContent = itemLabelEl.textContent;
+      }
+      // Move the checkmark to the newly selected item
+      menu.querySelectorAll('.cs-check').forEach(function (el) {el.remove();});
+      item.insertAdjacentHTML('beforeend', checkSvgHtml);
+      onChange(item.dataset.value);
+      closeMenu();
+    });
+    item.addEventListener('mouseenter', function () {item.setAttribute('data-highlighted', '');});
+    item.addEventListener('mouseleave', function () {item.removeAttribute('data-highlighted');});
+  });
 }
 
 function renderCustomCategorySelect() {
@@ -2044,11 +2161,12 @@ function bindEditTabEvents() {
     });
   });
 
-  // Bind category selector in edit tab
-  const editCategorySelect = document.getElementById('edit-command-category');
-  if (editCategorySelect) {
-    editCategorySelect.addEventListener('change', function () {
-      const newCategoryId = editCategorySelect.value;
+  // Bind category selector in edit tab (custom select)
+  bindCustomSelect(
+    'edit-category-select-wrap',
+    'edit-category-select-btn',
+    'edit-category-select-menu',
+    function (newCategoryId) {
       uiState.editCommandDraft.targetCategoryId = newCategoryId;
       // If the user reverts to the original category, restore the original groupId
       if (newCategoryId === command.categoryId) {
@@ -2057,8 +2175,8 @@ function bindEditTabEvents() {
         uiState.editCommandDraft.groupId = ''; // reset group — it belongs to the new category
       }
       render();
-    });
-  }
+    }
+  );
 
   // Bind helpUrl input in edit tab
   const editHelpUrlInput = document.getElementById('edit-command-help-url');
@@ -2369,29 +2487,30 @@ function bindCommandActionButtons() {
     });
   }
 
-  // Bind enum select in variable input modal — sync to hidden input
-  document.querySelectorAll('.enum-var-modal-select').forEach(function (select) {
-    select.addEventListener('change', function () {
-      const varName = select.dataset.variableName;
-      const wrap = select.closest('.enum-input-wrap');
-      const customInput = wrap ? wrap.querySelector('.variable-modal-custom-input') : null;
-      const selectedValue = select.value;
-
-      if (selectedValue === '__custom__') {
-        // Show custom input, clear the hidden input so user types
-        if (customInput) {
-          customInput.classList.remove('hidden');
-          customInput.focus();
+  // Bind custom selects for enum variables in variable input modal
+  document.querySelectorAll('.enum-input-wrap[data-variable-name]').forEach(function (wrapEl) {
+    const varName = wrapEl.dataset.variableName;
+    if (!varName) {return;}
+    bindCustomSelect(
+      'enum-var-wrap-' + varName,
+      'enum-var-btn-' + varName,
+      'enum-var-menu-' + varName,
+      function (selectedValue) {
+        const customInput = wrapEl.querySelector('.variable-modal-custom-input');
+        if (selectedValue === '__custom__') {
+          if (customInput) {
+            customInput.classList.remove('hidden');
+            customInput.focus();
+          }
+        } else {
+          if (customInput) {
+            customInput.classList.add('hidden');
+            customInput.value = selectedValue;
+          }
+          variableInputState.inputValues[varName] = selectedValue;
         }
-      } else {
-        // Set hidden input to the selected enum value, hide custom input
-        if (customInput) {
-          customInput.classList.add('hidden');
-          customInput.value = selectedValue;
-        }
-        variableInputState.inputValues[varName] = selectedValue;
       }
-    });
+    );
   });
 
   // Bind toggle switches in variable input modal
@@ -3188,16 +3307,19 @@ function renderAiSettingsModal() {
     <div class="modal-overlay" id="ai-settings-overlay">
       <div class="modal-box">
         <h3>${iconAISettings()} AI Settings</h3>
-        <label>
-          AI Provider
-          <div class="select-container">
-            <select id="ai-provider-select" class="input">
-              ${providers.map(function (p) {
-    return `<option value="${escapeAttr(p.value)}" ${selectedProvider === p.value ? 'selected' : ''}>${escapeHtml(p.label)}</option>`;
-  }).join('')}
-            </select>
-          </div>
-        </label>
+        <div>
+          <span style="font-size:0.86rem;display:block;margin-bottom:6px">AI Provider</span>
+          ${renderCustomSelect(
+    'ai-provider-select-wrap',
+    'ai-provider-select-btn',
+    'ai-provider-select-menu',
+    providers,
+    selectedProvider,
+    'cs-btn-ai-provider', // btnExtraClass
+    false, // menuUp
+    'cs-wrap-full'  // ← يجعل القائمة بعرض 100%
+  )}
+        </div>
         <label>
           API Key for <strong>${escapeHtml(selectedProvider)}</strong>
           ${hasKey ? '<span class="ai-key-status ai-key-ok">✅ Key saved</span>' : '<span class="ai-key-status ai-key-missing">⚠️ No key saved</span>'}
@@ -3388,14 +3510,17 @@ function bindAiEvents() {
 
   // --- Settings modal events ---
   if (aiState.view === 'settings') {
-    const providerSelect = document.getElementById('ai-provider-select');
-    if (providerSelect) {
-      providerSelect.addEventListener('change', function () {
-        aiState.settingsProviderName = providerSelect.value;
+    // Bind AI provider custom select
+    bindCustomSelect(
+      'ai-provider-select-wrap',
+      'ai-provider-select-btn',
+      'ai-provider-select-menu',
+      function (newProvider) {
+        aiState.settingsProviderName = newProvider;
         aiState.apiKeyInput = '';
         render();
-      });
-    }
+      }
+    );
 
     const apiKeyInput = document.getElementById('ai-api-key-input');
     if (apiKeyInput) {
