@@ -212,7 +212,11 @@ label {
 }
 
 
-
+textarea {
+  resize: vertical;
+  min-height: 60px;
+  max-height: 250px;
+}
 
 
 .btn {
@@ -1307,11 +1311,16 @@ tr.row-highlight td {
 }
 
 .enum-cell-actions {
-  /* width: 1%; */
-  white-space: nowrap;
-  /* display: flex; */
-  /* gap: 4px; */
+  width: 1%;
 }
+
+.enum-cell-actions div {
+  display: flex;
+  gap: 5px;
+}
+
+
+
 
 .enum-cell-actions .btn.small {
   background: color-mix(in srgb, #2e2e2e 72%, var(--vscode-editor-background));

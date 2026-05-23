@@ -745,31 +745,6 @@ function renderCommandsTable(commands, groups) {
   `;
 }
 
-function renderNewCommandForm(groups, draft) {
-  return `
-    <form id="form-new-command" class="form-grid add-command-grid">
-      <label class="add-command-title">Command Title<input id="new-command-title" class="input" required value="${escapeAttr(draft.title)}" /></label>
-      
-      <label class="add-command-template">Command Template (Variables supported)<input id="new-command-template" class="input" required placeholder="npm install \${package_name}" value="${escapeAttr(draft.template)}" /></label>
-      
-      
-      <label class="full-width">Description<textarea id="new-command-description" class="input" rows="2">${escapeAttr(draft.description)}</textarea></label>
-      <div class="full-width grouped-tags-wrap">
-        <span class="groups-label">Groups:</span>
-        <div class="inline-tags" id="new-command-groups-tags">
-          ${groups.map(function (group) {
-    return `<button type="button" class="tag new-command-group-tag ${draft.groupId === group.id ? 'active' : ''}" data-group-id="${escapeAttr(group.id)}">${escapeHtml(group.title)}</button>`;
-  }).join('')}
-        </div>
-      </div>
-      <div class="row full-width justify-content-flex-end mt-20">
-        <button type="submit" class="btn primary">Add Command</button>
-        <button type="button" id="btn-cancel-add-command" class="btn secondary action">Cancel</button>
-      </div>
-    </form>
-  `;
-}
-
 function renderEditTab() {
   const command = getEditingCommand();
 
@@ -3045,12 +3020,15 @@ function renderEnumManagerModal() {
         <td class="enum-cell-value"><code>${escapeHtml(item.value)}</code></td>
         <td class="enum-cell-desc">${escapeHtml(item.description)}</td>
         <td class="enum-cell-actions">
-          <button type="button" class="btn small secondary btn-enum-edit" data-idx="${idx}" title="Edit">✏️</button>
-          <button type="button" class="btn small danger btn-enum-delete" data-idx="${idx}" title="Delete">✕</button>
+          <div>
+            <button type="button" class="btn icon-btn small secondary btn-enum-edit" data-idx="${idx}" title="Edit">${iconEdit()}</button>
+            <button type="button" class="btn icon-btn small danger btn-enum-delete" data-idx="${idx}" title="Delete">${iconDelete()}</button>
+          </div>
         </td>
       </tr>
-    `;
+          `;
   }).join('');
+
 
   const editFormHtml = `
     <div class="enum-add-form">
