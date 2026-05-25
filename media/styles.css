@@ -36,11 +36,6 @@ body {
   gap: 8px;
 }
 
-.header-actions .btn.small {
-  font-size: 0.60rem;
-  padding: 4.2px 7px;
-}
-
 .notice {
   position: fixed;
   top: 14px;
@@ -168,6 +163,8 @@ body {
 
 .add-command-title {
   grid-column: 1 / 2;
+  display: flex;
+  flex-direction: column;
 }
 
 .add-command-template {
@@ -181,7 +178,6 @@ body {
 label {
   display: grid;
   gap: 6px;
-  font-size: 0.86rem;
 }
 
 .input {
@@ -189,9 +185,11 @@ label {
   border-radius: 4px;
   border: 1px solid var(--vscode-input-border);
   background: var(--vscode-input-background);
-  color: var(--vscode-input-foreground);
-  padding: 6px 4px;
+  color: var(--vscode-descriptionForeground);
+  padding: 4.7px 4px;
   font-size: 0.8rem;
+  min-height: 27px;
+  max-height: 27px;
 }
 
 
@@ -207,8 +205,25 @@ label {
 
 textarea {
   resize: vertical;
-  min-height: 60px;
-  max-height: 250px;
+  min-height: 60px !important;
+  max-height: 250px !important;
+}
+
+/* ===== Template Textarea (Command Template field) ===== */
+.template-textarea {
+  resize: none;
+  overflow-y: hidden;
+  font-family: var(--vscode-editor-font-family, Consolas, monospace);
+  line-height: 1.4;
+  min-height: unset !important;
+  max-height: unset !important;
+  /* Dynamic height set via --tr-textarea-h CSS custom property by autoResizeTextarea() */
+  height: var(--tr-textarea-h, auto);
+}
+
+/* Applied by autoResizeTextarea() when content exceeds 5 lines */
+.template-textarea.ta-overflow {
+  overflow-y: auto;
 }
 
 
@@ -312,6 +327,8 @@ textarea {
   font-size: 0.76rem;
   padding: 5.3px 8px;
   white-space: nowrap;
+  min-height: 27px;
+  max-height: 27px;
 }
 
 /* ===== Icon Buttons ===== */
@@ -487,11 +504,32 @@ td.actions-cell {
   padding: 14px;
   display: grid;
   gap: 12px;
+  min-width: 250px;
 }
 
 .modal-box h3 {
   margin: 0;
   font-size: 0.95rem;
+}
+
+/* ===== Modal Border Flash (dismiss=false feedback) ===== */
+@keyframes modalBorderFlash {
+  0% {
+    border-color: var(--vscode-panel-border);
+  }
+
+  50% {
+    /* border-color: var(--vscode-charts-blue, #0078d4); */
+    border-color: color-mix(in srgb, var(--vscode-charts-blue) 50%, var(--vscode-panel-border));
+  }
+
+  100% {
+    border-color: var(--vscode-panel-border);
+  }
+}
+
+.modal-box-flash {
+  animation: modalBorderFlash 0.2s ease-in-out 3;
 }
 
 .modal-command-preview {
@@ -552,6 +590,18 @@ td.actions-cell {
   width: 100%;
 }
 
+.d-grid {
+  display: grid;
+}
+
+.gap-6 {
+  gap: 6px;
+}
+
+.white-space-nowrap {
+  white-space: nowrap;
+}
+
 .recent-commands th {
   white-space: nowrap;
   border-bottom: 1px solid var(--vscode-panel-border);
@@ -583,6 +633,7 @@ td.actions-cell {
   font-family: Consolas, monospace;
   min-width: 120px;
   text-align: end;
+  padding: 7px 0px;
 }
 
 
@@ -602,6 +653,8 @@ td.actions-cell {
   background: var(--vscode-input-background);
   overflow: hidden;
   min-width: 129px;
+  min-height: 27px;
+  max-height: 27px;
 }
 
 .toggle-option-3 {
@@ -609,7 +662,7 @@ td.actions-cell {
   border-radius: 0;
   background: transparent;
   color: var(--vscode-editor-foreground);
-  padding: 4.8px 7px;
+  padding: 0px 7px;
   font-size: 0.8rem;
   cursor: pointer;
   opacity: 0.6;
@@ -743,8 +796,10 @@ code {
 
 .cs-btn-sm {
   min-width: unset;
-  padding: 5px 8px;
+  padding: 0px 5px;
   font-size: 0.76rem;
+  min-height: 27px;
+  max-height: 27px;
 }
 
 .cs-menu-up {
@@ -1113,7 +1168,7 @@ input[type="checkbox"]:checked::after {
 
 /* AI Prompt modal */
 .ai-prompt-box {
-  max-width: 560px !important;
+  max-width: 650px !important;
 }
 
 .ai-prompt-box h3 {
@@ -1258,7 +1313,9 @@ tr.row-highlight td {
 .btn-open-enum-manager {
   min-width: 95px;
   text-align: left;
-  padding: 6.4px 6px !important;
+  padding: 5px 6px !important;
+  min-height: 27px;
+  max-height: 27px;
 }
 
 /* ===== Enum Manager Modal ===== */
@@ -1412,6 +1469,13 @@ tr.row-highlight td {
   margin: 0;
   font-size: 0.9rem;
   opacity: 0.8;
+}
+
+/* ===== AI Prompt: Model label (bottom-left of prompt modal) ===== */
+.ai-model-label {
+  margin-right: auto;
+  font-size: 0.74rem;
+  white-space: nowrap;
 }
 
 /* ===== AI Results: Category label ===== */

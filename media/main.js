@@ -457,6 +457,10 @@ function render() {
   `;
 
   bindEvents();
+  // Auto-resize all template textareas to fit their content
+  document.querySelectorAll('.template-textarea').forEach(function (el) {
+    autoResizeTextarea(el);
+  });
   bindAiEvents();
   bindCmdTitleLinks();
   if (enumManagerState.visible) {
@@ -484,7 +488,7 @@ function renderManageTab() {
         <div class="manage-panel">
           <div class="manage-panel-header">
             <h2 class="manage-panel-title">Categories</h2>
-            <div class="row" style="gap:6px">
+            <div class="row">
               <button class="btn small secondary ai-create-btn" id="btn-create-with-ai" title="Generate a full category with groups and commands using AI">${iconSparkles()} Create with AI</button>
               <button class="btn primary small" id="btn-open-add-category-modal">+ Add New Category</button>
             </div>
@@ -571,7 +575,7 @@ function renderManageModal() {
   }
 
   return `
-    <div class="modal-overlay" id="manage-modal-overlay">
+    <div class="modal-overlay" id="manage-modal-overlay" data-dismiss-on-outside-click="false">
       <div class="modal-box">
         <h3>${escapeHtml(title)}</h3>
         <input id="manage-modal-input" class="input" placeholder="${escapeAttr(placeholder)}" value="${escapeAttr(manageModalState.value)}" autocomplete="off" />
@@ -644,7 +648,7 @@ function renderAddCommandTab(selectedCategory) {
       <h2>Add Command to ( ${escapeHtml(selectedCategory.title)} )</h2>
       <form id="form-new-command" class="form-grid add-command-grid">
         <label class="add-command-title">Command Title<input id="new-command-title" class="input" required value="${escapeAttr(draft.title)}" /></label>
-        <label class="add-command-template">Command Template (Variables supported)<input id="new-command-template" class="input" required placeholder="npm install \${package_name}" value="${escapeAttr(draft.template)}" /></label>
+        <label class="add-command-template">Command Template (Variables supported)<textarea id="new-command-template" class="input template-textarea" required placeholder="npm install \${package_name}" rows="1">${escapeHtml(draft.template)}</textarea></label>
         <label class="full-width">Description<textarea id="new-command-description" class="input" rows="2">${escapeAttr(draft.description)}</textarea></label>
         <div class="full-width grouped-tags-wrap">
           <span class="groups-label">Groups:</span>
@@ -730,7 +734,7 @@ function renderCommandsTable(commands, groups) {
                 <td>
                 <div class="actions-cell">
                   <button class="btn icon-btn success btn-run" data-command-id="${escapeAttr(command.id)}" title="Run command">${iconRun()}</button>
-                  <button class="btn icon-btn secondary btn-use action" data-command-id="${escapeAttr(command.id)}" title="Use in terminal">${iconUse()}</button>
+                  ${command.command.includes('\n') ? `<button class="btn icon-btn secondary" disabled title="Use is not available for multi-line commands">${iconUse()}</button>` : `<button class="btn icon-btn secondary btn-use action" data-command-id="${escapeAttr(command.id)}" title="Use in terminal">${iconUse()}</button>`}
                   <button class="btn icon-btn secondary btn-copy action" data-command-id="${escapeAttr(command.id)}" title="Copy to clipboard">${iconCopy()}</button>
                   <button class="btn icon-btn secondary btn-edit action" data-command-id="${escapeAttr(command.id)}" title="Edit command">${iconEdit()}</button>
                   <button class="btn icon-btn danger btn-delete-command" data-command-id="${escapeAttr(command.id)}" title="Delete command">${iconDelete()}</button>
@@ -774,7 +778,7 @@ function renderEditTab() {
       <h2>Edit Command</h2>
       <form id="form-edit-command" class="form-grid add-command-grid">
         <label class="add-command-title">Command Title<input id="edit-command-title" class="input" required value="${escapeAttr(editDraft.title)}" /></label>
-        <label class="add-command-template">Command Template<input id="edit-command-template" class="input" required value="${escapeAttr(editDraft.template)}" /></label>
+        <label class="add-command-template">Command Template<textarea id="edit-command-template" class="input template-textarea" required rows="1">${escapeHtml(editDraft.template)}</textarea></label>
         <label class="full-width">Description<textarea id="edit-command-description" class="input" rows="2">${escapeHtml(editDraft.description)}</textarea></label>
         <div class="full-width grouped-tags-wrap">
           <span class="groups-label">Category:</span>
@@ -793,7 +797,7 @@ function renderEditTab() {
         <div class="full-width grouped-tags-wrap">
           <span class="groups-label">Groups:</span>
           <div class="inline-tags" id="edit-command-groups-tags">
-            ${groups.length === 0 ? `<span class="muted" style="font-size:0.82rem">No groups in this category.</span>` : ''}
+            ${groups.length === 0 ? `<span class="muted">No groups in this category.</span>` : ''}
             ${groups.map(function (group) {
     return `<button type="button" class="tag edit-command-group-tag ${editDraft.groupId === group.id ? 'active' : ''}" data-group-id="${escapeAttr(group.id)}">${escapeHtml(group.title)}</button>`;
   }).join('')}
@@ -829,7 +833,7 @@ function renderEditTab() {
         ` : ''}
         ${command.lastRunAt ? `
         <div class="full-width mt-5">
-          <span class="muted" style="font-size:0.82rem">Last Run: <strong title="${escapeAttr(formatDateTime(command.lastRunAt))}">${escapeHtml(timeAgo(command.lastRunAt))}</strong> &nbsp;·&nbsp; ×${command.runCount || 0} runs</span>
+          <span class="muted">Last Run: <strong title="${escapeAttr(formatDateTime(command.lastRunAt))}">${escapeHtml(timeAgo(command.lastRunAt))}</strong> &nbsp;·&nbsp; ×${command.runCount || 0} runs</span>
         </div>
         ` : ''}
         <div class="row full-width justify-content-flex-end mt-20">
@@ -909,7 +913,7 @@ function renderRunConfirmModal() {
   }) : false;
 
   return `
-    <div class="modal-overlay" id="run-confirm-overlay">
+    <div class="modal-overlay" id="run-confirm-overlay" data-dismiss-on-outside-click="false">
       <div class="modal-box">
         <h3>Do you want to run this command?</h3>
         <pre class="modal-command-preview">${escapeHtml(runConfirmState.resolvedCommand)}</pre>
@@ -935,7 +939,7 @@ function renderVariableInputModal() {
   const cmdForMeta = (state.data.commands || []).find(function (c) {return c.id === variableInputState.commandId;});
 
   return `
-    <div class="modal-overlay" id="variable-input-overlay">
+    <div class="modal-overlay" id="variable-input-overlay" data-dismiss-on-outside-click="false">
       <div class="modal-box">
         <h3>Enter Variable Values</h3>
         <div class="variables-list">
@@ -1037,7 +1041,7 @@ function renderDeleteConfirmModal() {
   }
 
   return `
-    <div class="modal-overlay" id="delete-confirm-overlay">
+    <div class="modal-overlay" id="delete-confirm-overlay" data-dismiss-on-outside-click="false">
       <div class="modal-box">
         <h3>${heading}</h3>
         ${detailHtml}
@@ -1103,7 +1107,7 @@ function renderRecentCommandsTab() {
                   <td>
                     <div class="actions-cell">
                       <button class="btn icon-btn success btn-run" data-command-id="${escapeAttr(command.id)}" title="Run command">${iconRun()}</button>
-                      <button class="btn icon-btn secondary btn-use action" data-command-id="${escapeAttr(command.id)}" title="Use in terminal">${iconUse()}</button>
+                      ${command.command.includes('\n') ? `<button class="btn icon-btn secondary" disabled title="Use is not available for multi-line commands">${iconUse()}</button>` : `<button class="btn icon-btn secondary btn-use action" data-command-id="${escapeAttr(command.id)}" title="Use in terminal">${iconUse()}</button>`}
                       <button class="btn icon-btn secondary btn-copy action" data-command-id="${escapeAttr(command.id)}" title="Copy to clipboard">${iconCopy()}</button>
                       <button class="btn icon-btn secondary btn-edit action" data-command-id="${escapeAttr(command.id)}" title="Edit command">${iconEdit()}</button>
                     </div>
@@ -1143,9 +1147,120 @@ function formatDateTime(isoString) {
   }
 }
 
+/**
+ * Auto-resizes a textarea to fit its content.
+ * Expands up to MAX_LINES lines, then shows vertical scrollbar.
+ * @param {HTMLTextAreaElement} el
+ */
+function autoResizeTextarea(el) {
+  if (!el) {return;}
+  var MAX_LINES = 5;
+  // Reset height to auto so we can measure the true content height
+  el.classList.remove('ta-overflow');
+  el.style.setProperty('--tr-textarea-h', 'auto');
+  void el.offsetHeight; // Force synchronous reflow before reading scrollHeight
+  var computed = getComputedStyle(el);
+  var lineHeight = parseFloat(computed.lineHeight);
+  if (!lineHeight || isNaN(lineHeight)) {
+    lineHeight = parseFloat(computed.fontSize) * 1.5;
+  }
+  var paddingTop = parseFloat(computed.paddingTop) || 0;
+  var paddingBottom = parseFloat(computed.paddingBottom) || 0;
+  var maxHeight = lineHeight * MAX_LINES + paddingTop + paddingBottom;
+  var newHeight = Math.min(el.scrollHeight, maxHeight);
+  el.style.setProperty('--tr-textarea-h', newHeight + 'px');
+  if (el.scrollHeight > maxHeight) {
+    el.classList.add('ta-overflow');
+  }
+}
+
+/**
+ * Binds click-outside-to-dismiss behaviour for all modal overlays.
+ * Each overlay uses data-dismiss-on-outside-click="true|false" to opt in/out.
+ * Handlers are defined in modalDismissHandlers keyed by overlay id.
+ */
+const modalDismissHandlers = {
+  'manage-modal-overlay': function () {
+    manageModalState = {visible: false, mode: null, value: ''};
+    render();
+  },
+  'enum-manager-overlay': function () {
+    enumManagerState = {
+      visible: false, commandId: null, varName: '',
+      enumValues: [], editIndex: null,
+      editTitle: '', editValue: '', editDescription: '',
+    };
+    render();
+  },
+  'ai-settings-overlay': function () {
+    aiState.view = null;
+    aiState.apiKeyInput = '';
+    render();
+  },
+  'ai-prompt-overlay': function () {
+    aiState.view = null;
+    aiState.error = '';
+    aiState.prompt = '';
+    render();
+  },
+  'ai-results-overlay': function () {
+    aiState.view = null;
+    aiState.result = null;
+    aiState.error = '';
+    render();
+  },
+  'run-confirm-overlay': function () {
+    runConfirmState = {commandId: null, resolvedCommand: '', selectedShellPath: runConfirmState.selectedShellPath, selectedShellName: runConfirmState.selectedShellName};
+    render();
+  },
+  'variable-input-overlay': function () {
+    variableInputState = {commandId: null, action: null, missingVariables: [], inputValues: {}, rememberFlags: {}, returnToRunConfirm: false};
+    render();
+  },
+  'delete-confirm-overlay': function () {
+    deleteConfirmState = {type: null, id: null, title: '', template: ''};
+    render();
+  },
+  'ai-loading-overlay': function () {
+    // No dismiss action for loading overlay
+  },
+};
+
+function bindModalDismiss() {
+  // --- Overlays that dismiss on outside click (true) ---
+  document.querySelectorAll('.modal-overlay[data-dismiss-on-outside-click="true"]').forEach(function (overlay) {
+    var handler = modalDismissHandlers[overlay.id];
+    if (handler) {
+      overlay.addEventListener('pointerdown', function (e) {
+        if (e.target === overlay) {
+          handler();
+        }
+      });
+    }
+  });
+
+  // --- Overlays that do NOT dismiss (false) — flash the border instead ---
+  document.querySelectorAll('.modal-overlay[data-dismiss-on-outside-click="false"]').forEach(function (overlay) {
+    overlay.addEventListener('pointerdown', function (e) {
+      if (e.target === overlay) {
+        var box = overlay.querySelector('.modal-box');
+        if (box) {
+          box.classList.remove('modal-box-flash');
+          void box.offsetWidth; // force reflow to restart animation
+          box.classList.add('modal-box-flash');
+          box.addEventListener('animationend', function () {
+            box.classList.remove('modal-box-flash');
+          }, {once: true});
+        }
+      }
+    });
+  });
+}
+
 function bindEvents() {
   bindTopActions();
   bindTabs();
+  bindModalDismiss();
 
   // If currently editing, only bind edit tab events (regardless of activeTab)
   if (uiState.editingCommandId) {
@@ -1381,16 +1496,6 @@ function bindManageTabEvents() {
     });
   }
 
-  // --- Click outside modal overlay to close ---
-  const modalOverlay = document.getElementById('manage-modal-overlay');
-  if (modalOverlay) {
-    modalOverlay.addEventListener('click', function (e) {
-      if (e.target === modalOverlay) {
-        manageModalState = {visible: false, mode: null, value: ''};
-        render();
-      }
-    });
-  }
 }
 
 function executeManageModalConfirm() {
@@ -3038,7 +3143,7 @@ function renderEnumManagerModal() {
         <label>Value<input id="enum-input-value" class="input" placeholder="e.g. silent" value="${escapeAttr(s.editValue)}" autocomplete="off" /></label>
         <label class="enum-form-desc">Description<input id="enum-input-desc" class="input" placeholder="What this option does..." value="${escapeAttr(s.editDescription)}" autocomplete="off" /></label>
       </div>
-      <div class="row justify-content-flex-end" style="gap:6px;margin-top:8px">
+      <div class="row justify-content-flex-end">
         <button type="button" class="btn small primary" id="btn-enum-add-confirm">${s.editIndex !== null ? 'Update' : '+ Add'}</button>
         ${s.editIndex !== null ? '<button type="button" class="btn small secondary action" id="btn-enum-edit-cancel">Cancel Edit</button>' : ''}
       </div>
@@ -3046,7 +3151,7 @@ function renderEnumManagerModal() {
   `;
 
   return `
-    <div class="modal-overlay" id="enum-manager-overlay">
+    <div class="modal-overlay" id="enum-manager-overlay" data-dismiss-on-outside-click="false">
       <div class="modal-box enum-manager-box">
         <div class="row between">
           <h3>Enum Values for <code>\${${escapeHtml(s.varName)}}</code></h3>
@@ -3219,21 +3324,6 @@ function bindEnumManagerEvents() {
     });
   }
 
-  // --- Click outside to close ---
-  const overlay = document.getElementById('enum-manager-overlay');
-  if (overlay) {
-    overlay.addEventListener('click', function (e) {
-      if (e.target === overlay) {
-        enumManagerState = {
-          visible: false, commandId: null, varName: '',
-          enumValues: [], editIndex: null,
-          editTitle: '', editValue: '', editDescription: '',
-        };
-        render();
-      }
-    });
-  }
-
   // --- Live input tracking ---
   const titleInput = document.getElementById('enum-input-title');
   const valueInput = document.getElementById('enum-input-value');
@@ -3273,6 +3363,20 @@ function bindCmdTitleLinks() {
 
 // ─── AI UI Render Functions ───────────────────────────────────────────────────
 
+/**
+ * Returns a display label for the AI provider and its associated model.
+ * @param {string} providerName
+ * @returns {string}
+ */
+function getAiModelLabel(providerName) {
+  const labels = {
+    gemini: 'Gemini · gemini-flash-latest',
+    openai: 'OpenAI · gpt-4.1',
+    anthropic: 'Anthropic · claude-sonnet-4-6',
+  };
+  return labels[providerName] || providerName;
+}
+
 function renderAiSettingsModal() {
   const providers = [
     {value: 'gemini', label: 'Google Gemini (gemini-flash-latest)'},
@@ -3284,11 +3388,11 @@ function renderAiSettingsModal() {
   const hasKey = aiState.keyStatus[selectedProvider];
 
   return `
-    <div class="modal-overlay" id="ai-settings-overlay">
+    <div class="modal-overlay" id="ai-settings-overlay" data-dismiss-on-outside-click="false">
       <div class="modal-box">
         <h3>${iconAISettings()} AI Settings</h3>
-        <div>
-          <span style="font-size:0.86rem;display:block;margin-bottom:6px">AI Provider</span>
+        <div class="d-grid gap-6">
+          <span>AI Provider</span>
           ${renderCustomSelect(
     'ai-provider-select-wrap',
     'ai-provider-select-btn',
@@ -3328,10 +3432,10 @@ function renderAiPromptModal() {
   const selectedGroup = groups.find(function (g) {return g.id === aiState.groupId;});
   const contextLabel = isFullMode
     ? `${iconSparkles()} Create a new category with all its groups and commands`
-    : `${iconSparkles()} Add a single command to group: <strong>${escapeHtml(selectedGroup ? selectedGroup.title : aiState.groupId)}</strong> in <strong>${escapeHtml(selectedCategory ? selectedCategory.title : aiState.categoryId)}</strong>`;
+    : `${iconSparkles()} Add a single command to group: <code>${escapeHtml(selectedGroup ? selectedGroup.title : aiState.groupId)}</code> in <code>${escapeHtml(selectedCategory ? selectedCategory.title : aiState.categoryId)}</code>`;
 
   return `
-    <div class="modal-overlay" id="ai-prompt-overlay">
+    <div class="modal-overlay" id="ai-prompt-overlay" data-dismiss-on-outside-click="false">
       <div class="modal-box ai-prompt-box">
         <h3>${contextLabel}</h3>
         ${aiState.error ? `<p class="ai-error-msg">❌ ${escapeHtml(aiState.error)}</p>` : ''}
@@ -3345,6 +3449,7 @@ function renderAiPromptModal() {
           >${escapeHtml(aiState.prompt)}</textarea>
         </label>
         <div class="row justify-content-flex-end mt-20">
+          <span class="muted ai-model-label">${getAiModelLabel(aiState.providerName)}</span>
           <button class="btn small primary" id="btn-ai-generate">${iconSparkles()} Generate</button>
           <button class="btn small secondary action min-w65" id="btn-ai-prompt-cancel">Cancel</button>
         </div>
@@ -3355,7 +3460,7 @@ function renderAiPromptModal() {
 
 function renderAiLoadingOverlay() {
   return `
-    <div class="modal-overlay" id="ai-loading-overlay">
+    <div class="modal-overlay" id="ai-loading-overlay" data-dismiss-on-outside-click="false">
       <div class="modal-box ai-loading-box">
         <div class="ai-spinner" aria-label="Loading..."></div>
         <p class="ai-loading-text">Generating commands with AI...</p>
@@ -3396,7 +3501,7 @@ function renderAiResultsModal() {
     : '';
 
   return `
-    <div class="modal-overlay" id="ai-results-overlay">
+    <div class="modal-overlay" id="ai-results-overlay" data-dismiss-on-outside-click="false">
       <div class="modal-box ai-results-box">
         <div class="row between">
           <h3>${iconSparkles()} AI Generated Commands</h3>
@@ -3533,16 +3638,6 @@ function bindAiEvents() {
       });
     }
 
-    const overlay = document.getElementById('ai-settings-overlay');
-    if (overlay) {
-      overlay.addEventListener('click', function (e) {
-        if (e.target === overlay) {
-          aiState.view = null;
-          aiState.apiKeyInput = '';
-          render();
-        }
-      });
-    }
   }
 
   // --- Prompt modal events ---
@@ -3610,7 +3705,30 @@ function bindAiEvents() {
     document.querySelectorAll('.ai-cmd-checkbox').forEach(function (checkbox) {
       checkbox.addEventListener('change', function () {
         aiState.checkedIds[checkbox.dataset.cmdId] = checkbox.checked;
-        render();
+        // Update UI without full re-render to preserve scroll position
+        const allCommands = aiState.mode === 'full' ? (aiState.result.commands || []) : [aiState.result];
+        const selectedCount = Object.values(aiState.checkedIds).filter(Boolean).length;
+        // Toggle row dimming class
+        const row = checkbox.closest('tr');
+        if (row) {
+          if (checkbox.checked) {
+            row.classList.remove('ai-row-unchecked');
+          } else {
+            row.classList.add('ai-row-unchecked');
+          }
+        }
+        // Update count text
+        const countEl = document.querySelector('.ai-results-count');
+        if (countEl) {countEl.textContent = selectedCount + ' of ' + allCommands.length + ' selected';}
+        // Update insert button
+        const insertBtn = document.getElementById('btn-ai-insert');
+        if (insertBtn) {
+          insertBtn.disabled = selectedCount === 0;
+          insertBtn.textContent = 'Insert Selected (' + selectedCount + ')';
+        }
+        // Update check-all checkbox
+        const checkAll = document.getElementById('ai-check-all');
+        if (checkAll) {checkAll.checked = selectedCount === allCommands.length;}
       });
     });
 
