@@ -1058,57 +1058,61 @@ async function handleAiInsert(panel, payload) {
 }
 
 /**
- * Classifies an AI provider error into a user-friendly message.
- * Works universally across Gemini, OpenAI, and Anthropic since all use
- * standard HTTP status codes and common error keywords.
+ * Extracts the actual error message from an AI provider error.
+ *
+ * Each SDK stores the error differently — based on their source code:
+ *
+ * Anthropic SDK (core/error.js):
+ *   - err.error = full response body: { type, error: { type, message }, request_id }
+ *   - Real message → err.error.error.message
+ *
+ * OpenAI SDK (core/error.js):
+ *   - Extracts the inner error: const error = errorResponse?.['error']
+ *   - err.error = inner error object: { message, type, code, param }
+ *   - Real message → err.error.message
+ *
+ * Gemini SDK (GoogleGenerativeAIFetchError):
+ *   - No err.error property
+ *   - err.message = "[GoogleGenerativeAI Error]: <real message>"
+ *   - Real message → strip the "[GoogleGenerativeAI Error]: " prefix
  *
  * @param {Error} error
- * @returns {string} A clean, readable error message
+ * @returns {string} The original provider error message
  */
 function classifyAiError(error) {
-  const raw = (error && error.message) ? error.message.toLowerCase() : '';
+  // Anthropic: err.error is the full response body → err.error.error.message
+  const anthropicMessage =
+    error &&
+      error.error &&
+      error.error.error &&
+      typeof error.error.error.message === 'string'
+      ? error.error.error.message.trim()
+      : '';
 
-  if (raw.includes('401') || raw.includes('unauthorized') || raw.includes('api_key') || raw.includes('api key') || raw.includes('invalid key')) {
-    return 'Invalid or missing API key. Please check your AI Settings (⚙️ AI Settings button).';
+  if (anthropicMessage) {
+    return anthropicMessage;
   }
 
-  if (raw.includes('403') || raw.includes('forbidden') || raw.includes('permission') || raw.includes('location') || raw.includes('region') || raw.includes('country')) {
-    return 'Access denied. The service may not be supported in your region, or your account lacks the required permissions.';
+  // OpenAI: err.error is the inner error object → err.error.message
+  const openaiMessage =
+    error &&
+      error.error &&
+      typeof error.error.message === 'string'
+      ? error.error.message.trim()
+      : '';
+
+  if (openaiMessage) {
+    return openaiMessage;
   }
 
-  if (raw.includes('429') || raw.includes('rate limit') || raw.includes('quota') || raw.includes('exhausted') || raw.includes('too many requests')) {
-    return 'Rate limit exceeded. You have sent too many requests. Please wait a moment and try again.';
-  }
-
-  if (raw.includes('400') || raw.includes('bad request') || raw.includes('invalid json') || raw.includes('invalid request')) {
-    return 'Bad request. The AI provider rejected the input. Try rephrasing your prompt.';
-  }
-
-  if (raw.includes('404') || raw.includes('not found') || raw.includes('model') && raw.includes('supported')) {
-    return 'The selected AI model was not found or is no longer supported. Please check the provider settings.';
-  }
-
-  if (raw.includes('503') || raw.includes('500') || raw.includes('502') || raw.includes('overloaded') || raw.includes('high demand') || raw.includes('service unavailable') || raw.includes('capacity')) {
-    return 'The AI service is currently overloaded or temporarily unavailable. Please try again in a few moments.';
-  }
-
-  if (raw.includes('safety') || raw.includes('blocked') || raw.includes('content policy') || raw.includes('policy violation')) {
-    return 'The response was blocked by the provider\'s safety or content policy. Try rephrasing your prompt.';
-  }
-
-  if (raw.includes('timeout') || raw.includes('timed out') || raw.includes('etimedout') || raw.includes('econnrefused') || raw.includes('enotfound') || raw.includes('fetch') || raw.includes('network')) {
-    return 'Network error. Please check your internet connection and try again.';
-  }
-
-  // Fallback: return a cleaned version of the original error message
-  const originalMessage = (error && error.message) ? error.message : 'Unknown error';
-  // Strip verbose SDK prefixes like "[GoogleGenerativeAI Error]: Error fetching from ..."
-  const cleaned = originalMessage
-    .replace(/\[.*?Error\]:\s*/i, '')
+  // Gemini: err.message prefixed with "[GoogleGenerativeAI Error]: "
+  const rawMessage = (error && error.message) ? error.message : '';
+  const geminiMessage = rawMessage
+    .replace(/^\[GoogleGenerativeAI Error\]:\s*/i, '')
     .replace(/Error fetching from https?:\/\/[^\s]+:\s*/i, '')
     .trim();
 
-  return cleaned || 'An unexpected error occurred. Please try again.';
+  return geminiMessage || 'An unexpected error occurred. Please try again.';
 }
 
 module.exports = {

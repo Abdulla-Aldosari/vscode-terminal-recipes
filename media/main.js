@@ -147,9 +147,9 @@ let aiState = {
   groupId: '',         // for single mode: pre-selected group
   checkedIds: {},      // { [commandId]: boolean }
   filterGroupId: 'all',
-  providerName: 'gemini',
-  keyStatus: {gemini: false, openai: false, anthropic: false},
-  settingsProviderName: 'gemini',
+  providerName: 'gemini', // Initial configuration fallback value, actual providerName will be set from 'extension.js' on aiSettingsResult postMessage
+  keyStatus: {},
+  settingsProviderName: 'gemini',  // Initial configuration fallback value
   apiKeyInput: '',
   error: '',
   // Provider setup metadata received from extension (ai/providers-config.js)
@@ -245,7 +245,7 @@ window.addEventListener('message', function (event) {
     if (message.payload) {
       aiState.providerName = message.payload.providerName || 'gemini';
       aiState.settingsProviderName = message.payload.providerName || 'gemini';
-      aiState.keyStatus = message.payload.keyStatus || {gemini: false, openai: false, anthropic: false};
+      aiState.keyStatus = message.payload.keyStatus || {};
       // Store provider setup data from providers-config.js (sent by extension)
       if (message.payload.aiProviderSetup && typeof message.payload.aiProviderSetup === 'object') {
         aiState.aiProviderSetup = message.payload.aiProviderSetup;
@@ -3542,8 +3542,8 @@ function renderAiPromptModal() {
             placeholder="${isFullMode ? 'e.g. All commands for CodeIgniter 4 framework' : 'e.g. A command to create a new CodeIgniter 4 model'}"
           >${escapeHtml(aiState.prompt)}</textarea>
         </label>
-        <div class="row justify-content-flex-end mt-20">
-          <span class="muted ai-model-label">${getAiModelLabel(aiState.providerName)}</span>
+        <div class="row align-items-flex-end mt-20">
+          <a href="#" class="muted ai-model-label" id="ai-model-label-link" data-url="${(aiState.aiProviderSetup && aiState.aiProviderSetup[aiState.providerName]) ? aiState.aiProviderSetup[aiState.providerName].apiKeyUrl : ''}">${iconExternalLink()} ${getAiModelLabel(aiState.providerName)}</a>
           <button class="btn small primary" id="btn-ai-generate">${iconSparkles()} Generate</button>
           <button class="btn small secondary action min-w65" id="btn-ai-prompt-cancel">Cancel</button>
         </div>
@@ -3667,7 +3667,8 @@ function bindAiEvents() {
       aiState.view = 'prompt';
       aiState.prompt = '';
       aiState.error = '';
-      render();
+      // Fetch current settings so providerName is always up-to-date before rendering
+      vscode.postMessage({type: 'aiGetSettings'});
     });
   }
 
@@ -3683,7 +3684,8 @@ function bindAiEvents() {
       aiState.view = 'prompt';
       aiState.prompt = '';
       aiState.error = '';
-      render();
+      // Fetch current settings so providerName is always up-to-date before rendering
+      vscode.postMessage({type: 'aiGetSettings'});
     });
   }
 
@@ -3828,6 +3830,17 @@ function bindAiEvents() {
         aiState.error = '';
         aiState.prompt = '';
         render();
+      });
+    }
+
+    const aiModelLabelLink = document.getElementById('ai-model-label-link');
+    if (aiModelLabelLink) {
+      aiModelLabelLink.addEventListener('click', function (e) {
+        e.preventDefault();
+        const url = aiModelLabelLink.dataset.url;
+        if (url) {
+          vscode.postMessage({type: 'openExternalUrl', payload: {url}});
+        }
       });
     }
   }

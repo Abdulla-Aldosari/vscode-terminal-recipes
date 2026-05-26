@@ -13,6 +13,11 @@ body {
   background: var(--vscode-editor-background);
 }
 
+a:focus {
+  outline: unset;
+  outline-offset: unset;
+}
+
 .layout {
   display: grid;
   gap: 14px;
@@ -628,6 +633,9 @@ td.actions-cell {
   justify-content: flex-end !important;
 }
 
+.align-items-flex-end {
+  align-items: flex-end !important;
+}
 
 .variable-name {
   font-family: Consolas, monospace;
@@ -1491,9 +1499,12 @@ tr.row-highlight td {
 
 /* ===== AI Prompt: Model label (bottom-left of prompt modal) ===== */
 .ai-model-label {
+  display: flex;
+  gap: 5px;
   margin-right: auto;
   font-size: 0.74rem;
   white-space: nowrap;
+  align-items: center;
 }
 
 /* ===== AI Results: Category label ===== */
