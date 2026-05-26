@@ -5,6 +5,7 @@ const path = require('path');
 const crypto = require('crypto');
 const {generateWithAI} = require('./ai/factory');
 const {DEFAULT_SYSTEM_INSTRUCTION} = require('./ai/systemInstruction');
+const {AI_PROVIDERS, getProvidersArray} = require('./ai/providers-config');
 
 const GLOBAL_DIR = path.join(os.homedir(), '.vscode-terminal-recipes');
 const GLOBAL_COMMANDS_FILE = path.join(GLOBAL_DIR, 'commands.json');
@@ -866,23 +867,40 @@ function getWebviewHtml(webview, extensionUri) {
 // ─── AI Handlers ─────────────────────────────────────────────────────────────
 
 /**
- * Returns current AI provider name and whether each provider has a saved API key.
+ * Returns current AI provider name, key status, and provider setup info.
+ * Sends aiProviderSetup (from providers-config.js) to the webview so the UI
+ * can render provider links and help steps dynamically without hardcoding.
  */
 async function handleAiGetSettings(panel, context) {
   const providerName = vscode.workspace
     .getConfiguration('terminalRecipes')
     .get('aiProvider') || 'gemini';
 
-  const providers = ['gemini', 'openai', 'anthropic'];
   const keyStatus = {};
-  for (const p of providers) {
+  for (const p of Object.keys(AI_PROVIDERS)) {
     const key = await context.secrets.get(`${p}_key`);
     keyStatus[p] = Boolean(key && key.trim());
   }
 
+  // Build a lean aiProviderSetup object to send to the webview
+  // (only the fields needed by the UI — no internal Node.js references)
+  const aiProviderSetup = {};
+  for (const [key, cfg] of Object.entries(AI_PROVIDERS)) {
+    aiProviderSetup[key] = {
+      name: cfg.name,
+      serviceName: cfg.serviceName,
+      providerName: cfg.providerName,
+      modelLabel: cfg.modelLabel,
+      displayLabel: cfg.displayLabel,
+      apiKeyUrl: cfg.apiKeyUrl,
+      apiKeyUrlLabel: cfg.apiKeyUrlLabel,
+      steps: cfg.steps,
+    };
+  }
+
   await panel.webview.postMessage({
     type: 'aiSettingsResult',
-    payload: {providerName, keyStatus},
+    payload: {providerName, keyStatus, aiProviderSetup},
   });
 }
 

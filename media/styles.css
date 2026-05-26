@@ -1147,12 +1147,20 @@ input[type="checkbox"]:checked::after {
   font-weight: 500;
 }
 
+.ai-provider-key-status-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+}
+
 .ai-key-ok {
   color: #2ea043;
 }
 
 .ai-key-missing {
-  opacity: 0.8;
+  color: #d46c81;
+  /* opacity: 0.8; */
 }
 
 /* AI Error message */
@@ -1492,6 +1500,86 @@ tr.row-highlight td {
 .ai-results-count {
   margin-right: auto;
   font-size: 0.8rem;
+}
+
+/* ===== AI Settings: Provider Links (Get API Key + Help) ===== */
+
+.ai-provider-links {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 23px 0px 0px 0px;
+}
+
+.ai-provider-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8rem;
+  color: var(--vscode-textLink-foreground);
+  text-decoration: none;
+  cursor: pointer;
+  opacity: 0.9;
+  transition: opacity 0.12s;
+  width: fit-content;
+}
+
+.ai-provider-link:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+
+.ai-provider-help-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.ai-provider-help-item svg {
+  color: var(--vscode-textLink-foreground);
+}
+
+/* ===== AI Provider Setup Help Modal ===== */
+
+.ai-setup-box {
+  width: min(560px, 100%);
+}
+
+.ai-setup-steps {
+  display: grid;
+  gap: 10px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.ai-setup-step {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.ai-setup-step-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--vscode-button-background);
+  color: var(--vscode-button-foreground);
+  font-size: 0.7rem;
+  font-weight: 600;
+  margin-top: 1px;
+}
+
+.ai-setup-footer {
+  padding-top: 4px;
+  border-top: 1px solid var(--vscode-panel-border);
 }
 
 @media (max-width: 920px) {

@@ -17,40 +17,32 @@ function iconDelete() {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.5" d="M9.17 4a3.001 3.001 0 0 1 5.66 0m5.67 2h-17m15.333 2.5l-.46 6.9c-.177 2.654-.265 3.981-1.13 4.79s-2.196.81-4.856.81h-.774c-2.66 0-3.991 0-4.856-.81c-.865-.809-.954-2.136-1.13-4.79l-.46-6.9M9.5 11l.5 5m4.5-5l-.5 5"/></svg>`;
 }
 function iconSparkles() {
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-sparkles">
-	<path stroke="none" d="M0 0h24v24H0z" fill="none" />
-	<path d="M16 18a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2m0 -12a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2m-7 12a6 6 0 0 1 6 -6a6 6 0 0 1 -6 -6a6 6 0 0 1 -6 6a6 6 0 0 1 6 6" />
-</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-sparkles"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M16 18a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2m0 -12a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2m-7 12a6 6 0 0 1 6 -6a6 6 0 0 1 -6 -6a6 6 0 0 1 -6 6a6 6 0 0 1 6 6" /></svg>`;
 }
 function iconAISettings() {
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-settings-spark">
-	<path stroke="none" d="M0 0h24v24H0z" fill="none" />
-	<path d="M11.992 21c-.728 -.003 -1.455 -.442 -1.667 -1.317a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c.882 .214 1.32 .95 1.317 1.684" />
-	<path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" />
-	<path d="M19 22.5a4.75 4.75 0 0 1 3.5 -3.5a4.75 4.75 0 0 1 -3.5 -3.5a4.75 4.75 0 0 1 -3.5 3.5a4.75 4.75 0 0 1 3.5 3.5" />
-</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-settings-spark"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M11.992 21c-.728 -.003 -1.455 -.442 -1.667 -1.317a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c.882 .214 1.32 .95 1.317 1.684" /><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /><path d="M19 22.5a4.75 4.75 0 0 1 3.5 -3.5a4.75 4.75 0 0 1 -3.5 -3.5a4.75 4.75 0 0 1 -3.5 3.5a4.75 4.75 0 0 1 3.5 3.5" /></svg>`;
 }
 function iconSettings() {
-  return ``;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings-icon lucide-settings"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx="12" cy="12" r="3"/></svg>`;
 }
-
 function iconAdjustmentsSettings() {
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-adjustments-horizontal">
-	<path stroke="none" d="M0 0h24v24H0z" fill="none" />
-	<path d="M12 6a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
-	<path d="M4 6l8 0" />
-	<path d="M16 6l4 0" />
-	<path d="M6 12a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
-	<path d="M4 12l2 0" />
-	<path d="M10 12l10 0" />
-	<path d="M15 18a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
-	<path d="M4 18l11 0" />
-	<path d="M19 18l1 0" />
-</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-adjustments-horizontal"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M12 6a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /><path d="M4 6l8 0" /><path d="M16 6l4 0" /><path d="M6 12a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /><path d="M4 12l2 0" /><path d="M10 12l10 0" /><path d="M15 18a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /><path d="M4 18l11 0" /><path d="M19 18l1 0" /></svg>`;
 }
-
-
-
+function iconKey() {
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-key-square-icon lucide-key-square"><path d="M12.4 2.7a2.5 2.5 0 0 1 3.4 0l5.5 5.5a2.5 2.5 0 0 1 0 3.4l-3.7 3.7a2.5 2.5 0 0 1-3.4 0L8.7 9.8a2.5 2.5 0 0 1 0-3.4z"/><path d="m14 7 3 3"/><path d="m9.4 10.6-6.814 6.814A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814"/></svg>`;
+}
+function iconExternalLink() {
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-external-link-icon lucide-external-link"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>`;
+}
+function iconAiSetupHelp() {
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-progress-help"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M12 16v.01" /><path d="M12 13a2 2 0 0 0 .914 -3.782a1.98 1.98 0 0 0 -2.414 .483" /><path d="M10 20.777a8.942 8.942 0 0 1 -2.48 -.969" /><path d="M14 3.223a9.003 9.003 0 0 1 0 17.554" /><path d="M4.579 17.093a8.961 8.961 0 0 1 -1.227 -2.592" /><path d="M3.124 10.5c.16 -.95 .468 -1.85 .9 -2.675l.169 -.305" /><path d="M6.907 4.579a8.954 8.954 0 0 1 3.093 -1.356" /></svg>`;
+}
+function iconExclamation() {
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-triangle-alert-icon lucide-triangle-alert"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>`;
+}
+function iconCheckboxOk() {
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-checkbox"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M9 11l3 3l8 -8" /><path d="M20 12v6a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h9" /></svg>`;
+}
 
 
 
@@ -160,6 +152,14 @@ let aiState = {
   settingsProviderName: 'gemini',
   apiKeyInput: '',
   error: '',
+  // Provider setup metadata received from extension (ai/providers-config.js)
+  aiProviderSetup: null,
+};
+
+// AI Provider Setup modal state
+let aiProviderSetupModalState = {
+  visible: false,
+  providerName: null,  // 'gemini' | 'openai' | 'anthropic' | ...
 };
 
 const state = {
@@ -246,6 +246,10 @@ window.addEventListener('message', function (event) {
       aiState.providerName = message.payload.providerName || 'gemini';
       aiState.settingsProviderName = message.payload.providerName || 'gemini';
       aiState.keyStatus = message.payload.keyStatus || {gemini: false, openai: false, anthropic: false};
+      // Store provider setup data from providers-config.js (sent by extension)
+      if (message.payload.aiProviderSetup && typeof message.payload.aiProviderSetup === 'object') {
+        aiState.aiProviderSetup = message.payload.aiProviderSetup;
+      }
     }
     render();
     return;
@@ -452,6 +456,7 @@ function render() {
       ${aiState.view === 'prompt' ? renderAiPromptModal() : ''}
       ${aiState.view === 'loading' ? renderAiLoadingOverlay() : ''}
       ${aiState.view === 'results' ? renderAiResultsModal() : ''}
+      ${aiProviderSetupModalState.visible ? renderAiProviderSetupModal() : ''}
       ${enumManagerState.visible ? renderEnumManagerModal() : ''}
     </div>
   `;
@@ -1223,6 +1228,10 @@ const modalDismissHandlers = {
   },
   'ai-loading-overlay': function () {
     // No dismiss action for loading overlay
+  },
+  'ai-provider-setup-overlay': function () {
+    aiProviderSetupModalState = {visible: false, providerName: null};
+    render();
   },
 };
 
@@ -3365,27 +3374,62 @@ function bindCmdTitleLinks() {
 
 /**
  * Returns a display label for the AI provider and its associated model.
+ * Uses dynamic data from aiState.aiProviderSetup (from providers-config.js) when available.
+ * Falls back to hardcoded labels if setup data hasn't been loaded yet.
  * @param {string} providerName
  * @returns {string}
  */
 function getAiModelLabel(providerName) {
-  const labels = {
+  if (aiState.aiProviderSetup && aiState.aiProviderSetup[providerName]) {
+    const cfg = aiState.aiProviderSetup[providerName];
+    return `${cfg.serviceName} · ${cfg.modelLabel}`;
+  }
+  // Fallback labels (used before aiProviderSetup is loaded)
+  const fallback = {
     gemini: 'Gemini · gemini-flash-latest',
     openai: 'OpenAI · gpt-4.1',
-    anthropic: 'Anthropic · claude-sonnet-4-6',
+    anthropic: 'Anthropic · claude-sonnet-4-5',
   };
-  return labels[providerName] || providerName;
+  return fallback[providerName] || providerName;
 }
 
 function renderAiSettingsModal() {
-  const providers = [
-    {value: 'gemini', label: 'Google Gemini (gemini-flash-latest)'},
-    {value: 'openai', label: 'OpenAI ChatGPT (gpt-4.1)'},
-    {value: 'anthropic', label: 'Anthropic Claude (claude-sonnet-4-6)'},
-  ];
+  // Build provider dropdown options dynamically from aiProviderSetup if available
+  const providers = aiState.aiProviderSetup
+    ? Object.values(aiState.aiProviderSetup).map(function (cfg) {
+      return {value: cfg.name, label: cfg.displayLabel};
+    })
+    : [
+      {value: 'gemini', label: 'Google Gemini (gemini-flash-latest)'},
+      {value: 'openai', label: 'OpenAI ChatGPT (gpt-4.1)'},
+      {value: 'anthropic', label: 'Anthropic Claude (claude-sonnet-4-5)'},
+    ];
 
   const selectedProvider = aiState.settingsProviderName;
   const hasKey = aiState.keyStatus[selectedProvider];
+
+  // Resolve provider setup info for links (if available)
+  const providerSetup = aiState.aiProviderSetup && aiState.aiProviderSetup[selectedProvider];
+  const apiKeyUrl = providerSetup ? providerSetup.apiKeyUrl : null;
+  const apiKeyUrlLabel = providerSetup ? providerSetup.apiKeyUrlLabel : null;
+
+  const providerLinksHtml = apiKeyUrl ? `
+    <div class="ai-provider-links">    
+      Don't have an API key?    
+      <div class="ai-provider-help-item">
+        ${iconKey()}
+        <a class="ai-provider-link" id="btn-ai-get-api-key" data-url="${escapeAttr(apiKeyUrl)}" href="#" title="Open ${escapeAttr(apiKeyUrlLabel || apiKeyUrl)} in browser">
+          Get API Key (${escapeHtml(apiKeyUrlLabel || apiKeyUrl)})
+        </a>
+      </div>
+      <div class="ai-provider-help-item">
+        ${iconAiSetupHelp()}
+        <a class="ai-provider-link ai-provider-link-help" id="btn-ai-show-setup-help" href="#" title="Show step-by-step instructions">
+          How to get (${escapeHtml(apiKeyUrlLabel || apiKeyUrl)}) API Key?
+        </a>
+      </div>
+    </div>
+  ` : '';
 
   return `
     <div class="modal-overlay" id="ai-settings-overlay" data-dismiss-on-outside-click="false">
@@ -3401,12 +3445,24 @@ function renderAiSettingsModal() {
     selectedProvider,
     'cs-btn-ai-provider', // btnExtraClass
     false, // menuUp
-    'cs-wrap-full'  // ← يجعل القائمة بعرض 100%
+    'cs-wrap-full'
   )}
         </div>
         <label>
-          API Key for <strong>${escapeHtml(selectedProvider)}</strong>
-          ${hasKey ? '<span class="ai-key-status ai-key-ok">✅ Key saved</span>' : '<span class="ai-key-status ai-key-missing">⚠️ No key saved</span>'}
+          <div>
+            API Key for <strong>${escapeHtml(selectedProvider)}</strong>
+          </div>          
+        ${hasKey ? `
+          <div class="ai-provider-key-status-item ai-key-ok">
+            ${iconCheckboxOk()}
+            <span class="ai-key-status ai-key-ok">Key saved</span>
+          </div>
+          ` : `
+          <div class="ai-provider-key-status-item ai-key-missing">
+            ${iconExclamation()}
+            <span class="ai-key-status ai-key-missing">No key saved</span>
+          </div> 
+        `}
           <input
             id="ai-api-key-input"
             class="input"
@@ -3416,9 +3472,46 @@ function renderAiSettingsModal() {
             autocomplete="off"
           />
         </label>
+        ${providerLinksHtml}
         <div class="row justify-content-flex-end mt-20">
           <button class="btn small primary min-w65" id="btn-ai-settings-save">Save</button>
           <button class="btn small secondary action min-w65" id="btn-ai-settings-cancel">Close</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Renders the AI Provider Setup Help modal.
+ * Shows step-by-step instructions for getting an API key for the selected provider.
+ */
+function renderAiProviderSetupModal() {
+  const providerName = aiProviderSetupModalState.providerName;
+  const setup = aiState.aiProviderSetup && providerName ? aiState.aiProviderSetup[providerName] : null;
+
+  if (!setup) {
+    return '';
+  }
+
+  const stepsHtml = setup.steps.map(function (step, idx) {
+    return `<li class="ai-setup-step"><span class="ai-setup-step-num">${idx + 1}</span><span>${escapeHtml(step)}</span></li>`;
+  }).join('');
+
+  return `
+    <div class="modal-overlay" id="ai-provider-setup-overlay" data-dismiss-on-outside-click="true">
+      <div class="modal-box ai-setup-box">
+        <h3>🔑 How to get API Key for <strong>${escapeHtml(setup.serviceName)}</strong></h3>
+        <ol class="ai-setup-steps">
+          ${stepsHtml}
+        </ol>
+        <div class="ai-setup-footer">
+          <a class="ai-provider-link" id="btn-ai-setup-open-url" data-url="${escapeAttr(setup.apiKeyUrl)}" href="#" title="Open ${escapeAttr(setup.apiKeyUrlLabel)} in browser">
+            🌐 Open ${escapeHtml(setup.apiKeyUrlLabel)} ↗
+          </a>
+        </div>
+        <div class="row justify-content-flex-end mt-20">
+          <button class="btn small secondary action min-w65" id="btn-ai-setup-close">Close</button>
         </div>
       </div>
     </div>
@@ -3614,6 +3707,31 @@ function bindAiEvents() {
       });
     }
 
+    // 🔑 "Get API Key" link — opens provider's website in browser
+    const getApiKeyLink = document.getElementById('btn-ai-get-api-key');
+    if (getApiKeyLink) {
+      getApiKeyLink.addEventListener('click', function (e) {
+        e.preventDefault();
+        const url = getApiKeyLink.dataset.url;
+        if (url) {
+          vscode.postMessage({type: 'openExternalUrl', payload: {url}});
+        }
+      });
+    }
+
+    // ❓ "How to get API Key?" link — opens the setup help modal
+    const showHelpLink = document.getElementById('btn-ai-show-setup-help');
+    if (showHelpLink) {
+      showHelpLink.addEventListener('click', function (e) {
+        e.preventDefault();
+        aiProviderSetupModalState = {
+          visible: true,
+          providerName: aiState.settingsProviderName,
+        };
+        render();
+      });
+    }
+
     const saveBtn = document.getElementById('btn-ai-settings-save');
     if (saveBtn) {
       saveBtn.addEventListener('click', function () {
@@ -3638,6 +3756,30 @@ function bindAiEvents() {
       });
     }
 
+  }
+
+  // --- AI Provider Setup Help modal events ---
+  if (aiProviderSetupModalState.visible) {
+    // 🌐 Open URL link inside setup modal
+    const setupOpenUrlLink = document.getElementById('btn-ai-setup-open-url');
+    if (setupOpenUrlLink) {
+      setupOpenUrlLink.addEventListener('click', function (e) {
+        e.preventDefault();
+        const url = setupOpenUrlLink.dataset.url;
+        if (url) {
+          vscode.postMessage({type: 'openExternalUrl', payload: {url}});
+        }
+      });
+    }
+
+    // Close button inside setup modal
+    const setupCloseBtn = document.getElementById('btn-ai-setup-close');
+    if (setupCloseBtn) {
+      setupCloseBtn.addEventListener('click', function () {
+        aiProviderSetupModalState = {visible: false, providerName: null};
+        render();
+      });
+    }
   }
 
   // --- Prompt modal events ---
