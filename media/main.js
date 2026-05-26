@@ -2399,9 +2399,9 @@ function bindCommandActionButtons() {
   });
 
   document.querySelectorAll('.btn-use').forEach(function (button) {
-    button.addEventListener('click', function () {
+    button.addEventListener('click', function (e) {
       syncEditCommandDraftFromDom();
-      performCommandAction(button.dataset.commandId, 'use');
+      performCommandAction(button.dataset.commandId, 'use', e.ctrlKey);
     });
   });
 
@@ -2919,7 +2919,7 @@ function getMissingVariables(command) {
   });
 }
 
-function performCommandAction(commandId, action) {
+function performCommandAction(commandId, action, forceShowVariables) {
   const command = (state.data.commands || []).find(function (item) {
     return item.id === commandId;
   });
@@ -2928,12 +2928,37 @@ function performCommandAction(commandId, action) {
     return;
   }
 
+  const allVars = collectVariables([command.command]).filter(function (name) {
+    return name !== 'workspaceFolder';
+  });
+  const hasVariables = allVars.length > 0;
+
+  // If CTRL is held and the command has variables → force open the variable input modal
+  if (forceShowVariables && hasVariables) {
+    const draft = getCommandDraft(commandId);
+    const rememberMap = getCommandRemember(commandId);
+    const inputValues = {};
+    const rememberFlags = {};
+    allVars.forEach(function (name) {
+      inputValues[name] = draft[name] || '';
+      rememberFlags[name] = rememberMap[name] || 'off';
+    });
+    variableInputState = {
+      commandId,
+      action,
+      missingVariables: allVars,
+      inputValues,
+      rememberFlags,
+      returnToRunConfirm: false,
+    };
+    render();
+    return;
+  }
+
+  // Default behavior: open modal only if there are missing variables
   const missing = getMissingVariables(command);
 
   if (missing.length > 0) {
-    const allVars = collectVariables([command.command]).filter(function (name) {
-      return name !== 'workspaceFolder';
-    });
     const draft = getCommandDraft(commandId);
     const rememberMap = getCommandRemember(commandId);
     const inputValues = {};
