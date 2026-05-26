@@ -730,6 +730,10 @@ function renderCommandsTable(commands, groups) {
     const titleHtml = command.helpUrl
       ? `<a class="cmd-title-link" data-url="${escapeAttr(command.helpUrl)}" title="Open documentation">${escapeHtml(command.title)}</a>`
       : `<strong>${escapeHtml(command.title)}</strong>`;
+    const _useVars = collectVariables([command.command]).filter(function (n) {return n !== 'workspaceFolder';});
+    const _useMissing = getMissingVariables(command);
+    const _useCtrlHint = _useVars.length > 0 && _useMissing.length === 0;
+    const _useTitle = _useCtrlHint ? 'Use in terminal\nPress CTRL key to edit the variables' : 'Use in terminal';
     return `
               <tr>
                 <td>${titleHtml}<br><span class="muted">${escapeHtml(command.id)}</span></td>
@@ -739,7 +743,7 @@ function renderCommandsTable(commands, groups) {
                 <td>
                 <div class="actions-cell">
                   <button class="btn icon-btn success btn-run" data-command-id="${escapeAttr(command.id)}" title="Run command">${iconRun()}</button>
-                  ${command.command.includes('\n') ? `<button class="btn icon-btn secondary" disabled title="Use is not available for multi-line commands">${iconUse()}</button>` : `<button class="btn icon-btn secondary btn-use action" data-command-id="${escapeAttr(command.id)}" title="Use in terminal">${iconUse()}</button>`}
+                  ${command.command.includes('\n') ? `<button class="btn icon-btn secondary" disabled title="Use is not available for multi-line commands">${iconUse()}</button>` : `<button class="btn icon-btn secondary btn-use action" data-command-id="${escapeAttr(command.id)}" title="${escapeAttr(_useTitle)}">${iconUse()}</button>`}
                   <button class="btn icon-btn secondary btn-copy action" data-command-id="${escapeAttr(command.id)}" title="Copy to clipboard">${iconCopy()}</button>
                   <button class="btn icon-btn secondary btn-edit action" data-command-id="${escapeAttr(command.id)}" title="Edit command">${iconEdit()}</button>
                   <button class="btn icon-btn danger btn-delete-command" data-command-id="${escapeAttr(command.id)}" title="Delete command">${iconDelete()}</button>
@@ -1103,6 +1107,10 @@ function renderRecentCommandsTab() {
     const titleHtml = command.helpUrl
       ? `<a class="cmd-title-link" data-url="${escapeAttr(command.helpUrl)}" title="Open documentation">${escapeHtml(command.title)}</a>`
       : `<strong>${escapeHtml(command.title)}</strong>`;
+    const _useVars = collectVariables([command.command]).filter(function (n) {return n !== 'workspaceFolder';});
+    const _useMissing = getMissingVariables(command);
+    const _useCtrlHint = _useVars.length > 0 && _useMissing.length === 0;
+    const _useTitle = _useCtrlHint ? 'Use in terminal\nPress CTRL key to edit the variables' : 'Use in terminal';
     return `
                 <tr>
                   <td>${titleHtml}</td>
@@ -1112,7 +1120,7 @@ function renderRecentCommandsTab() {
                   <td>
                     <div class="actions-cell">
                       <button class="btn icon-btn success btn-run" data-command-id="${escapeAttr(command.id)}" title="Run command">${iconRun()}</button>
-                      ${command.command.includes('\n') ? `<button class="btn icon-btn secondary" disabled title="Use is not available for multi-line commands">${iconUse()}</button>` : `<button class="btn icon-btn secondary btn-use action" data-command-id="${escapeAttr(command.id)}" title="Use in terminal">${iconUse()}</button>`}
+                      ${command.command.includes('\n') ? `<button class="btn icon-btn secondary" disabled title="Use is not available for multi-line commands">${iconUse()}</button>` : `<button class="btn icon-btn secondary btn-use action" data-command-id="${escapeAttr(command.id)}" title="${escapeAttr(_useTitle)}">${iconUse()}</button>`}
                       <button class="btn icon-btn secondary btn-copy action" data-command-id="${escapeAttr(command.id)}" title="Copy to clipboard">${iconCopy()}</button>
                       <button class="btn icon-btn secondary btn-edit action" data-command-id="${escapeAttr(command.id)}" title="Edit command">${iconEdit()}</button>
                     </div>
