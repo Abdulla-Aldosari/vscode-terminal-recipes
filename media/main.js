@@ -3461,16 +3461,17 @@ function renderAiSettingsModal() {
           <div class="ai-provider-key-status-item ai-key-missing">
             ${iconExclamation()}
             <span class="ai-key-status ai-key-missing">No key saved</span>
-          </div> 
+          </div>
         `}
-          <input
-            id="ai-api-key-input"
-            class="input"
-            type="password"
-            placeholder="${hasKey ? 'Enter new key to update...' : 'Enter your API key...'}"
-            value="${escapeAttr(aiState.apiKeyInput)}"
-            autocomplete="off"
-          />
+          <input id="ai-api-key-input" class="input" type="password" placeholder="${hasKey ? 'Enter new key to update...' : 'Enter your API key...'}" value="${escapeAttr(aiState.apiKeyInput)}" autocomplete="off" />
+
+          <div class="ai-SecretStorage-note">
+            Using VS Code's native <code>SecretStorage</code>, your API key is securely encrypted and stored within your operating system's native credential manager (e.g., Windows Credential Manager, macOS Keychain, or Linux Secret Service). It is never saved as plain text in your local settings or workspace files.
+          </div>
+
+
+
+
         </label>
         ${providerLinksHtml}
         <div class="row justify-content-flex-end mt-20">
@@ -3501,16 +3502,16 @@ function renderAiProviderSetupModal() {
   return `
     <div class="modal-overlay" id="ai-provider-setup-overlay" data-dismiss-on-outside-click="true">
       <div class="modal-box ai-setup-box">
-        <h3>🔑 How to get API Key for <strong>${escapeHtml(setup.serviceName)}</strong></h3>
+        <h3>${iconKey()} How to get API Key for <strong>${escapeHtml(setup.serviceName)}</strong></h3>
         <ol class="ai-setup-steps">
           ${stepsHtml}
         </ol>
         <div class="ai-setup-footer">
           <a class="ai-provider-link" id="btn-ai-setup-open-url" data-url="${escapeAttr(setup.apiKeyUrl)}" href="#" title="Open ${escapeAttr(setup.apiKeyUrlLabel)} in browser">
-            🌐 Open ${escapeHtml(setup.apiKeyUrlLabel)} ↗
+            ${iconExternalLink()}  Open ${escapeHtml(setup.apiKeyUrlLabel)}
           </a>
         </div>
-        <div class="row justify-content-flex-end mt-20">
+        <div class="row justify-content-flex-end">
           <button class="btn small secondary action min-w65" id="btn-ai-setup-close">Close</button>
         </div>
       </div>

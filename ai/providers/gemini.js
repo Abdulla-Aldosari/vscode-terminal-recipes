@@ -1,6 +1,7 @@
 const {GoogleGenerativeAI} = require('@google/generative-ai');
 const {SCHEMA_FULL_GEMINI, SCHEMA_SINGLE_GEMINI} = require('../schemas');
-const {formatRequestLog, formatResponseLog} = require('../debugLogger');
+const {formatRequestLog, formatResponseLog, formatErrorLog} = require('../debugLogger');
+const {getProviderConfig} = require('../providers-config');
 
 /**
  * Appended to the system instruction so Gemini knows to use `variableMetaList`
@@ -86,6 +87,7 @@ function transformGeminiResponse(raw, mode) {
 class GeminiProvider {
   constructor(apiKey) {
     this.client = new GoogleGenerativeAI(apiKey);
+    this.modelId = getProviderConfig('gemini').modelId;
   }
 
   /**
@@ -105,7 +107,7 @@ class GeminiProvider {
     }
 
     const model = this.client.getGenerativeModel({
-      model: 'gemini-flash-latest',
+      model: this.modelId,
       systemInstruction: enhancedInstruction,
       generationConfig: {
         responseMimeType: 'application/json',
@@ -113,7 +115,16 @@ class GeminiProvider {
       },
     });
 
-    const result = await model.generateContent(prompt);
+    let result;
+    try {
+      result = await model.generateContent(prompt);
+    } catch (err) {
+      if (logger) {
+        logger.appendLine(formatErrorLog(err));
+      }
+      throw err;
+    }
+
     const text = result.response.text();
 
     if (logger) {

@@ -59,4 +59,26 @@ function formatResponseLog(rawText) {
     ].join('\n');
 }
 
-module.exports = {formatRequestLog, formatResponseLog};
+/**
+ * Formats an AI error log entry.
+ * @param {unknown} error
+ * @returns {string}
+ */
+function formatErrorLog(error) {
+    const divider = '═'.repeat(60);
+    const message = (error && error.message) ? error.message : String(error);
+    const details = (error && (error.error || error.body))
+        ? JSON.stringify(error.error || error.body, null, 2)
+        : '';
+
+    return [
+        divider,
+        '❌  AI ERROR',
+        divider,
+        'Message: ' + message,
+        ...(details ? ['Details: ' + details] : []),
+        divider,
+    ].join('\n');
+}
+
+module.exports = {formatRequestLog, formatResponseLog, formatErrorLog};

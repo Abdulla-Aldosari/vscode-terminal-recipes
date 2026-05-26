@@ -1,10 +1,12 @@
 const OpenAI = require('openai');
 const {SCHEMA_FULL, SCHEMA_SINGLE, addAdditionalPropertiesFalse} = require('../schemas');
-const {formatRequestLog, formatResponseLog} = require('../debugLogger');
+const {formatRequestLog, formatResponseLog, formatErrorLog} = require('../debugLogger');
+const {getProviderConfig} = require('../providers-config');
 
 class OpenAIProvider {
   constructor(apiKey) {
     this.client = new OpenAI({apiKey});
+    this.modelId = getProviderConfig('openai').modelId;
   }
 
   /**
@@ -25,21 +27,29 @@ class OpenAIProvider {
       logger.show(true);
     }
 
-    const response = await this.client.chat.completions.create({
-      model: 'gpt-4.1',
-      messages: [
-        {role: 'system', content: systemInstruction},
-        {role: 'user', content: prompt},
-      ],
-      response_format: {
-        type: 'json_schema',
-        json_schema: {
-          name: schemaName,
-          strict: true,
-          schema,
+    let response;
+    try {
+      response = await this.client.chat.completions.create({
+        model: this.modelId,
+        messages: [
+          {role: 'system', content: systemInstruction},
+          {role: 'user', content: prompt},
+        ],
+        response_format: {
+          type: 'json_schema',
+          json_schema: {
+            name: schemaName,
+            strict: true,
+            schema,
+          },
         },
-      },
-    });
+      });
+    } catch (err) {
+      if (logger) {
+        logger.appendLine(formatErrorLog(err));
+      }
+      throw err;
+    }
 
     const content = response.choices[0].message.content;
 

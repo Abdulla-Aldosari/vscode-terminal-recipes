@@ -1163,6 +1163,16 @@ input[type="checkbox"]:checked::after {
   /* opacity: 0.8; */
 }
 
+
+.ai-SecretStorage-note {
+  font-size: 0.78rem;
+  color: var(--vscode-descriptionForeground);
+  margin-top: 4px;
+}
+
+
+
+
 /* AI Error message */
 .ai-error-msg {
   margin: 0;
@@ -1560,6 +1570,7 @@ tr.row-highlight td {
   align-items: flex-start;
   font-size: 0.82rem;
   line-height: 1.5;
+  color: var(--vscode-descriptionForeground);
 }
 
 .ai-setup-step-num {
@@ -1575,10 +1586,11 @@ tr.row-highlight td {
   font-size: 0.7rem;
   font-weight: 600;
   margin-top: 1px;
+  padding-bottom: 3px;
 }
 
 .ai-setup-footer {
-  padding-top: 4px;
+  padding-top: 10px;
   border-top: 1px solid var(--vscode-panel-border);
 }
 

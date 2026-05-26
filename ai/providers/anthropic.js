@@ -1,10 +1,12 @@
 const Anthropic = require('@anthropic-ai/sdk');
 const {SCHEMA_FULL, SCHEMA_SINGLE} = require('../schemas');
-const {formatRequestLog, formatResponseLog} = require('../debugLogger');
+const {formatRequestLog, formatResponseLog, formatErrorLog} = require('../debugLogger');
+const {getProviderConfig} = require('../providers-config');
 
 class AnthropicProvider {
   constructor(apiKey) {
     this.client = new Anthropic({apiKey});
+    this.modelId = getProviderConfig('anthropic').modelId;
   }
 
   /**
@@ -32,14 +34,22 @@ Do NOT include any text, explanation, or markdown before or after the JSON.`;
       logger.show(true);
     }
 
-    const response = await this.client.messages.create({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 8096,
-      system: enhancedSystem,
-      messages: [
-        {role: 'user', content: prompt},
-      ],
-    });
+    let response;
+    try {
+      response = await this.client.messages.create({
+        model: this.modelId,
+        max_tokens: 8096,
+        system: enhancedSystem,
+        messages: [
+          {role: 'user', content: prompt},
+        ],
+      });
+    } catch (err) {
+      if (logger) {
+        logger.appendLine(formatErrorLog(err));
+      }
+      throw err;
+    }
 
     const content = response.content[0].text;
 
