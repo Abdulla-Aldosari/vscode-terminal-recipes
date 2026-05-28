@@ -6,10 +6,12 @@ const crypto = require('crypto');
 const {generateWithAI} = require('./ai/factory');
 const {DEFAULT_SYSTEM_INSTRUCTION} = require('./ai/systemInstruction');
 const {AI_PROVIDERS, getProvidersArray} = require('./ai/providers-config');
+const {resolveAutoVariables, buildAutoVariablesPayload} = require('./auto-variables');
 
 const GLOBAL_DIR = path.join(os.homedir(), '.vscode-terminal-recipes');
 const GLOBAL_COMMANDS_FILE = path.join(GLOBAL_DIR, 'commands.json');
 const GLOBAL_VARIABLES_FILE = path.join(GLOBAL_DIR, 'variables.json');
+const GLOBAL_AUTO_VARIABLES_SETTINGS_FILE = path.join(GLOBAL_DIR, 'auto-variables-settings.json');
 
 function activate(context) {
   let panel = null;
@@ -103,6 +105,11 @@ function activate(context) {
           await handleAiInsert(panel, message.payload);
           return;
         }
+
+        if (message.type === 'saveAutoVariablesSettings') {
+          await handleSaveAutoVariablesSettings(panel, message.payload);
+          return;
+        }
       },
       null,
       context.subscriptions
@@ -126,6 +133,11 @@ async function postState(panel) {
   const commandVariables = await readWorkspaceVariables();
   const globalCommandVariables = await readGlobalVariables();
   const terminalProfiles = getTerminalProfiles();
+  const autoVariablesSettings = await readAutoVariablesSettings();
+  const autoVariables = buildAutoVariablesPayload(
+    {workspaceFolder},
+    autoVariablesSettings,
+  );
 
   await panel.webview.postMessage({
     type: 'state',
@@ -136,6 +148,8 @@ async function postState(panel) {
       commandVariables,
       globalCommandVariables,
       terminalProfiles,
+      autoVariables,
+      autoVariablesSettings,
     },
   });
 }
@@ -223,9 +237,17 @@ async function handlePerformAction(panel, payload) {
     }
 
     if (action === 'run' || action === 'use') {
+      // تطبيق المتغيرات التلقائية على الأمر
+      const autoVarsSettings = await readAutoVariablesSettings();
+      const workspaceFolder = getFirstWorkspaceFolderPath();
+      const finalCommand = resolveAutoVariables(
+        resolvedCommand,
+        {workspaceFolder},
+        autoVarsSettings,
+      );
       const terminal = getOrCreateTerminal(shellPath || undefined, shellName || undefined);
       terminal.show(false);
-      terminal.sendText(resolvedCommand, action === 'run');
+      terminal.sendText(finalCommand, action === 'run');
     }
 
     // Update lastRunAt and runCount for run/use actions
@@ -830,6 +852,36 @@ async function writeGlobalVariables(input) {
   await fs.writeFile(GLOBAL_VARIABLES_FILE, JSON.stringify(normalized, null, 2), 'utf8');
 }
 
+/**
+ * يقرأ إعدادات Auto Variables من الملف.
+ * @returns {Promise<object>} - { varName: { enabled: boolean, config: object } }
+ */
+async function readAutoVariablesSettings() {
+  try {
+    const raw = await fs.readFile(GLOBAL_AUTO_VARIABLES_SETTINGS_FILE, 'utf8');
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+      return parsed;
+    }
+    return {};
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * يكتب إعدادات Auto Variables إلى الملف.
+ * @param {object} settings - { varName: { enabled: boolean, config: object } }
+ */
+async function writeAutoVariablesSettings(settings) {
+  await fs.mkdir(GLOBAL_DIR, {recursive: true});
+  await fs.writeFile(
+    GLOBAL_AUTO_VARIABLES_SETTINGS_FILE,
+    JSON.stringify(settings, null, 2),
+    'utf8',
+  );
+}
+
 async function writeWorkspaceVariables(input) {
   const workspaceVariablesPath = getWorkspaceVariablesFilePath();
 
@@ -1053,6 +1105,32 @@ async function handleAiInsert(panel, payload) {
     await panel.webview.postMessage({
       type: 'aiInsertResult',
       payload: {success: false, message: error instanceof Error ? error.message : 'Unknown error'},
+    });
+  }
+}
+
+/**
+ * يحفظ إعدادات Auto Variables ويُرسل state محدَّث للـ webview.
+ * @param {{ [varName]: { enabled: boolean, config?: object } }} payload
+ */
+async function handleSaveAutoVariablesSettings(panel, payload) {
+  try {
+    if (!payload || typeof payload !== 'object') {
+      throw new Error('Invalid payload.');
+    }
+    await writeAutoVariablesSettings(payload);
+    await postState(panel);
+    await panel.webview.postMessage({
+      type: 'saveAutoVariablesSettingsResult',
+      payload: {success: true},
+    });
+  } catch (error) {
+    await panel.webview.postMessage({
+      type: 'saveAutoVariablesSettingsResult',
+      payload: {
+        success: false,
+        message: error instanceof Error ? error.message : 'Unknown error',
+      },
     });
   }
 }

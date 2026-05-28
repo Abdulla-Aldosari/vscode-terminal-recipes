@@ -639,7 +639,7 @@ td.actions-cell {
 
 .variable-name {
   font-family: Consolas, monospace;
-  min-width: 120px;
+  min-width: 220px;
   text-align: end;
   padding: 7px 0px;
 }
@@ -1626,4 +1626,67 @@ tr.row-highlight td {
   .manage-item-actions {
     opacity: 1;
   }
+}
+
+/* ─── Auto Variables Tab ─────────────────────────────────────────────────────── */
+
+.auto-vars-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.auto-var-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--vscode-panel-border);
+  border-radius: 6px;
+  background: var(--vscode-editor-background);
+}
+
+.auto-var-row.auto-var-disabled {
+  opacity: 0.5;
+}
+
+.auto-var-toggle {
+  padding-top: 2px;
+  flex-shrink: 0;
+}
+
+.auto-var-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.auto-var-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.auto-var-label {
+  font-size: 12px;
+  color: var(--vscode-descriptionForeground);
+}
+
+.auto-var-description {
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+.auto-var-preview {
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+.auto-var-value {
+  color: var(--vscode-textLink-foreground);
+}
+
+.auto-var-config {
+  margin-top: 6px;
 }

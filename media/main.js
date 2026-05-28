@@ -182,6 +182,8 @@ const state = {
     defaultProfile: '',
     profiles: [],
   },
+  autoVariables: [],
+  autoVariablesSettings: {},
 };
 
 window.addEventListener('message', function (event) {
@@ -303,6 +305,16 @@ window.addEventListener('message', function (event) {
     render();
     return;
   }
+
+  if (message.type === 'saveAutoVariablesSettingsResult') {
+    if (message.payload && message.payload.success) {
+      showNotice('Auto variables settings saved.');
+    } else {
+      showNotice('Failed to save: ' + (message.payload && message.payload.message ? message.payload.message : 'Unknown error'));
+    }
+    render();
+    return;
+  }
 });
 
 function hydrateState(payload) {
@@ -312,6 +324,8 @@ function hydrateState(payload) {
   state.commandVariables = payload && payload.commandVariables ? payload.commandVariables : {version: 2, commands: {}};
   state.globalCommandVariables = payload && payload.globalCommandVariables ? payload.globalCommandVariables : {version: 2, commands: {}};
   state.terminalProfiles = payload && payload.terminalProfiles ? payload.terminalProfiles : {defaultProfile: '', profiles: []};
+  state.autoVariables = payload && Array.isArray(payload.autoVariables) ? payload.autoVariables : [];
+  state.autoVariablesSettings = payload && payload.autoVariablesSettings ? payload.autoVariablesSettings : {};
 
   // Initialize selected shell from default profile if not already set
   if (runConfirmState.selectedShellName == null) {
@@ -440,6 +454,7 @@ function render() {
           <button class="tab ${!uiState.editingCommandId && uiState.activeTab === 'manage' ? 'active' : ''}" data-tab="manage">Categories & Groups</button>
           <button class="tab ${!uiState.editingCommandId && uiState.activeTab === 'commands' ? 'active' : ''}" data-tab="commands">Commands</button>
           <button class="tab tab-push-right ${!uiState.editingCommandId && uiState.activeTab === 'add' ? 'active' : ''}" data-tab="add" ${selectedCategory ? '' : 'disabled'}>Add New Command</button>
+          <button class="tab ${!uiState.editingCommandId && uiState.activeTab === 'variables' ? 'active' : ''}" data-tab="variables">Variables</button>
         </div>
       </section>
 
@@ -447,7 +462,8 @@ function render() {
       uiState.activeTab === 'recent' ? renderRecentCommandsTab() :
         uiState.activeTab === 'manage' ? renderManageTab() :
           uiState.activeTab === 'commands' ? renderCommandsTab(selectedCategory) :
-            uiState.activeTab === 'add' ? renderAddCommandTab(selectedCategory) : ''
+            uiState.activeTab === 'add' ? renderAddCommandTab(selectedCategory) :
+              uiState.activeTab === 'variables' ? renderVariablesTab() : ''
     )}
       ${renderVariableInputModal()}
       ${renderRunConfirmModal()}
@@ -1302,7 +1318,118 @@ function bindEvents() {
     bindAddCommandTabEvents();
   }
 
+  if (uiState.activeTab === 'variables') {
+    bindVariablesTabEvents();
+  }
+
   bindCommandActionButtons();
+}
+
+// ─── Variables Tab ─────────────────────────────────────────────────────────────
+
+function renderVariablesTab() {
+  const autoVars = state.autoVariables || [];
+
+  return `
+    <section class="card">
+      <h2>Auto Variables</h2>
+      <p class="muted">These variables are automatically resolved in your commands — no manual input needed.</p>
+      <div class="auto-vars-list">
+        ${autoVars.length === 0
+      ? '<p class="muted">No auto variables defined.</p>'
+      : autoVars.map(function (varDef) {
+        return `
+          <div class="auto-var-row ${varDef.enabled ? '' : 'auto-var-disabled'}">
+            <div class="auto-var-toggle">
+              <label class="toggle-label">
+                <input
+                  type="checkbox"
+                  class="auto-var-checkbox"
+                  data-var-name="${escapeAttr(varDef.name)}"
+                  ${varDef.enabled ? 'checked' : ''}
+                />
+              </label>
+            </div>
+            <div class="auto-var-info">
+              <div class="auto-var-name">
+                <code>\${${escapeHtml(varDef.name)}}</code>
+                <span class="auto-var-label">${escapeHtml(varDef.label)}</span>
+              </div>
+              <div class="auto-var-description muted">${escapeHtml(varDef.description)}</div>
+              ${varDef.enabled ? `<div class="auto-var-preview">
+                <span class="muted">Current value: </span>
+                <code class="auto-var-value">${escapeHtml(varDef.currentValue || '—')}</code>
+              </div>` : ''}
+              ${varDef.configurable && varDef.enabled ? `<div class="auto-var-config">
+                ${renderAutoVarConfig(varDef)}
+              </div>` : ''}
+            </div>
+          </div>
+        `;
+      }).join('')
+    }
+      </div>
+    </section>
+  `;
+}
+
+function renderAutoVarConfig(varDef) {
+  if (varDef.name === 'date' && varDef.configOptions && varDef.configOptions.length > 0) {
+    return renderCustomSelect(
+      'auto-var-date-format-wrap',
+      'auto-var-date-format-btn',
+      'auto-var-date-format-menu',
+      varDef.configOptions.map(function (f) {
+        return {value: f, label: f};
+      }),
+      varDef.config && varDef.config.format ? varDef.config.format : 'YYYY-MM-DD',
+      'cs-btn-sm',
+      false,
+      ''
+    );
+  }
+  return '';
+}
+
+function bindVariablesTabEvents() {
+  // Checkbox تفعيل/تعطيل متغير
+  document.querySelectorAll('.auto-var-checkbox').forEach(function (checkbox) {
+    checkbox.addEventListener('change', function () {
+      const varName = checkbox.dataset.varName;
+      const newSettings = JSON.parse(JSON.stringify(state.autoVariablesSettings || {}));
+      if (!newSettings[varName]) {
+        newSettings[varName] = {};
+      }
+      newSettings[varName].enabled = checkbox.checked;
+      state.autoVariablesSettings = newSettings;
+      vscode.postMessage({
+        type: 'saveAutoVariablesSettings',
+        payload: newSettings,
+      });
+    });
+  });
+
+  // تغيير تنسيق التاريخ
+  bindCustomSelect(
+    'auto-var-date-format-wrap',
+    'auto-var-date-format-btn',
+    'auto-var-date-format-menu',
+    function (selectedFormat) {
+      const newSettings = JSON.parse(JSON.stringify(state.autoVariablesSettings || {}));
+      if (!newSettings['date']) {
+        newSettings['date'] = {enabled: true};
+      }
+      if (!newSettings['date'].config) {
+        newSettings['date'].config = {};
+      }
+      newSettings['date'].config.format = selectedFormat;
+      state.autoVariablesSettings = newSettings;
+      vscode.postMessage({
+        type: 'saveAutoVariablesSettings',
+        payload: newSettings,
+      });
+    }
+  );
 }
 
 function bindRecentTabEvents() {
@@ -2914,12 +3041,28 @@ function showError(message) {
   }, 4000);
 }
 
+/**
+ * يرجع قائمة أسماء المتغيرات التلقائية المفعّلة حالياً.
+ * تُستخدم لاستثناء هذه المتغيرات من نوافذ الإدخال.
+ * @returns {string[]}
+ */
+function getEnabledAutoVariableNames() {
+  return (state.autoVariables || [])
+    .filter(function (v) {
+      return v.enabled;
+    })
+    .map(function (v) {
+      return v.name;
+    });
+}
+
 function getMissingVariables(command) {
   const names = collectVariables([command.command]);
   const draft = getCommandDraft(command.id);
+  const autoVarNames = getEnabledAutoVariableNames();
 
   return names.filter(function (name) {
-    if (name === 'workspaceFolder') {
+    if (autoVarNames.includes(name)) {
       return false;
     }
 
@@ -3019,10 +3162,21 @@ function resolveCommandTemplate(command) {
   const names = collectVariables([command.command]);
   let resolved = command.command;
   const draft = getCommandDraft(command.id);
+  const autoVarNames = getEnabledAutoVariableNames();
 
   names.forEach(function (name) {
-    const value = name === 'workspaceFolder' ? (state.workspaceFolder || '') : (draft[name] || '');
-    resolved = resolved.replace(new RegExp(`\\$\\{${escapeRegExp(name)}\\}`, 'g'), value);
+    // Auto variables: use currentValue from state.autoVariables for preview
+    if (autoVarNames.includes(name)) {
+      const autoVarDef = (state.autoVariables || []).find(function (v) {
+        return v.name === name;
+      });
+      const value = autoVarDef ? (autoVarDef.currentValue || '') : '';
+      resolved = resolved.replace(new RegExp('\\$\\{' + escapeRegExp(name) + '\\}', 'g'), value);
+      return;
+    }
+    // Regular variables: from user draft
+    const value = draft[name] || '';
+    resolved = resolved.replace(new RegExp('\\$\\{' + escapeRegExp(name) + '\\}', 'g'), value);
   });
 
   return resolved;
