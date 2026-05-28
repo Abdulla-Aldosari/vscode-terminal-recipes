@@ -660,7 +660,8 @@ function renderAddCommandTab(selectedCategory) {
 
   const groups = getSelectedCategoryGroups();
   const draft = uiState.newCommandDraft;
-  const detectedVars = draft.template ? collectVariables([draft.template]).filter(function (n) {return n !== 'workspaceFolder';}) : [];
+  const autoVarNames = getEnabledAutoVariableNames();
+  const detectedVars = draft.template ? collectVariables([draft.template]).filter(function (n) {return !autoVarNames.includes(n);}) : [];
   const newCommandDraft = getCommandDraft('__new__');
   const newCommandRemember = getCommandRemember('__new__');
 
@@ -684,10 +685,11 @@ function renderAddCommandTab(selectedCategory) {
         <div class="full-width mt-5">
           <h3>Command Variables:</h3>
           <div class="variables-list">
-            <div class="variable-row vars-store-row">
+            <div class="variable-row">
               <span></span>
               <span></span>
               <span class="muted vars-store-location">Variables store location</span>
+              <span></span>
             </div>
             ${detectedVars.map(function (name) {
     const value = newCommandDraft[name] || '';
@@ -793,7 +795,8 @@ function renderEditTab() {
     return cat.id === targetCategoryId;
   });
   const groups = targetCategory ? (targetCategory.groups || []) : [];
-  const variables = collectVariables([editDraft.template || command.command]);
+  const autoVarNames = getEnabledAutoVariableNames();
+  const variables = collectVariables([editDraft.template || command.command]).filter(function (n) {return !autoVarNames.includes(n);});
   const commandDraft = getCommandDraft(command.id);
   const commandRemember = getCommandRemember(command.id);
   const isMoved = targetCategoryId !== command.categoryId;
@@ -833,23 +836,24 @@ function renderEditTab() {
         <div class="full-width mt-5">
           <h3>Command Variables:</h3>
           <div class="variables-list">
-            <div class="variable-row vars-store-row">
+            <div class="variable-row">
               <span></span>
               <span></span>
               <span class="muted vars-store-location">Variables store location</span>
+              <span></span>
             </div>
             ${variables.map(function (name) {
-    const value = name === 'workspaceFolder' ? (state.workspaceFolder || '') : (commandDraft[name] || '');
-    const rememberValue = name === 'workspaceFolder' ? null : (commandRemember[name] || 'off');
+    const value = commandDraft[name] || '';
+    const rememberValue = commandRemember[name] || 'off';
     const meta = editDraft.variableMeta && editDraft.variableMeta[name];
     const isEnum = meta && meta.type === 'enum';
     const enumCount = isEnum ? meta.enumValues.length : 0;
     return `
               <div class="variable-row">
                 <label class="variable-name">\${${escapeHtml(name)}}</label>
-                <input class="input variable-input" data-command-id="${escapeAttr(command.id)}" data-variable-name="${escapeAttr(name)}" value="${escapeAttr(value)}" ${name === 'workspaceFolder' ? 'readonly' : ''} />
-                ${name === 'workspaceFolder' ? '<span></span>' : renderToggleSwitch3(command.id, name, rememberValue, 'variable-remember-toggle')}
-                ${name === 'workspaceFolder' ? '' : `<button type="button" class="btn small ${isEnum ? 'primary' : 'secondary'} btn-open-enum-manager" data-var-name="${escapeAttr(name)}" data-command-id="${escapeAttr(command.id)}" title="Manage Enum values">${iconAdjustmentsSettings()} ${isEnum ? `Enum (${enumCount})` : 'Set Enum'}</button>`}
+                <input class="input variable-input" data-command-id="${escapeAttr(command.id)}" data-variable-name="${escapeAttr(name)}" value="${escapeAttr(value)}" />
+                ${renderToggleSwitch3(command.id, name, rememberValue, 'variable-remember-toggle')}
+                <button type="button" class="btn small ${isEnum ? 'primary' : 'secondary'} btn-open-enum-manager" data-var-name="${escapeAttr(name)}" data-command-id="${escapeAttr(command.id)}" title="Manage Enum values">${iconAdjustmentsSettings()} ${isEnum ? `Enum (${enumCount})` : 'Set Enum'}</button>
               </div>
             `;
   }).join('')}
@@ -934,7 +938,7 @@ function renderRunConfirmModal() {
   });
 
   const hasVariables = command ? collectVariables([command.command]).some(function (name) {
-    return name !== 'workspaceFolder';
+    return !getEnabledAutoVariableNames().includes(name);
   }) : false;
 
   return `
@@ -968,7 +972,7 @@ function renderVariableInputModal() {
       <div class="modal-box">
         <h3>Enter Variable Values</h3>
         <div class="variables-list">
-          <div class="variable-row vars-store-row">
+          <div class="variable-row">
             <span></span>
             <span></span>
             <span class="muted vars-store-location">Variables store location</span>
@@ -1032,6 +1036,7 @@ function renderVariableInputModal() {
   }).join('')}
         </div>
         <div class="row justify-content-flex-end mt-20">
+        <span class="muted mr-auto">Enter the values before using them</span>
           <button class="btn small primary min-w65" id="btn-variable-input-confirm">Confirm</button>
           <button class="btn small secondary action min-w65" id="btn-variable-input-cancel">Cancel</button>
         </div>
@@ -2499,8 +2504,9 @@ function bindCommandActionButtons() {
       const missing = getMissingVariables(command);
 
       if (missing.length > 0) {
+        const autoVarNames = getEnabledAutoVariableNames();
         const allVars = collectVariables([command.command]).filter(function (name) {
-          return name !== 'workspaceFolder';
+          return !autoVarNames.includes(name);
         });
         const draft = getCommandDraft(commandId);
         const rememberMap = getCommandRemember(commandId);
@@ -2684,8 +2690,9 @@ function bindCommandActionButtons() {
         return;
       }
 
+      const autoVarNamesRunVars = getEnabledAutoVariableNames();
       const allVars = collectVariables([command.command]).filter(function (name) {
-        return name !== 'workspaceFolder';
+        return !autoVarNamesRunVars.includes(name);
       });
 
       const draft = getCommandDraft(commandId);
@@ -3079,8 +3086,9 @@ function performCommandAction(commandId, action, forceShowVariables) {
     return;
   }
 
+  const autoVarNames = getEnabledAutoVariableNames();
   const allVars = collectVariables([command.command]).filter(function (name) {
-    return name !== 'workspaceFolder';
+    return !autoVarNames.includes(name);
   });
   const hasVariables = allVars.length > 0;
 
