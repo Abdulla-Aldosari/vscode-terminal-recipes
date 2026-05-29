@@ -677,7 +677,16 @@ function renderAddCommandTab(selectedCategory) {
       <h2>Add Command to ( ${escapeHtml(selectedCategory.title)} )</h2>
       <form id="form-new-command" class="form-grid add-command-grid">
         <label class="add-command-title">Command Title<input id="new-command-title" class="input" required value="${escapeAttr(draft.title)}" /></label>
-        <label class="add-command-template">Command Template (Variables supported)<div class="template-editor-wrap"><div class="template-highlight" aria-hidden="true"></div><textarea id="new-command-template" class="input template-textarea" required placeholder="npm install \${package_name}" rows="1">${escapeHtml(draft.template)}</textarea></div><div class="template-var-legend"><span class="legend-item legend-auto hidden"><span class="legend-dot" aria-hidden="true"></span>auto resolved</span><span class="legend-item legend-user hidden"><span class="legend-dot" aria-hidden="true"></span>user defined</span></div></label>
+        <label class="add-command-template">Command Template (Variables supported)<div class="template-editor-wrap"><div class="template-highlight" aria-hidden="true"></div>
+        <textarea id="new-command-template" class="input template-textarea" required placeholder="npm install \${package_name}" rows="1">${escapeHtml(draft.template)}</textarea></div>
+        <div class="template-var-legend">
+
+        <span class="legend-item legend-auto hidden" data-tooltip="Reserved variables that are automatically resolved.<br>
+        They do not require the user to assign a value."><span class="legend-dot" aria-hidden="true"></span>auto resolved</span>
+
+        <span class="legend-item legend-user hidden" data-tooltip="Variables that are defined by the user.<br>
+        Their values must be set by the user."><span class="legend-dot" aria-hidden="true"></span>user defined</span></div>
+        </label>
         <label class="full-width">Description<textarea id="new-command-description" class="input" rows="2">${escapeAttr(draft.description)}</textarea></label>
         <div class="full-width grouped-tags-wrap">
           <span class="groups-label">Groups:</span>
@@ -813,7 +822,17 @@ function renderEditTab() {
       <h2>Edit Command</h2>
       <form id="form-edit-command" class="form-grid add-command-grid">
         <label class="add-command-title">Command Title<input id="edit-command-title" class="input" required value="${escapeAttr(editDraft.title)}" /></label>
-        <label class="add-command-template">Command Template<div class="template-editor-wrap"><div class="template-highlight" aria-hidden="true"></div><textarea id="edit-command-template" class="input template-textarea" required rows="1">${escapeHtml(editDraft.template)}</textarea></div><div class="template-var-legend"><span class="legend-item legend-auto hidden"><span class="legend-dot" aria-hidden="true"></span>auto resolved</span><span class="legend-item legend-user hidden"><span class="legend-dot" aria-hidden="true"></span>user defined</span></div></label>
+        <label class="add-command-template">Command Template<div class="template-editor-wrap"><div class="template-highlight" aria-hidden="true"></div>
+        <textarea id="edit-command-template" class="input template-textarea" required rows="1">${escapeHtml(editDraft.template)}</textarea>
+        </div><div class="template-var-legend">
+
+        <span class="legend-item legend-auto hidden" data-tooltip="Reserved variables that are automatically resolved.<br>
+        They do not require the user to assign a value."><span class="legend-dot" aria-hidden="true"></span>auto resolved</span>
+
+        <span class="legend-item legend-user hidden" data-tooltip="Variables that are defined by the user.<br>
+        Their values must be set by the user."><span class="legend-dot" aria-hidden="true"></span>user defined</span>
+
+        </div></label>
         <label class="full-width">Description<textarea id="edit-command-description" class="input" rows="2">${escapeHtml(editDraft.description)}</textarea></label>
         <div class="full-width grouped-tags-wrap">
           <span class="groups-label">Category:</span>
@@ -4194,5 +4213,102 @@ document.addEventListener('contextmenu', function (e) {
     e.preventDefault();
   }
 });
+
+// ===== VS Code-style Tooltip =====
+(function () {
+  let _hoverEl = null;
+  let _showTimer = null;
+  const DELAY = 600; // ms — same feel as VS Code
+  const GAP = 6;     // px — gap between element and tooltip
+
+  function getOrCreateTooltip() {
+    if (!_hoverEl) {
+      _hoverEl = document.createElement('div');
+      _hoverEl.className = 'tr-tooltip-hover';
+      _hoverEl.setAttribute('role', 'tooltip');
+      const inner = document.createElement('div');
+      inner.className = 'tr-tooltip-hover-content';
+      _hoverEl.appendChild(inner);
+    }
+    return _hoverEl;
+  }
+
+  function positionTooltip(el) {
+    const tip = getOrCreateTooltip();
+    const pos = el.dataset.tooltipPos || 'bottom';
+
+    // Temporarily attach (hidden) to measure dimensions
+    tip.style.visibility = 'hidden';
+    tip.style.left = '0px';
+    tip.style.top = '0px';
+    if (!tip.isConnected) document.body.appendChild(tip);
+
+    const rect = el.getBoundingClientRect();
+    const tw = tip.offsetWidth;
+    const th = tip.offsetHeight;
+
+    let left, top;
+
+    if (pos === 'top') {
+      left = rect.left + rect.width / 2 - tw / 2;
+      top = rect.top - th - GAP;
+    } else if (pos === 'right') {
+      left = rect.right + GAP;
+      top = rect.top + rect.height / 2 - th / 2;
+    } else if (pos === 'left') {
+      left = rect.left - tw - GAP;
+      top = rect.top + rect.height / 2 - th / 2;
+    } else {
+      // bottom (default)
+      left = rect.left + rect.width / 2 - tw / 2;
+      top = rect.bottom + GAP;
+    }
+
+    // Clamp to viewport so it doesn't go off-screen
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    left = Math.max(GAP, Math.min(left, vw - tw - GAP));
+    top = Math.max(GAP, Math.min(top, vh - th - GAP));
+
+    tip.style.left = left + 'px';
+    tip.style.top = top + 'px';
+    tip.dataset.pos = pos; // used by CSS to show the correct arrow direction
+    tip.style.visibility = '';
+  }
+
+  function showTooltip(el) {
+    const tip = getOrCreateTooltip();
+    tip.querySelector('.tr-tooltip-hover-content').innerHTML = el.dataset.tooltip;
+    positionTooltip(el);
+  }
+
+  function hideTooltip() {
+    clearTimeout(_showTimer);
+    _showTimer = null;
+    _hoverEl?.remove();
+  }
+
+  document.addEventListener('mouseover', function (e) {
+    const el = e.target.closest('[data-tooltip]');
+    if (!el) return;
+
+    // Cancel any pending show for a different element
+    clearTimeout(_showTimer);
+
+    _showTimer = setTimeout(function () {
+      showTooltip(el);
+    }, DELAY);
+  });
+
+  document.addEventListener('mouseout', function (e) {
+    const fromEl = e.target.closest('[data-tooltip]');
+    const toEl = e.relatedTarget?.closest('[data-tooltip]');
+
+    // Mouse stayed within tooltip-owning elements — do nothing
+    if (fromEl && toEl && fromEl === toEl) return;
+
+    hideTooltip();
+  });
+})();
 
 vscode.postMessage({type: 'ready'});

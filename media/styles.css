@@ -1809,3 +1809,73 @@ tr.row-highlight td {
 .auto-var-config {
   margin-top: 6px;
 }
+
+/* ===== VS Code-style Tooltip ===== */
+.tr-tooltip-hover {
+  position: fixed;
+  z-index: 9999;
+  padding: 4px 8px;
+  border-radius: var(--vscode-cornerRadius-small, 4px);
+  /* No border here — drop-shadow traces the full combined shape (box + arrow) */
+  background-color: var(--vscode-editorHoverWidget-background);
+  color: var(--vscode-editorHoverWidget-foreground);
+  filter:
+    drop-shadow(0 0 0.5px var(--vscode-editorHoverWidget-border)) drop-shadow(0 0 0.5px var(--vscode-editorHoverWidget-border)) drop-shadow(0 2px 6px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.36)));
+  font-family: var(--vscode-font-family);
+  font-size: 12px;
+  line-height: 1.5em;
+  pointer-events: none;
+  max-width: 320px;
+  overflow: visible;
+}
+
+.tr-tooltip-hover-content {
+  word-break: break-word;
+}
+
+/* ── Tooltip Arrow ────────────────────────────────────────────────────────── */
+/* Single ::before pseudo-element filled with the tooltip background.
+   drop-shadow on the parent draws the unified border around the whole shape. */
+
+.tr-tooltip-hover::before {
+  content: '';
+  position: absolute;
+  border: 7px solid transparent;
+  pointer-events: none;
+}
+
+/* ── bottom: tooltip is BELOW the element → arrow points UP ▲ ── */
+.tr-tooltip-hover[data-pos='bottom']::before {
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-bottom-color: var(--vscode-editorHoverWidget-background);
+  margin-bottom: -1px;
+}
+
+/* ── top: tooltip is ABOVE the element → arrow points DOWN ▼ ── */
+.tr-tooltip-hover[data-pos='top']::before {
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-top-color: var(--vscode-editorHoverWidget-background);
+  margin-top: -1px;
+}
+
+/* ── right: tooltip is to the RIGHT → arrow points LEFT ◀ ── */
+.tr-tooltip-hover[data-pos='right']::before {
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  border-right-color: var(--vscode-editorHoverWidget-background);
+  margin-right: -1px;
+}
+
+/* ── left: tooltip is to the LEFT → arrow points RIGHT ▶ ── */
+.tr-tooltip-hover[data-pos='left']::before {
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  border-left-color: var(--vscode-editorHoverWidget-background);
+  margin-left: -1px;
+}
