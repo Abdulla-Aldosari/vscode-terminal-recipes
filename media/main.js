@@ -439,10 +439,10 @@ function render() {
       <header class="header">
         <h1>Terminal Recipes</h1>
         <div class="header-actions">
-          <button id="btn-open-local-variables-file" class="btn small secondary" ${state.workspaceFolder ? '' : 'disabled'} title="${state.workspaceFolder ? '' : 'No workspace open'}">Open Local Variables JSON</button>
-          <button id="btn-open-global-variables-file" class="btn small secondary">Open Global Variables JSON</button>
-          <button id="btn-open-commands-file" class="btn small secondary">Open Global JSON</button>
-          <button id="btn-ai-settings" class="btn small secondary ai-settings-btn" title="AI Settings">${iconAISettings()} AI Settings</button>
+          <button id="btn-open-local-variables-file" class="btn small secondary" ${state.workspaceFolder ? '' : 'disabled'} data-tooltip="${state.workspaceFolder ? 'Open local variables JSON file' : 'No workspace open'}">Open Local Variables JSON</button>
+          <button id="btn-open-global-variables-file" class="btn small secondary" data-tooltip="Open global variables JSON file">Open Global Variables JSON</button>
+          <button id="btn-open-commands-file" class="btn small secondary" data-tooltip="Open global commands JSON file">Open Global JSON</button>
+          <button id="btn-ai-settings" class="btn small secondary ai-settings-btn" data-tooltip="AI Settings">${iconAISettings()} AI Settings</button>
         </div>
       </header>
       <p class="meta">Workspace: <code>${escapeHtml(state.workspaceFolder || 'No workspace open')}</code></p>
@@ -517,8 +517,8 @@ function renderManageTab() {
           <div class="manage-panel-header">
             <h2 class="manage-panel-title">Categories</h2>
             <div class="row">
-              <button class="btn small secondary ai-create-btn" id="btn-create-with-ai" title="Generate a full category with groups and commands using AI">${iconSparkles()} Create with AI</button>
-              <button class="btn primary small" id="btn-open-add-category-modal">+ Add New Category</button>
+              <button class="btn small secondary ai-create-btn" id="btn-create-with-ai" data-tooltip="Generate a full category with groups and commands using AI">${iconSparkles()} Create with AI</button>
+              <button class="btn primary small" id="btn-open-add-category-modal" data-tooltip="Add a new category">+ Add New Category</button>
             </div>
           </div>
           <div class="manage-list">
@@ -532,8 +532,8 @@ function renderManageTab() {
                   <code class="manage-item-count">${(state.data.commands || []).filter(function (c) {return c.categoryId === category.id;}).length}</code>
                 </div>
                 <div class="manage-item-actions">
-                  <button class="btn small secondary btn-rename-category" data-category-id="${escapeAttr(category.id)}" data-category-title="${escapeAttr(category.title)}" title="Rename">Rename</button>
-                  <button class="btn small danger btn-delete-category" data-category-id="${escapeAttr(category.id)}" data-category-title="${escapeAttr(category.title)}" title="Delete">Delete</button>
+                  <button class="btn small secondary btn-rename-category" data-category-id="${escapeAttr(category.id)}" data-category-title="${escapeAttr(category.title)}" data-tooltip="Rename category">Rename</button>
+                  <button class="btn small danger btn-delete-category" data-category-id="${escapeAttr(category.id)}" data-category-title="${escapeAttr(category.title)}" data-tooltip="Delete category and all its commands">Delete</button>
                 </div>
               </div>
             `;
@@ -545,7 +545,7 @@ function renderManageTab() {
         <div class="manage-panel">
           <div class="manage-panel-header">
             <h2 class="manage-panel-title">Groups</h2>
-            <button class="btn small primary" id="btn-open-add-group-modal" ${selectedCategory ? '' : 'disabled'}>+ Add New Group</button>
+            <button class="btn small primary" id="btn-open-add-group-modal" ${selectedCategory ? '' : 'disabled'} data-tooltip="${selectedCategory ? 'Add a new group to this category' : 'Select a category first'}">+ Add New Group</button>
           </div>
           <div class="manage-list">
             ${!selectedCategory ? `<p class="muted manage-empty">Select a category first.</p>` : ''}
@@ -559,8 +559,8 @@ function renderManageTab() {
                   <code class="manage-item-count">${(state.data.commands || []).filter(function (c) {return c.categoryId === uiState.selectedCategoryId && c.groupId === group.id;}).length}</code>
                 </div>
                 <div class="manage-item-actions">
-                  <button class="btn small secondary btn-rename-group" data-group-id="${escapeAttr(group.id)}" data-group-title="${escapeAttr(group.title)}" title="Rename">Rename</button>
-                  <button class="btn small danger btn-delete-group" data-group-id="${escapeAttr(group.id)}" data-group-title="${escapeAttr(group.title)}" title="Delete">Delete</button>
+                  <button class="btn small secondary btn-rename-group" data-group-id="${escapeAttr(group.id)}" data-group-title="${escapeAttr(group.title)}" data-tooltip="Rename group">Rename</button>
+                  <button class="btn small danger btn-delete-group" data-group-id="${escapeAttr(group.id)}" data-group-title="${escapeAttr(group.title)}" data-tooltip="Delete group">Delete</button>
                 </div>
               </div>
             `;
@@ -640,7 +640,7 @@ function renderCommandsTab(selectedCategory) {
         <h2 class="pb-5">Commands Browser</h2>
         ${renderCustomCategorySelect()}
         ${renderColumnToggleDropdown()}
-        <button class="btn small secondary ai-create-btn" id="btn-add-with-ai" title="${uiState.selectedGroupId === 'all' ? 'Select a real group first' : 'Generate a command using AI'}" ${uiState.selectedGroupId === 'all' ? 'disabled' : ''}>${iconSparkles()} Add with AI</button>
+        <button class="btn small secondary ai-create-btn" id="btn-add-with-ai" data-tooltip="${uiState.selectedGroupId === 'all' ? 'Select a specific group first' : 'Generate a command using AI'}" ${uiState.selectedGroupId === 'all' ? 'disabled' : ''}>${iconSparkles()} Add with AI</button>
       </div>
       <div class="group-tags-row">
         <span class="groups-label">Groups:</span>
@@ -704,7 +704,7 @@ function renderAddCommandTab(selectedCategory) {
             <div class="variable-row">
               <span></span>
               <span></span>
-              <span class="muted vars-store-location">Variables store location</span>
+              <span class="muted vars-store-location" data-tooltip="Local = saved per workspace only&lt;br&gt;Global = saved across all workspaces&lt;br&gt;Off = not saved">Variables store location</span>
               <span></span>
             </div>
             ${detectedVars.map(function (name) {
@@ -718,7 +718,7 @@ function renderAddCommandTab(selectedCategory) {
                 <label class="variable-name">\${${escapeHtml(name)}}</label>
                 <input class="input variable-input" data-command-id="__new__" data-variable-name="${escapeAttr(name)}" value="${escapeAttr(value)}" />
                 ${renderToggleSwitch3('__new__', name, rememberValue, 'variable-remember-toggle')}
-                <button type="button" class="btn small ${isEnum ? 'primary' : 'secondary'} btn-open-enum-manager" data-var-name="${escapeAttr(name)}" data-command-id="" title="Manage Enum values for this variable">
+                <button type="button" class="btn small ${isEnum ? 'primary' : 'secondary'} btn-open-enum-manager" data-var-name="${escapeAttr(name)}" data-command-id="" data-tooltip="Manage Enum values for this variable">
                   ${iconAdjustmentsSettings()} ${isEnum ? `Enum (${enumCount})` : 'Set Enum'}
                 </button>
               </div>
@@ -762,7 +762,7 @@ function renderCommandsTable(commands, groups) {
         <tbody>
           ${commands.map(function (command) {
     const titleHtml = command.helpUrl
-      ? `<a class="cmd-title-link" data-url="${escapeAttr(command.helpUrl)}" title="Open documentation">${escapeHtml(command.title)}</a>`
+      ? `<a class="cmd-title-link" data-url="${escapeAttr(command.helpUrl)}" data-tooltip="Open documentation">${escapeHtml(command.title)}</a>`
       : `<strong>${escapeHtml(command.title)}</strong>`;
     const _useVars = collectVariables([command.command]).filter(function (n) {return n !== 'workspaceFolder';});
     const _useMissing = getMissingVariables(command);
@@ -776,11 +776,11 @@ function renderCommandsTable(commands, groups) {
                 <td>${escapeHtml(resolveGroupTitle(command.groupId || '', groups))}</td>
                 <td>
                 <div class="actions-cell">
-                  <button class="btn icon-btn success btn-run" data-command-id="${escapeAttr(command.id)}" title="Run command">${iconRun()}</button>
-                  ${command.command.includes('\n') ? `<button class="btn icon-btn secondary" disabled title="Use is not available for multi-line commands">${iconUse()}</button>` : `<button class="btn icon-btn secondary btn-use action" data-command-id="${escapeAttr(command.id)}" title="${escapeAttr(_useTitle)}">${iconUse()}</button>`}
-                  <button class="btn icon-btn secondary btn-copy action" data-command-id="${escapeAttr(command.id)}" title="Copy to clipboard">${iconCopy()}</button>
-                  <button class="btn icon-btn secondary btn-edit action" data-command-id="${escapeAttr(command.id)}" title="Edit command">${iconEdit()}</button>
-                  <button class="btn icon-btn danger btn-delete-command" data-command-id="${escapeAttr(command.id)}" title="Delete command">${iconDelete()}</button>
+                  <button class="btn icon-btn success btn-run" data-command-id="${escapeAttr(command.id)}" data-tooltip="Run command">${iconRun()}</button>
+                  ${command.command.includes('\n') ? `<button class="btn icon-btn secondary" disabled data-tooltip="Use is not available for multi-line commands">${iconUse()}</button>` : `<button class="btn icon-btn secondary btn-use action" data-command-id="${escapeAttr(command.id)}" data-tooltip="${escapeAttr(_useTitle)}">${iconUse()}</button>`}
+                  <button class="btn icon-btn secondary btn-copy action" data-command-id="${escapeAttr(command.id)}" data-tooltip="Copy to clipboard">${iconCopy()}</button>
+                  <button class="btn icon-btn secondary btn-edit action" data-command-id="${escapeAttr(command.id)}" data-tooltip="Edit command">${iconEdit()}</button>
+                  <button class="btn icon-btn danger btn-delete-command" data-command-id="${escapeAttr(command.id)}" data-tooltip="Delete command">${iconDelete()}</button>
                 </div>
                 </td>
               </tr>
@@ -865,7 +865,7 @@ function renderEditTab() {
             <div class="variable-row">
               <span></span>
               <span></span>
-              <span class="muted vars-store-location">Variables store location</span>
+              <span class="muted vars-store-location" data-tooltip="Local = saved per workspace only&lt;br&gt;Global = saved across all workspaces&lt;br&gt;Off = not saved">Variables store location</span>
               <span></span>
             </div>
             ${variables.map(function (name) {
@@ -879,7 +879,7 @@ function renderEditTab() {
                 <label class="variable-name">\${${escapeHtml(name)}}</label>
                 <input class="input variable-input" data-command-id="${escapeAttr(command.id)}" data-variable-name="${escapeAttr(name)}" value="${escapeAttr(value)}" />
                 ${renderToggleSwitch3(command.id, name, rememberValue, 'variable-remember-toggle')}
-                <button type="button" class="btn small ${isEnum ? 'primary' : 'secondary'} btn-open-enum-manager" data-var-name="${escapeAttr(name)}" data-command-id="${escapeAttr(command.id)}" title="Manage Enum values">${iconAdjustmentsSettings()} ${isEnum ? `Enum (${enumCount})` : 'Set Enum'}</button>
+                <button type="button" class="btn small ${isEnum ? 'primary' : 'secondary'} btn-open-enum-manager" data-var-name="${escapeAttr(name)}" data-command-id="${escapeAttr(command.id)}" data-tooltip="Manage Enum values">${iconAdjustmentsSettings()} ${isEnum ? `Enum (${enumCount})` : 'Set Enum'}</button>
               </div>
             `;
   }).join('')}
@@ -888,7 +888,7 @@ function renderEditTab() {
         ` : ''}
         ${command.lastRunAt ? `
         <div class="full-width mt-5">
-          <span class="muted">Last Run: <strong title="${escapeAttr(formatDateTime(command.lastRunAt))}">${escapeHtml(timeAgo(command.lastRunAt))}</strong> &nbsp;·&nbsp; ×${command.runCount || 0} runs</span>
+          <span class="muted">Last Run: <strong data-tooltip="${escapeAttr(formatDateTime(command.lastRunAt))}">${escapeHtml(timeAgo(command.lastRunAt))}</strong> &nbsp;·&nbsp; ×${command.runCount || 0} runs</span>
         </div>
         ` : ''}
         <div class="row full-width justify-content-flex-end mt-20">
@@ -1135,7 +1135,7 @@ function renderRecentCommandsTab() {
         <h2>Recent Commands</h2>
         <div class="row">
           <span class="muted total-runs">Total runs: <strong>${totalRuns}</strong></span>
-          <button id="btn-clear-recent" class="btn danger small">Clear Recent</button>
+          <button id="btn-clear-recent" class="btn danger small" data-tooltip="Clear all recent command history">Clear Recent</button>
         </div>
       </div>
       <div class="table-wrap recent-commands">
@@ -1152,7 +1152,7 @@ function renderRecentCommandsTab() {
           <tbody>
             ${recentCommands.map(function (command) {
     const titleHtml = command.helpUrl
-      ? `<a class="cmd-title-link" data-url="${escapeAttr(command.helpUrl)}" title="Open documentation">${escapeHtml(command.title)}</a>`
+      ? `<a class="cmd-title-link" data-url="${escapeAttr(command.helpUrl)}" data-tooltip="Open documentation">${escapeHtml(command.title)}</a>`
       : `<strong>${escapeHtml(command.title)}</strong>`;
     const _useVars = collectVariables([command.command]).filter(function (n) {return n !== 'workspaceFolder';});
     const _useMissing = getMissingVariables(command);
@@ -1162,14 +1162,14 @@ function renderRecentCommandsTab() {
                 <tr>
                   <td>${titleHtml}</td>
                   <td><pre class="template-cell">${escapeHtml(command.command)}</pre></td>
-                  <td title="${escapeAttr(formatDateTime(command.lastRunAt))}">${escapeHtml(timeAgo(command.lastRunAt))}</td>
+                  <td data-tooltip="${escapeAttr(formatDateTime(command.lastRunAt))}">${escapeHtml(timeAgo(command.lastRunAt))}</td>
                   <td><strong>×${command.runCount || 0}</strong></td>
                   <td>
                     <div class="actions-cell">
-                      <button class="btn icon-btn success btn-run" data-command-id="${escapeAttr(command.id)}" title="Run command">${iconRun()}</button>
-                      ${command.command.includes('\n') ? `<button class="btn icon-btn secondary" disabled title="Use is not available for multi-line commands">${iconUse()}</button>` : `<button class="btn icon-btn secondary btn-use action" data-command-id="${escapeAttr(command.id)}" title="${escapeAttr(_useTitle)}">${iconUse()}</button>`}
-                      <button class="btn icon-btn secondary btn-copy action" data-command-id="${escapeAttr(command.id)}" title="Copy to clipboard">${iconCopy()}</button>
-                      <button class="btn icon-btn secondary btn-edit action" data-command-id="${escapeAttr(command.id)}" title="Edit command">${iconEdit()}</button>
+                      <button class="btn icon-btn success btn-run" data-command-id="${escapeAttr(command.id)}" data-tooltip="Run command">${iconRun()}</button>
+                      ${command.command.includes('\n') ? `<button class="btn icon-btn secondary" disabled data-tooltip="Use is not available for multi-line commands">${iconUse()}</button>` : `<button class="btn icon-btn secondary btn-use action" data-command-id="${escapeAttr(command.id)}" data-tooltip="${escapeAttr(_useTitle)}">${iconUse()}</button>`}
+                      <button class="btn icon-btn secondary btn-copy action" data-command-id="${escapeAttr(command.id)}" data-tooltip="Copy to clipboard">${iconCopy()}</button>
+                      <button class="btn icon-btn secondary btn-edit action" data-command-id="${escapeAttr(command.id)}" data-tooltip="Edit command">${iconEdit()}</button>
                     </div>
                   </td>
                 </tr>
@@ -1946,7 +1946,7 @@ function renderColumnToggleDropdown() {
 
   return `
     <div class="cs-wrap col-toggle-wrap" id="col-toggle-wrap">
-      <button class="cs-btn cs-btn-col-toggle" type="button" aria-haspopup="menu" aria-expanded="false" id="col-toggle-btn" title="Show/Hide Columns">
+      <button class="cs-btn cs-btn-col-toggle" type="button" aria-haspopup="menu" aria-expanded="false" id="col-toggle-btn" data-tooltip="Show/Hide Columns">
         ${columnSvg}
         <span class="cs-btn-label col-toggle-btn-label">Columns</span>
         ${chevronSvg}
@@ -3394,8 +3394,8 @@ function renderEnumManagerModal() {
         <td class="enum-cell-desc">${escapeHtml(item.description)}</td>
         <td class="enum-cell-actions">
           <div>
-            <button type="button" class="btn icon-btn small secondary btn-enum-edit" data-idx="${idx}" title="Edit">${iconEdit()}</button>
-            <button type="button" class="btn icon-btn small danger btn-enum-delete" data-idx="${idx}" title="Delete">${iconDelete()}</button>
+            <button type="button" class="btn icon-btn small secondary btn-enum-edit" data-idx="${idx}" data-tooltip="Edit enum value">${iconEdit()}</button>
+            <button type="button" class="btn icon-btn small danger btn-enum-delete" data-idx="${idx}" data-tooltip="Delete enum value">${iconDelete()}</button>
           </div>
         </td>
       </tr>
@@ -3677,13 +3677,13 @@ function renderAiSettingsModal() {
       Don't have an API key?    
       <div class="ai-provider-help-item">
         ${iconKey()}
-        <a class="ai-provider-link" id="btn-ai-get-api-key" data-url="${escapeAttr(apiKeyUrl)}" href="#" title="Open ${escapeAttr(apiKeyUrlLabel || apiKeyUrl)} in browser">
+        <a class="ai-provider-link" id="btn-ai-get-api-key" data-url="${escapeAttr(apiKeyUrl)}" href="#" data-tooltip="Open ${escapeAttr(apiKeyUrlLabel || apiKeyUrl)} in browser">
           Get API Key (${escapeHtml(apiKeyUrlLabel || apiKeyUrl)})
         </a>
       </div>
       <div class="ai-provider-help-item">
         ${iconAiSetupHelp()}
-        <a class="ai-provider-link ai-provider-link-help" id="btn-ai-show-setup-help" href="#" title="Show step-by-step instructions">
+        <a class="ai-provider-link ai-provider-link-help" id="btn-ai-show-setup-help" href="#" data-tooltip="Show step-by-step instructions">
           How to get (${escapeHtml(apiKeyUrlLabel || apiKeyUrl)}) API Key?
         </a>
       </div>
@@ -3755,7 +3755,7 @@ function renderAiProviderSetupModal() {
   }
 
   const stepsHtml = setup.steps.map(function (step, idx) {
-    return `<li class="ai-setup-step"><span class="ai-setup-step-num">${idx + 1}</span><span>${escapeHtml(step)}</span></li>`;
+    return `<li class="ai-setup-step"><span class="ai-setup-step-num">${idx + 1}</span><span>${step}</span></li>`;
   }).join('');
 
   return `
@@ -3766,7 +3766,7 @@ function renderAiProviderSetupModal() {
           ${stepsHtml}
         </ol>
         <div class="ai-setup-footer">
-          <a class="ai-provider-link" id="btn-ai-setup-open-url" data-url="${escapeAttr(setup.apiKeyUrl)}" href="#" title="Open ${escapeAttr(setup.apiKeyUrlLabel)} in browser">
+          <a class="ai-provider-link" id="btn-ai-setup-open-url" data-url="${escapeAttr(setup.apiKeyUrl)}" href="#" data-tooltip="Open ${escapeAttr(setup.apiKeyUrlLabel)} in browser">
             ${iconExternalLink()}  Open ${escapeHtml(setup.apiKeyUrlLabel)}
           </a>
         </div>
@@ -3802,7 +3802,7 @@ function renderAiPromptModal() {
           >${escapeHtml(aiState.prompt)}</textarea>
         </label>
         <div class="row align-items-flex-end mt-20">
-          <a href="#" class="muted ai-model-label" id="ai-model-label-link" data-url="${(aiState.aiProviderSetup && aiState.aiProviderSetup[aiState.providerName]) ? aiState.aiProviderSetup[aiState.providerName].apiKeyUrl : ''}">${iconExternalLink()} ${getAiModelLabel(aiState.providerName)}</a>
+          <a href="#" class="muted ai-model-label" id="ai-model-label-link" data-url="${(aiState.aiProviderSetup && aiState.aiProviderSetup[aiState.providerName]) ? aiState.aiProviderSetup[aiState.providerName].apiKeyUrl : ''}" data-tooltip="View API model details">${iconExternalLink()} ${getAiModelLabel(aiState.providerName)}</a>
           <button class="btn small primary" id="btn-ai-generate">${iconSparkles()} Generate</button>
           <button class="btn small secondary action min-w65" id="btn-ai-prompt-cancel">Cancel</button>
         </div>
@@ -4307,6 +4307,11 @@ document.addEventListener('contextmenu', function (e) {
     // Mouse stayed within tooltip-owning elements — do nothing
     if (fromEl && toEl && fromEl === toEl) return;
 
+    hideTooltip();
+  });
+
+  // Hide immediately on any click/tap — before any handler fires
+  document.addEventListener('pointerdown', function () {
     hideTooltip();
   });
 })();
