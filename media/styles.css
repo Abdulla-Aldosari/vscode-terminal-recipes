@@ -1,5 +1,7 @@
 :root {
   color-scheme: light dark;
+  --v-auto-resolved-variables: #92a781;
+  --v-user-defined-variables: #3d97bf;
 }
 
 * {
@@ -229,6 +231,74 @@ textarea {
 /* Applied by autoResizeTextarea() when content exceeds 5 lines */
 .template-textarea.ta-overflow {
   overflow-y: auto;
+}
+
+/* ===== Template Editor Overlay (Syntax Highlighting) ===== */
+
+/* Wrapper that holds the highlight layer + the textarea */
+.template-editor-wrap {
+  position: relative;
+}
+
+/* Highlight layer — sits behind the transparent textarea.
+   Uses identical border/padding/box-sizing as .input.template-textarea
+   so text wrapping is pixel-perfect. */
+.template-highlight {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  box-sizing: border-box;
+  border: 1px solid transparent;
+  /* same width as textarea border */
+  border-radius: 4px;
+  /* same as .input */
+  pointer-events: none;
+  overflow: hidden;
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: var(--vscode-input-background);
+  font-family: var(--vscode-editor-font-family, Consolas, monospace);
+  font-size: 0.8rem;
+  line-height: 1.4;
+  padding: 4.7px 4px;
+  color: var(--vscode-descriptionForeground);
+  /* height synced to textarea via JS in autoResizeTextarea() */
+}
+
+/* Textarea becomes transparent so the highlight layer shows through */
+.input.template-textarea {
+  position: relative;
+  z-index: 1;
+  background: transparent !important;
+  color: transparent !important;
+  caret-color: var(--vscode-descriptionForeground);
+  scrollbar-width: none;
+  /* Firefox / Linux */
+}
+
+/* Hide scrollbar — ensures consistent text-wrap width matching the highlight div */
+.input.template-textarea::-webkit-scrollbar {
+  display: none;
+  /* Chrome / Edge / VS Code WebView */
+}
+
+/* Restore placeholder visibility (inherits color:transparent otherwise) */
+.input.template-textarea::placeholder {
+  color: var(--vscode-input-placeholderForeground, rgba(128, 128, 128, 0.6));
+  opacity: 1;
+}
+
+/* Reserved/auto variables, indicating auto-resolved */
+.var-auto {
+  opacity: 0.9;
+  color: var(--v-auto-resolved-variables);
+}
+
+/* User-defined variables, indicating needs input */
+.var-user {
+  color: var(--v-user-defined-variables);
+  opacity: 0.9;
 }
 
 

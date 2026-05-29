@@ -478,9 +478,16 @@ function render() {
   `;
 
   bindEvents();
-  // Auto-resize all template textareas to fit their content
+  // Auto-resize template textareas and initialize syntax highlight overlay
   document.querySelectorAll('.template-textarea').forEach(function (el) {
     autoResizeTextarea(el);
+    updateTemplateHighlight(el);
+    el.addEventListener('scroll', function () {
+      var h = el.previousElementSibling;
+      if (h && h.classList.contains('template-highlight')) {
+        h.scrollTop = el.scrollTop;
+      }
+    });
   });
   bindAiEvents();
   bindCmdTitleLinks();
@@ -670,7 +677,7 @@ function renderAddCommandTab(selectedCategory) {
       <h2>Add Command to ( ${escapeHtml(selectedCategory.title)} )</h2>
       <form id="form-new-command" class="form-grid add-command-grid">
         <label class="add-command-title">Command Title<input id="new-command-title" class="input" required value="${escapeAttr(draft.title)}" /></label>
-        <label class="add-command-template">Command Template (Variables supported)<textarea id="new-command-template" class="input template-textarea" required placeholder="npm install \${package_name}" rows="1">${escapeHtml(draft.template)}</textarea></label>
+        <label class="add-command-template">Command Template (Variables supported)<div class="template-editor-wrap"><div class="template-highlight" aria-hidden="true"></div><textarea id="new-command-template" class="input template-textarea" required placeholder="npm install \${package_name}" rows="1">${escapeHtml(draft.template)}</textarea></div></label>
         <label class="full-width">Description<textarea id="new-command-description" class="input" rows="2">${escapeAttr(draft.description)}</textarea></label>
         <div class="full-width grouped-tags-wrap">
           <span class="groups-label">Groups:</span>
@@ -806,7 +813,7 @@ function renderEditTab() {
       <h2>Edit Command</h2>
       <form id="form-edit-command" class="form-grid add-command-grid">
         <label class="add-command-title">Command Title<input id="edit-command-title" class="input" required value="${escapeAttr(editDraft.title)}" /></label>
-        <label class="add-command-template">Command Template<textarea id="edit-command-template" class="input template-textarea" required rows="1">${escapeHtml(editDraft.template)}</textarea></label>
+        <label class="add-command-template">Command Template<div class="template-editor-wrap"><div class="template-highlight" aria-hidden="true"></div><textarea id="edit-command-template" class="input template-textarea" required rows="1">${escapeHtml(editDraft.template)}</textarea></div></label>
         <label class="full-width">Description<textarea id="edit-command-description" class="input" rows="2">${escapeHtml(editDraft.description)}</textarea></label>
         <div class="full-width grouped-tags-wrap">
           <span class="groups-label">Category:</span>
@@ -1206,6 +1213,33 @@ function autoResizeTextarea(el) {
   if (el.scrollHeight > maxHeight) {
     el.classList.add('ta-overflow');
   }
+  // Sync highlight div height to match the textarea
+  var highlightEl = el.previousElementSibling;
+  if (highlightEl && highlightEl.classList.contains('template-highlight')) {
+    highlightEl.style.height = newHeight + 'px';
+  }
+}
+
+/**
+ * Updates the syntax highlight overlay div for a template textarea.
+ * Wraps ${varName} tokens in colored spans: .var-auto (reserved) or .var-user (user-defined).
+ * @param {HTMLTextAreaElement} textarea
+ */
+function updateTemplateHighlight(textarea) {
+  var highlightDiv = textarea.previousElementSibling;
+  if (!highlightDiv || !highlightDiv.classList.contains('template-highlight')) {return;}
+  var autoVarNames = getEnabledAutoVariableNames();
+  var html = escapeHtml(textarea.value).replace(
+    /\$\{([a-zA-Z0-9_]+)\}/g,
+    function (match, name) {
+      var cls = autoVarNames.includes(name) ? 'var-auto' : 'var-user';
+      return '<span class="' + cls + '">' + match + '</span>';
+    }
+  );
+  // Trailing \n prevents the last line from collapsing in height
+  highlightDiv.innerHTML = html + '\n';
+  // Keep scroll in sync
+  highlightDiv.scrollTop = textarea.scrollTop;
 }
 
 /**
