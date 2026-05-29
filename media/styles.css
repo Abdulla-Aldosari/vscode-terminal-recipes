@@ -1303,9 +1303,6 @@ tr.row-highlight td {
 
 /* ===== Enum Variable Input Row (in variable modal) ===== */
 
-.variable-row-enum {
-  /* display: contents inherited from .variable-row — flex props removed */
-}
 
 .enum-input-wrap {
   display: flex;
