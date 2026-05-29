@@ -766,7 +766,7 @@ td.actions-cell {
   font-family: Consolas, monospace;
   white-space: nowrap;
   text-align: end;
-  padding: 7px 0px;
+  padding: 6px 0px;
 }
 
 
@@ -1126,7 +1126,7 @@ code {
 .commands-table.main-table td:nth-last-child(2) {
   white-space: nowrap;
   width: 1%;
-  max-width: 150px;
+  max-width: 350px;
   min-width: 80px;
 }
 

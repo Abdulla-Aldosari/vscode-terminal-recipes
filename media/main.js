@@ -1018,7 +1018,7 @@ function renderVariableInputModal() {
 
     if (isEnum) {
       const enumOptions = enumMeta.enumValues.map(function (ev) {
-        return {value: ev.value, label: ev.title + ' — ' + ev.value};
+        return {value: ev.value, label: ev.value, tooltip: ev.description || ''};
       }).concat([{value: '__custom__', label: '✏️ Custom value...'}]);
       const enumSelectedVal = isCustomValue ? '__custom__' : currentValue;
       return `
@@ -1806,7 +1806,7 @@ function renderCustomSelect(wrapperId, btnId, menuId, options, selectedValue, bt
   const items = options.map(function (opt) {
     const isSelected = opt.value === selectedValue;
     return `
-      <div class="cs-item" role="menuitem" tabindex="-1" data-value="${escapeAttr(opt.value)}">
+      <div class="cs-item" role="menuitem" tabindex="-1" data-value="${escapeAttr(opt.value)}"${opt.tooltip ? ` data-tooltip="${escapeAttr(opt.tooltip)}"` : ''}>
         <span class="cs-item-label">${escapeHtml(opt.label)}</span>
         ${isSelected ? checkSvg : ''}
       </div>
