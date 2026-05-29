@@ -950,7 +950,7 @@ function renderRunConfirmModal() {
         <div class="row justify-content-flex-end">
         ${hasVariables ? `<button class="btn small secondary min-w65" id="btn-confirm-run-variables">Edit Variables</button>` : ''}
           ${renderShellSelector()}
-          <button class="btn small primary min-w65" id="btn-confirm-run-yes">Run</button>
+          <button class="btn small success min-w65" id="btn-confirm-run-yes">Run</button>
           <button class="btn small secondary action min-w65" id="btn-confirm-run-no">Cancel</button>
         </div>
       </div>
