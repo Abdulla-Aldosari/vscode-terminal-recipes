@@ -301,6 +301,52 @@ textarea {
   opacity: 0.9;
 }
 
+/* ===== Template Variable Legend ===== */
+
+.template-var-legend {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: -7px;
+  margin-left: 8px;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
+  opacity: 0.85;
+}
+
+.legend-item.hidden {
+  display: none;
+}
+
+.legend-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.legend-auto {
+  color: var(--vscode-descriptionForeground);
+}
+
+.legend-auto .legend-dot {
+  background: var(--v-auto-resolved-variables);
+}
+
+.legend-user {
+  color: var(--vscode-descriptionForeground);
+}
+
+.legend-user .legend-dot {
+  background: var(--v-user-defined-variables);
+}
+
 
 .btn {
   border-radius: 4px;

@@ -677,7 +677,7 @@ function renderAddCommandTab(selectedCategory) {
       <h2>Add Command to ( ${escapeHtml(selectedCategory.title)} )</h2>
       <form id="form-new-command" class="form-grid add-command-grid">
         <label class="add-command-title">Command Title<input id="new-command-title" class="input" required value="${escapeAttr(draft.title)}" /></label>
-        <label class="add-command-template">Command Template (Variables supported)<div class="template-editor-wrap"><div class="template-highlight" aria-hidden="true"></div><textarea id="new-command-template" class="input template-textarea" required placeholder="npm install \${package_name}" rows="1">${escapeHtml(draft.template)}</textarea></div></label>
+        <label class="add-command-template">Command Template (Variables supported)<div class="template-editor-wrap"><div class="template-highlight" aria-hidden="true"></div><textarea id="new-command-template" class="input template-textarea" required placeholder="npm install \${package_name}" rows="1">${escapeHtml(draft.template)}</textarea></div><div class="template-var-legend"><span class="legend-item legend-auto hidden"><span class="legend-dot" aria-hidden="true"></span>auto resolved</span><span class="legend-item legend-user hidden"><span class="legend-dot" aria-hidden="true"></span>user defined</span></div></label>
         <label class="full-width">Description<textarea id="new-command-description" class="input" rows="2">${escapeAttr(draft.description)}</textarea></label>
         <div class="full-width grouped-tags-wrap">
           <span class="groups-label">Groups:</span>
@@ -813,7 +813,7 @@ function renderEditTab() {
       <h2>Edit Command</h2>
       <form id="form-edit-command" class="form-grid add-command-grid">
         <label class="add-command-title">Command Title<input id="edit-command-title" class="input" required value="${escapeAttr(editDraft.title)}" /></label>
-        <label class="add-command-template">Command Template<div class="template-editor-wrap"><div class="template-highlight" aria-hidden="true"></div><textarea id="edit-command-template" class="input template-textarea" required rows="1">${escapeHtml(editDraft.template)}</textarea></div></label>
+        <label class="add-command-template">Command Template<div class="template-editor-wrap"><div class="template-highlight" aria-hidden="true"></div><textarea id="edit-command-template" class="input template-textarea" required rows="1">${escapeHtml(editDraft.template)}</textarea></div><div class="template-var-legend"><span class="legend-item legend-auto hidden"><span class="legend-dot" aria-hidden="true"></span>auto resolved</span><span class="legend-item legend-user hidden"><span class="legend-dot" aria-hidden="true"></span>user defined</span></div></label>
         <label class="full-width">Description<textarea id="edit-command-description" class="input" rows="2">${escapeHtml(editDraft.description)}</textarea></label>
         <div class="full-width grouped-tags-wrap">
           <span class="groups-label">Category:</span>
@@ -1229,6 +1229,9 @@ function updateTemplateHighlight(textarea) {
   var highlightDiv = textarea.previousElementSibling;
   if (!highlightDiv || !highlightDiv.classList.contains('template-highlight')) {return;}
   var autoVarNames = getEnabledAutoVariableNames();
+  var allVarNames = collectVariables([textarea.value]);
+  var hasAuto = allVarNames.some(function (n) {return autoVarNames.includes(n);});
+  var hasUser = allVarNames.some(function (n) {return !autoVarNames.includes(n);});
   var html = escapeHtml(textarea.value).replace(
     /\$\{([a-zA-Z0-9_]+)\}/g,
     function (match, name) {
@@ -1240,6 +1243,14 @@ function updateTemplateHighlight(textarea) {
   highlightDiv.innerHTML = html + '\n';
   // Keep scroll in sync
   highlightDiv.scrollTop = textarea.scrollTop;
+  // Update legend visibility
+  var legend = textarea.parentElement && textarea.parentElement.nextElementSibling;
+  if (legend && legend.classList.contains('template-var-legend')) {
+    var autoItem = legend.querySelector('.legend-auto');
+    var userItem = legend.querySelector('.legend-user');
+    if (autoItem) {autoItem.classList.toggle('hidden', !hasAuto);}
+    if (userItem) {userItem.classList.toggle('hidden', !hasUser);}
+  }
 }
 
 /**
