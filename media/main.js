@@ -52,6 +52,9 @@ function iconDragHandle() {
 function iconFavorite() {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-star-icon lucide-star"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"/></svg>`;
 }
+function iconFavoriteActive() {
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"/></svg>`;
+}
 
 
 
@@ -101,6 +104,10 @@ const uiState = {
     } catch { }
     return {description: true, groups: true};
   }()),
+  // 'local' = workspace favorites, 'global' = global favorites
+  favoritesScope: (function () {
+    try {return localStorage.getItem('favoritesScope') || 'local';} catch {return 'local';}
+  }()),
 };
 
 let noticeTimer = null;
@@ -144,6 +151,16 @@ let enumManagerState = {
   editTitle: '',
   editValue: '',
   editDescription: '',
+};
+
+// Favorites Modal state
+// mode: 'add' = choosing scope to add favorite (in Commands/Recent tabs)
+//       'move-to-global' | 'move-to-local' = moving between scopes (Favorites tab CTRL+click)
+//       'unfavorite-confirm' = confirm remove when no workspace (Favorites tab CTRL+click)
+let favoriteModalState = {
+  visible: false,
+  commandId: null,
+  mode: null,
 };
 
 // AI feature state
@@ -193,6 +210,8 @@ const state = {
   },
   autoVariables: [],
   autoVariablesSettings: {},
+  globalFavorites: [],
+  localFavorites: [],
 };
 
 window.addEventListener('message', function (event) {
@@ -324,6 +343,19 @@ window.addEventListener('message', function (event) {
     render();
     return;
   }
+
+  if (message.type === 'saveFavoritesResult') {
+    if (message.payload && message.payload.success) {
+      if (Array.isArray(message.payload.globalFavorites)) {
+        state.globalFavorites = message.payload.globalFavorites;
+      }
+      if (Array.isArray(message.payload.localFavorites)) {
+        state.localFavorites = message.payload.localFavorites;
+      }
+    }
+    render();
+    return;
+  }
 });
 
 function hydrateState(payload) {
@@ -335,6 +367,13 @@ function hydrateState(payload) {
   state.terminalProfiles = payload && payload.terminalProfiles ? payload.terminalProfiles : {defaultProfile: '', profiles: []};
   state.autoVariables = payload && Array.isArray(payload.autoVariables) ? payload.autoVariables : [];
   state.autoVariablesSettings = payload && payload.autoVariablesSettings ? payload.autoVariablesSettings : {};
+  state.globalFavorites = payload && Array.isArray(payload.globalFavorites) ? payload.globalFavorites : [];
+  state.localFavorites = payload && Array.isArray(payload.localFavorites) ? payload.localFavorites : [];
+
+  // If no workspace, force scope to 'global'
+  if (!state.workspaceFolder && uiState.favoritesScope === 'local') {
+    uiState.favoritesScope = 'global';
+  }
 
   // Initialize selected shell from default profile if not already set
   if (runConfirmState.selectedShellName == null) {
@@ -460,6 +499,7 @@ function render() {
       <section class="card tabs-section">
         <div class="tabs">
           <button class="tab ${!uiState.editingCommandId && uiState.activeTab === 'recent' ? 'active' : ''}" data-tab="recent">Recent Commands</button>
+          <button class="tab ${!uiState.editingCommandId && uiState.activeTab === 'favorites' ? 'active' : ''}" data-tab="favorites">${iconFavorite()} Favorites</button>
           <button class="tab ${!uiState.editingCommandId && uiState.activeTab === 'manage' ? 'active' : ''}" data-tab="manage">Categories & Groups</button>
           <button class="tab ${!uiState.editingCommandId && uiState.activeTab === 'commands' ? 'active' : ''}" data-tab="commands">Commands</button>
           <button class="tab tab-push-right ${!uiState.editingCommandId && uiState.activeTab === 'add' ? 'active' : ''}" data-tab="add" ${selectedCategory ? '' : 'disabled'}>Add New Command</button>
@@ -469,14 +509,16 @@ function render() {
 
       ${uiState.editingCommandId ? renderEditTab() : (
       uiState.activeTab === 'recent' ? renderRecentCommandsTab() :
-        uiState.activeTab === 'manage' ? renderManageTab() :
-          uiState.activeTab === 'commands' ? renderCommandsTab(selectedCategory) :
-            uiState.activeTab === 'add' ? renderAddCommandTab(selectedCategory) :
-              uiState.activeTab === 'variables' ? renderVariablesTab() : ''
+        uiState.activeTab === 'favorites' ? renderFavoritesTab() :
+          uiState.activeTab === 'manage' ? renderManageTab() :
+            uiState.activeTab === 'commands' ? renderCommandsTab(selectedCategory) :
+              uiState.activeTab === 'add' ? renderAddCommandTab(selectedCategory) :
+                uiState.activeTab === 'variables' ? renderVariablesTab() : ''
     )}
       ${renderVariableInputModal()}
       ${renderRunConfirmModal()}
       ${renderDeleteConfirmModal()}
+      ${favoriteModalState.visible ? renderFavoriteModal() : ''}
       ${aiState.view === 'settings' ? renderAiSettingsModal() : ''}
       ${aiState.view === 'prompt' ? renderAiPromptModal() : ''}
       ${aiState.view === 'loading' ? renderAiLoadingOverlay() : ''}
@@ -800,6 +842,7 @@ function renderCommandsTable(commands, groups) {
                   <button class="btn icon-btn secondary btn-copy action" data-command-id="${escapeAttr(command.id)}" data-tooltip="Copy to clipboard">${iconCopy()}</button>
                   <button class="btn icon-btn secondary btn-edit action" data-command-id="${escapeAttr(command.id)}" data-tooltip="Edit command">${iconEdit()}</button>
                   <button class="btn icon-btn danger btn-delete-command" data-command-id="${escapeAttr(command.id)}" data-tooltip="Delete command">${iconDelete()}</button>
+                  <button class="btn icon-btn ${isInFavorites(command.id) ? 'fav-active' : 'secondary'} btn-add-favorite" data-command-id="${escapeAttr(command.id)}" data-tooltip="${isInFavorites(command.id) ? 'Already in favorites' : 'Add to favorites'}">${isInFavorites(command.id) ? iconFavoriteActive() : iconFavorite()}</button>
                 </div>
                 </td>` : ''}
               </tr>
@@ -1345,12 +1388,13 @@ function renderRecentCommandsTab() {
                   <td><pre class="template-cell">${escapeHtml(command.command)}</pre></td>
                   <td data-tooltip="${escapeAttr(formatDateTime(command.lastRunAt))}">${escapeHtml(timeAgo(command.lastRunAt))}</td>
                   <td><strong>×${command.runCount || 0}</strong></td>
-                  <td>
+                    <td>
                     <div class="actions-cell">
                       <button class="btn icon-btn success btn-run" data-command-id="${escapeAttr(command.id)}" data-tooltip="Run command">${iconRun()}</button>
                       ${command.command.includes('\n') ? `<button class="btn icon-btn secondary" disabled data-tooltip="Use is not available for multi-line commands">${iconUse()}</button>` : `<button class="btn icon-btn secondary btn-use action" data-command-id="${escapeAttr(command.id)}" data-tooltip="${escapeAttr(_useTitle)}">${iconUse()}</button>`}
                       <button class="btn icon-btn secondary btn-copy action" data-command-id="${escapeAttr(command.id)}" data-tooltip="Copy to clipboard">${iconCopy()}</button>
                       <button class="btn icon-btn secondary btn-edit action" data-command-id="${escapeAttr(command.id)}" data-tooltip="Edit command">${iconEdit()}</button>
+                      <button class="btn icon-btn ${isInFavorites(command.id) ? 'fav-active' : 'secondary'} btn-add-favorite" data-command-id="${escapeAttr(command.id)}" data-tooltip="${isInFavorites(command.id) ? 'Already in favorites' : 'Add to favorites'}">${isInFavorites(command.id) ? iconFavoriteActive() : iconFavorite()}</button>
                     </div>
                   </td>
                 </tr>
@@ -1566,6 +1610,10 @@ function bindEvents() {
 
   if (uiState.activeTab === 'add') {
     bindAddCommandTabEvents();
+  }
+
+  if (uiState.activeTab === 'favorites') {
+    bindFavoritesTabEvents();
   }
 
   if (uiState.activeTab === 'variables') {
@@ -2865,6 +2913,24 @@ function bindCommandActionButtons() {
       render();
     });
   });
+
+  // --- Add to Favorites buttons (in Commands and Recent tabs) ---
+  document.querySelectorAll('.btn-add-favorite').forEach(function (button) {
+    button.addEventListener('click', function () {
+      const commandId = button.dataset.commandId;
+      if (isInFavorites(commandId)) {
+        showNotice('This command is already in your favorites.');
+        return;
+      }
+      favoriteModalState = {visible: true, commandId, mode: 'add'};
+      render();
+    });
+  });
+
+  // Bind favorite modal events if modal is visible (from Commands/Recent tab)
+  if (favoriteModalState.visible) {
+    bindFavoriteModalEvents();
+  }
 
   const confirmRunYesButton = document.getElementById('btn-confirm-run-yes');
   const confirmRunNoButton = document.getElementById('btn-confirm-run-no');
@@ -4408,6 +4474,349 @@ function scrollToAndHighlight(commandId) {
   setTimeout(function () {
     row.classList.remove('row-highlight');
   }, 2000);
+}
+
+// ─── Favorites Tab & Helpers ──────────────────────────────────────────────────
+
+/**
+ * Returns true if commandId is in either local or global favorites.
+ */
+function isInFavorites(commandId) {
+  return state.globalFavorites.includes(commandId) || state.localFavorites.includes(commandId);
+}
+
+/**
+ * Saves favorites to the extension.
+ */
+function persistFavorites(payload) {
+  vscode.postMessage({type: 'saveFavorites', payload});
+}
+
+/**
+ * Renders the Favorites tab.
+ */
+function renderFavoritesTab() {
+  const hasWorkspace = !!state.workspaceFolder;
+  const scope = uiState.favoritesScope;
+  const favoriteIds = scope === 'local' ? state.localFavorites : state.globalFavorites;
+  const favoritedCommands = (state.data.commands || []).filter(function (cmd) {
+    return favoriteIds.includes(cmd.id);
+  });
+  const emptyMsg = scope === 'local'
+    ? 'No local favorites for this workspace yet. Click the star icon on any command to add it.'
+    : 'No global favorites yet. Click the star icon on any command to add it.';
+
+  return `
+    <section class="card">
+      ${hasWorkspace ? renderFavoritesScopeToggle(scope) : ''}
+      <div class="table-wrap">
+        ${favoritedCommands.length === 0
+      ? `<p class="muted">${emptyMsg}</p>`
+      : renderFavoritesTable(favoritedCommands)
+    }
+      </div>
+    </section>
+  `;
+}
+
+/**
+ * Renders the big scope toggle (Local Workspace / Global) for the Favorites tab.
+ */
+function renderFavoritesScopeToggle(scope) {
+  return `
+    <div class="fav-scope-toggle-wrap">
+      <div class="fav-scope-toggle">
+        <button class="fav-scope-btn ${scope === 'local' ? 'active' : ''}" data-scope="local" data-tooltip="Show favorites for this workspace only">Local Workspace</button>
+        <button class="fav-scope-btn ${scope === 'global' ? 'active' : ''}" data-scope="global" data-tooltip="Show favorites available in all workspaces">Global</button>
+      </div>
+      <span class="muted fav-scope-hint">${scope === 'local' ? escapeHtml(state.workspaceFolder || '') : 'Available everywhere'}</span>
+    </div>
+  `;
+}
+
+/**
+ * Renders the favorites table (Title, Template, Actions).
+ */
+function renderFavoritesTable(commands) {
+  return `
+    <table class="cmds-table favorites-table recent-commands">
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Template</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${commands.map(function (command) {
+    const titleHtml = command.helpUrl
+      ? `<a class="cmd-title-link" data-url="${escapeAttr(command.helpUrl)}" data-tooltip="Open documentation">${escapeHtml(command.title)}</a>`
+      : `<strong>${escapeHtml(command.title)}</strong>`;
+    const _useVars = collectVariables([command.command]).filter(function (n) {return n !== 'workspaceFolder';});
+    const _useMissing = getMissingVariables(command);
+    const _useCtrlHint = _useVars.length > 0 && _useMissing.length === 0;
+    const _useTitle = _useCtrlHint ? 'Use in terminal\nPress CTRL key to edit the variables' : 'Use in terminal';
+    return `
+            <tr data-command-id="${escapeAttr(command.id)}">
+              <td>${titleHtml}<br><span class="muted">${escapeHtml(command.id)}</span></td>
+              <td><pre class="template-cell">${escapeHtml(command.command)}</pre></td>
+              <td>
+                <div class="actions-cell">
+                  <button class="btn icon-btn success btn-run" data-command-id="${escapeAttr(command.id)}" data-tooltip="Run command">${iconRun()}</button>
+                  ${command.command.includes('\n') ? `<button class="btn icon-btn secondary" disabled data-tooltip="Use is not available for multi-line commands">${iconUse()}</button>` : `<button class="btn icon-btn secondary btn-use action" data-command-id="${escapeAttr(command.id)}" data-tooltip="${escapeAttr(_useTitle)}">${iconUse()}</button>`}
+                  <button class="btn icon-btn secondary btn-copy action" data-command-id="${escapeAttr(command.id)}" data-tooltip="Copy to clipboard">${iconCopy()}</button>
+                  <button class="btn icon-btn secondary btn-edit action" data-command-id="${escapeAttr(command.id)}" data-tooltip="Edit command">${iconEdit()}</button>
+                  <button class="btn icon-btn danger btn-delete-command" data-command-id="${escapeAttr(command.id)}" data-tooltip="Delete command">${iconDelete()}</button>
+                  <button class="btn icon-btn fav-active btn-unfavorite" data-command-id="${escapeAttr(command.id)}" data-tooltip="Remove from favorites&#10;CTRL+click to move scope">${iconFavoriteActive()}</button>
+                </div>
+              </td>
+            </tr>
+          `;
+  }).join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+/**
+ * Renders the Favorite modal (add / move / confirm).
+ */
+function renderFavoriteModal() {
+  const s = favoriteModalState;
+  const hasWorkspace = !!state.workspaceFolder;
+  const command = (state.data.commands || []).find(function (c) {return c.id === s.commandId;});
+  const cmdTitle = command ? command.title : '';
+
+  if (s.mode === 'add') {
+    if (hasWorkspace) {
+      return `
+        <div class="modal-overlay" id="favorite-modal-overlay" data-dismiss-on-outside-click="false">
+          <div class="modal-box">
+            <h3>${iconFavorite()} Add to Favorites</h3>
+            <p class="delete-confirm-command-name">${escapeHtml(cmdTitle)}</p>
+            <p class="modal-description">Where would you like to save this favorite?</p>
+            <div class="row justify-content-flex-end mt-20">
+              <button class="btn small secondary action" id="btn-fav-add-local" data-tooltip="Save for this workspace only">Local Workspace</button>
+              <button class="btn small primary min-w65" id="btn-fav-add-global" data-tooltip="Save for all workspaces">Global</button>
+              <button class="btn small secondary action min-w65" id="btn-fav-cancel">Cancel</button>
+            </div>
+          </div>
+        </div>
+      `;
+    } else {
+      return `
+        <div class="modal-overlay" id="favorite-modal-overlay" data-dismiss-on-outside-click="false">
+          <div class="modal-box">
+            <h3>${iconFavorite()} Add to Global Favorites</h3>
+            <p class="delete-confirm-command-name">${escapeHtml(cmdTitle)}</p>
+            <p class="modal-description">This command will be added to your <strong>Global Favorites</strong> (available everywhere).</p>
+            <div class="row justify-content-flex-end mt-20">
+              <button class="btn small primary" id="btn-fav-add-global">Add to Favorites</button>
+              <button class="btn small secondary action min-w65" id="btn-fav-cancel">Cancel</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  if (s.mode === 'move-to-global') {
+    return `
+      <div class="modal-overlay" id="favorite-modal-overlay" data-dismiss-on-outside-click="false">
+        <div class="modal-box">
+          <h3>${iconFavorite()} Move to Global Favorites</h3>
+          <p class="delete-confirm-command-name">${escapeHtml(cmdTitle)}</p>
+          <p class="modal-description">Move from <strong>Local Workspace</strong> to <strong>Global</strong> (available everywhere).</p>
+          <div class="row justify-content-flex-end mt-20">
+            <button class="btn small primary" id="btn-fav-move-confirm">Move to Global</button>
+            <button class="btn small secondary action min-w65" id="btn-fav-cancel">Cancel</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  if (s.mode === 'move-to-local') {
+    return `
+      <div class="modal-overlay" id="favorite-modal-overlay" data-dismiss-on-outside-click="false">
+        <div class="modal-box">
+          <h3>${iconFavorite()} Move to Local Favorites</h3>
+          <p class="delete-confirm-command-name">${escapeHtml(cmdTitle)}</p>
+          <p class="modal-description">Move from <strong>Global</strong> to <strong>Local Workspace</strong>.</p>
+          <div class="row justify-content-flex-end mt-20">
+            <button class="btn small primary" id="btn-fav-move-confirm">Move to Local</button>
+            <button class="btn small secondary action min-w65" id="btn-fav-cancel">Cancel</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  if (s.mode === 'unfavorite-confirm') {
+    return `
+      <div class="modal-overlay" id="favorite-modal-overlay" data-dismiss-on-outside-click="false">
+        <div class="modal-box">
+          <h3>Remove from Favorites</h3>
+          <p class="delete-confirm-command-name">${escapeHtml(cmdTitle)}</p>
+          <p class="modal-description">Remove this command from your <strong>Global Favorites</strong>?</p>
+          <div class="row justify-content-flex-end mt-20">
+            <button class="btn small danger min-w65" id="btn-fav-unfavorite-confirm">Remove</button>
+            <button class="btn small secondary action min-w65" id="btn-fav-cancel">Cancel</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  return '';
+}
+
+/**
+ * Binds events for the Favorites tab (scope toggle + unfavorite buttons).
+ */
+function bindFavoritesTabEvents() {
+  // Scope toggle buttons
+  document.querySelectorAll('.fav-scope-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      const scope = btn.dataset.scope;
+      uiState.favoritesScope = scope;
+      try {localStorage.setItem('favoritesScope', scope);} catch { }
+      render();
+    });
+  });
+
+  // Unfavorite buttons
+  document.querySelectorAll('.btn-unfavorite').forEach(function (button) {
+    button.addEventListener('click', function (e) {
+      const commandId = button.dataset.commandId;
+      const scope = uiState.favoritesScope;
+      const hasWorkspace = !!state.workspaceFolder;
+
+      if (e.ctrlKey) {
+        // CTRL+click
+        if (hasWorkspace) {
+          favoriteModalState = {visible: true, commandId, mode: scope === 'local' ? 'move-to-global' : 'move-to-local'};
+        } else {
+          favoriteModalState = {visible: true, commandId, mode: 'unfavorite-confirm'};
+        }
+        render();
+        return;
+      }
+
+      // Normal click: remove from current scope
+      if (scope === 'local') {
+        const newLocal = state.localFavorites.filter(function (id) {return id !== commandId;});
+        state.localFavorites = newLocal;
+        persistFavorites({local: newLocal});
+      } else {
+        const newGlobal = state.globalFavorites.filter(function (id) {return id !== commandId;});
+        state.globalFavorites = newGlobal;
+        persistFavorites({global: newGlobal});
+      }
+      render();
+    });
+  });
+
+  bindFavoriteModalEvents();
+}
+
+/**
+ * Binds events for the Favorite modal.
+ */
+function bindFavoriteModalEvents() {
+  const cancelBtn = document.getElementById('btn-fav-cancel');
+  if (cancelBtn) {
+    cancelBtn.addEventListener('click', function () {
+      favoriteModalState = {visible: false, commandId: null, mode: null};
+      render();
+    });
+  }
+
+  const addLocalBtn = document.getElementById('btn-fav-add-local');
+  if (addLocalBtn) {
+    addLocalBtn.addEventListener('click', function () {
+      const commandId = favoriteModalState.commandId;
+      if (commandId && !state.localFavorites.includes(commandId)) {
+        const newLocal = state.localFavorites.concat([commandId]);
+        state.localFavorites = newLocal;
+        persistFavorites({local: newLocal});
+        showNotice('Added to Local Favorites.');
+      }
+      favoriteModalState = {visible: false, commandId: null, mode: null};
+      render();
+    });
+  }
+
+  const addGlobalBtn = document.getElementById('btn-fav-add-global');
+  if (addGlobalBtn) {
+    addGlobalBtn.addEventListener('click', function () {
+      const commandId = favoriteModalState.commandId;
+      if (commandId && !state.globalFavorites.includes(commandId)) {
+        const newGlobal = state.globalFavorites.concat([commandId]);
+        state.globalFavorites = newGlobal;
+        persistFavorites({global: newGlobal});
+        showNotice('Added to Global Favorites.');
+      }
+      favoriteModalState = {visible: false, commandId: null, mode: null};
+      render();
+    });
+  }
+
+  const moveConfirmBtn = document.getElementById('btn-fav-move-confirm');
+  if (moveConfirmBtn) {
+    moveConfirmBtn.addEventListener('click', function () {
+      const commandId = favoriteModalState.commandId;
+      const mode = favoriteModalState.mode;
+      if (mode === 'move-to-global') {
+        const newLocal = state.localFavorites.filter(function (id) {return id !== commandId;});
+        const newGlobal = state.globalFavorites.includes(commandId) ? state.globalFavorites : state.globalFavorites.concat([commandId]);
+        state.localFavorites = newLocal;
+        state.globalFavorites = newGlobal;
+        persistFavorites({local: newLocal, global: newGlobal});
+        showNotice('Moved to Global Favorites.');
+      } else if (mode === 'move-to-local') {
+        const newGlobal = state.globalFavorites.filter(function (id) {return id !== commandId;});
+        const newLocal = state.localFavorites.includes(commandId) ? state.localFavorites : state.localFavorites.concat([commandId]);
+        state.globalFavorites = newGlobal;
+        state.localFavorites = newLocal;
+        persistFavorites({global: newGlobal, local: newLocal});
+        showNotice('Moved to Local Favorites.');
+      }
+      favoriteModalState = {visible: false, commandId: null, mode: null};
+      render();
+    });
+  }
+
+  const unfavConfirmBtn = document.getElementById('btn-fav-unfavorite-confirm');
+  if (unfavConfirmBtn) {
+    unfavConfirmBtn.addEventListener('click', function () {
+      const commandId = favoriteModalState.commandId;
+      const newGlobal = state.globalFavorites.filter(function (id) {return id !== commandId;});
+      state.globalFavorites = newGlobal;
+      persistFavorites({global: newGlobal});
+      showNotice('Removed from Favorites.');
+      favoriteModalState = {visible: false, commandId: null, mode: null};
+      render();
+    });
+  }
+
+  // Flash on outside click (modal stays)
+  const overlay = document.getElementById('favorite-modal-overlay');
+  if (overlay) {
+    overlay.addEventListener('pointerdown', function (e) {
+      if (e.target === overlay) {
+        var box = overlay.querySelector('.modal-box');
+        if (box) {
+          box.classList.remove('modal-box-flash');
+          void box.offsetWidth;
+          box.classList.add('modal-box-flash');
+          box.addEventListener('animationend', function () {
+            box.classList.remove('modal-box-flash');
+          }, {once: true});
+        }
+      }
+    });
+  }
 }
 
 // Disable right-click context menu unless text is selected

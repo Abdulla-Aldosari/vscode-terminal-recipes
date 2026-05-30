@@ -12,6 +12,7 @@ const GLOBAL_DIR = path.join(os.homedir(), '.vscode-terminal-recipes');
 const GLOBAL_COMMANDS_FILE = path.join(GLOBAL_DIR, 'commands.json');
 const GLOBAL_VARIABLES_FILE = path.join(GLOBAL_DIR, 'variables.json');
 const GLOBAL_AUTO_VARIABLES_SETTINGS_FILE = path.join(GLOBAL_DIR, 'auto-variables-settings.json');
+const GLOBAL_FAVORITES_FILE = path.join(GLOBAL_DIR, 'favorites.json');
 
 function activate(context) {
   let panel = null;
@@ -110,6 +111,11 @@ function activate(context) {
           await handleSaveAutoVariablesSettings(panel, message.payload);
           return;
         }
+
+        if (message.type === 'saveFavorites') {
+          await handleSaveFavorites(panel, message.payload);
+          return;
+        }
       },
       null,
       context.subscriptions
@@ -138,6 +144,8 @@ async function postState(panel) {
     {workspaceFolder},
     autoVariablesSettings,
   );
+  const globalFavorites = await readGlobalFavorites();
+  const localFavorites = await readWorkspaceFavorites();
 
   await panel.webview.postMessage({
     type: 'state',
@@ -150,6 +158,8 @@ async function postState(panel) {
       terminalProfiles,
       autoVariables,
       autoVariablesSettings,
+      globalFavorites,
+      localFavorites,
     },
   });
 }
@@ -1191,6 +1201,114 @@ function classifyAiError(error) {
     .trim();
 
   return geminiMessage || 'An unexpected error occurred. Please try again.';
+}
+
+// ─── Favorites Handlers ───────────────────────────────────────────────────────
+
+/**
+ * Reads the global favorites file.
+ * @returns {Promise<string[]>} Array of command IDs
+ */
+async function readGlobalFavorites() {
+  try {
+    const raw = await fs.readFile(GLOBAL_FAVORITES_FILE, 'utf8');
+    const parsed = JSON.parse(raw);
+    if (parsed && Array.isArray(parsed.commandIds)) {
+      return parsed.commandIds.filter(function (id) {return typeof id === 'string';});
+    }
+    return [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Writes the global favorites file.
+ * @param {string[]} commandIds
+ */
+async function writeGlobalFavorites(commandIds) {
+  await fs.mkdir(GLOBAL_DIR, {recursive: true});
+  await fs.writeFile(
+    GLOBAL_FAVORITES_FILE,
+    JSON.stringify({version: 1, commandIds}, null, 2),
+    'utf8',
+  );
+}
+
+/**
+ * Returns the path to the workspace favorites file.
+ * @returns {string|null}
+ */
+function getWorkspaceFavoritesFilePath() {
+  const workspaceFolder = getFirstWorkspaceFolderPath();
+  if (!workspaceFolder) {
+    return null;
+  }
+  return path.join(workspaceFolder, '.vscode', 'terminal-recipes.favorites.json');
+}
+
+/**
+ * Reads the workspace-local favorites file.
+ * @returns {Promise<string[]>} Array of command IDs
+ */
+async function readWorkspaceFavorites() {
+  const filePath = getWorkspaceFavoritesFilePath();
+  if (!filePath) {
+    return [];
+  }
+  try {
+    const raw = await fs.readFile(filePath, 'utf8');
+    const parsed = JSON.parse(raw);
+    if (parsed && Array.isArray(parsed.commandIds)) {
+      return parsed.commandIds.filter(function (id) {return typeof id === 'string';});
+    }
+    return [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Writes the workspace-local favorites file.
+ * @param {string[]} commandIds
+ */
+async function writeWorkspaceFavorites(commandIds) {
+  const filePath = getWorkspaceFavoritesFilePath();
+  if (!filePath) {
+    return;
+  }
+  await fs.mkdir(path.dirname(filePath), {recursive: true});
+  await fs.writeFile(
+    filePath,
+    JSON.stringify({version: 1, commandIds}, null, 2),
+    'utf8',
+  );
+}
+
+/**
+ * Saves favorites (global and/or local) and posts back the updated lists.
+ * @param {{ global?: string[], local?: string[] }} payload
+ */
+async function handleSaveFavorites(panel, payload) {
+  try {
+    if (payload && Array.isArray(payload.global)) {
+      await writeGlobalFavorites(payload.global);
+    }
+    if (payload && Array.isArray(payload.local)) {
+      await writeWorkspaceFavorites(payload.local);
+    }
+    const globalFavorites = await readGlobalFavorites();
+    const localFavorites = await readWorkspaceFavorites();
+    await panel.webview.postMessage({
+      type: 'saveFavoritesResult',
+      payload: {success: true, globalFavorites, localFavorites},
+    });
+  } catch (error) {
+    await panel.webview.postMessage({
+      type: 'saveFavoritesResult',
+      payload: {success: false, message: error instanceof Error ? error.message : 'Unknown error'},
+    });
+  }
 }
 
 module.exports = {
