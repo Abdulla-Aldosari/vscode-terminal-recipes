@@ -1879,3 +1879,93 @@ tr.row-highlight td {
   border-left-color: var(--vscode-editorHoverWidget-background);
   margin-left: -1px;
 }
+
+/* ===== Sort Disabled Wrap (disables interaction during sort mode) ===== */
+
+.sort-disabled-wrap {
+  pointer-events: none;
+  opacity: 0.4;
+  user-select: none;
+}
+
+/* ===== Sort Button (active state) ===== */
+
+.sort-btn-active {
+  background: color-mix(in srgb, var(--vscode-button-background) 20%, var(--vscode-button-secondaryBackground)) !important;
+  color: var(--vscode-button-foreground) !important;
+  border-color: var(--vscode-button-background) !important;
+  outline: 1px solid var(--vscode-button-background);
+}
+
+/* ===== Drag & Drop Sorting ===== */
+
+/* Drag handle column header */
+.drag-handle-col {
+  width: 28px;
+  min-width: 28px;
+  padding: 0 4px !important;
+}
+
+/* Drag handle cell */
+.drag-handle-cell {
+  width: 28px;
+  min-width: 28px;
+  padding: 0 4px !important;
+  vertical-align: middle !important;
+  text-align: center;
+}
+
+/* The drag handle icon itself */
+.drag-handle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  cursor: grab;
+  opacity: 0.45;
+  border-radius: 3px;
+  transition: opacity 0.12s;
+  color: var(--vscode-editor-foreground);
+}
+
+.drag-handle:hover {
+  opacity: 0.9;
+  background: color-mix(in srgb, var(--vscode-editor-background) 80%, var(--vscode-foreground));
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+  opacity: 1;
+}
+
+/* Row being dragged — fade it out */
+tr.row-dragging {
+  opacity: 0.3;
+  background: color-mix(in srgb, var(--vscode-button-background) 10%, var(--vscode-editor-background)) !important;
+}
+
+/* Drop indicator — top border when inserting BEFORE the row */
+tr.drag-over-top td {
+  border-top: 2px solid var(--vscode-button-background) !important;
+}
+
+/* Drop indicator — bottom border when inserting AFTER the row */
+tr.drag-over-bottom td {
+  border-bottom: 2px solid var(--vscode-button-background) !important;
+}
+
+/* Sorting mode: table cursor hint */
+.sorting-mode tbody tr[draggable="true"] {
+  cursor: grab;
+  user-select: none;
+}
+
+.sorting-mode tbody tr[draggable="true"]:active {
+  cursor: grabbing;
+}
+
+/* Subtle alternating rows to make sorting easier to read */
+.sorting-mode tbody tr:nth-child(even) {
+  background-color: color-mix(in srgb, var(--vscode-editor-background) 97%, var(--vscode-foreground));
+}

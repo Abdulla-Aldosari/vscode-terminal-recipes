@@ -43,6 +43,12 @@ function iconExclamation() {
 function iconCheckboxOk() {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-checkbox"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M9 11l3 3l8 -8" /><path d="M20 12v6a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h9" /></svg>`;
 }
+function iconSort() {
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l4-4 4 4"/><path d="M7 5v14"/><path d="M21 15l-4 4-4-4"/><path d="M17 19V5"/></svg>`;
+}
+function iconDragHandle() {
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/></svg>`;
+}
 
 
 
@@ -56,6 +62,7 @@ const uiState = {
     } catch {return '';}
   }()),
   selectedGroupId: 'all',
+  sortingMode: false,
   editingCommandId: null,
   editSourceTab: null,
   pendingScrollCommandId: null,
@@ -638,11 +645,16 @@ function renderCommandsTab(selectedCategory) {
       
       <div class="row align-items-center commands-toolbar">
         <h2 class="pb-5">Commands Browser</h2>
-        ${renderCustomCategorySelect()}
-        ${renderColumnToggleDropdown()}
-        <button class="btn small secondary ai-create-btn" id="btn-add-with-ai" data-tooltip="${uiState.selectedGroupId === 'all' ? 'Select a specific group first' : 'Generate a command using AI'}" ${uiState.selectedGroupId === 'all' ? 'disabled' : ''}>${iconSparkles()} Add with AI</button>
+        <div class="${uiState.sortingMode ? 'sort-disabled-wrap' : ''}">
+          ${renderCustomCategorySelect()}
+        </div>
+        <div class="${uiState.sortingMode ? 'sort-disabled-wrap' : ''}">
+          ${renderColumnToggleDropdown()}
+        </div>
+        <button class="btn small secondary ai-create-btn" id="btn-add-with-ai" data-tooltip="${uiState.selectedGroupId === 'all' ? 'Select a specific group first' : 'Generate a command using AI'}" ${uiState.selectedGroupId === 'all' || uiState.sortingMode ? 'disabled' : ''}>${iconSparkles()} Add with AI</button>
+        <button class="btn small secondary ${uiState.sortingMode ? 'sort-btn-active' : ''}" id="btn-toggle-sort" data-tooltip="${uiState.selectedGroupId === 'all' ? 'Select a specific group first to enable sorting' : (uiState.sortingMode ? 'Click to exit sort mode' : 'Drag to reorder commands')}" ${uiState.selectedGroupId === 'all' ? 'disabled' : ''}>${iconSort()} ${uiState.sortingMode ? 'Done Sorting' : 'Sort'}</button>
       </div>
-      <div class="group-tags-row">
+      <div class="group-tags-row ${uiState.sortingMode ? 'sort-disabled-wrap' : ''}">
         <span class="groups-label">Groups:</span>
         <button class="tag group-filter-tag ${uiState.selectedGroupId === 'all' ? 'active' : ''}" data-group-id="all">All</button>
         ${groups.map(function (group) {
@@ -741,22 +753,26 @@ function renderCommandsTable(commands, groups) {
     return '<p>No commands found for this filter.</p>';
   }
 
+  const isSorting = uiState.sortingMode && uiState.selectedGroupId !== 'all';
+
   const tableClasses = [
     'cmds-table commands-table main-table',
     !uiState.columnVisibility.description ? 'hide-description' : '',
     !uiState.columnVisibility.groups ? 'hide-groups' : '',
+    isSorting ? 'sorting-mode' : '',
   ].filter(Boolean).join(' ');
 
   return `
     <div class="table-wrap">
-      <table class="${tableClasses}">
+      <table class="${tableClasses}" id="commands-sortable-table">
         <thead>
           <tr>
+            ${isSorting ? '<th class="drag-handle-col"></th>' : ''}
             <th>Title</th>
             <th>Description</th>
             <th>Template</th>
             <th>Groups</th>
-            <th>Actions</th>
+            ${!isSorting ? '<th>Actions</th>' : ''}
           </tr>
         </thead>
         <tbody>
@@ -769,12 +785,13 @@ function renderCommandsTable(commands, groups) {
     const _useCtrlHint = _useVars.length > 0 && _useMissing.length === 0;
     const _useTitle = _useCtrlHint ? 'Use in terminal\nPress CTRL key to edit the variables' : 'Use in terminal';
     return `
-              <tr>
+              <tr data-command-id="${escapeAttr(command.id)}" draggable="${isSorting ? 'true' : 'false'}">
+                ${isSorting ? `<td class="drag-handle-cell"><span class="drag-handle" data-tooltip="Drag to reorder">${iconDragHandle()}</span></td>` : ''}
                 <td>${titleHtml}<br><span class="muted">${escapeHtml(command.id)}</span></td>
                 <td>${escapeHtml(command.description || '-')}</td>
                 <td><pre class="template-cell">${escapeHtml(command.command)}</pre></td>
                 <td>${escapeHtml(resolveGroupTitle(command.groupId || '', groups))}</td>
-                <td>
+                ${!isSorting ? `<td>
                 <div class="actions-cell">
                   <button class="btn icon-btn success btn-run" data-command-id="${escapeAttr(command.id)}" data-tooltip="Run command">${iconRun()}</button>
                   ${command.command.includes('\n') ? `<button class="btn icon-btn secondary" disabled data-tooltip="Use is not available for multi-line commands">${iconUse()}</button>` : `<button class="btn icon-btn secondary btn-use action" data-command-id="${escapeAttr(command.id)}" data-tooltip="${escapeAttr(_useTitle)}">${iconUse()}</button>`}
@@ -782,7 +799,7 @@ function renderCommandsTable(commands, groups) {
                   <button class="btn icon-btn secondary btn-edit action" data-command-id="${escapeAttr(command.id)}" data-tooltip="Edit command">${iconEdit()}</button>
                   <button class="btn icon-btn danger btn-delete-command" data-command-id="${escapeAttr(command.id)}" data-tooltip="Delete command">${iconDelete()}</button>
                 </div>
-                </td>
+                </td>` : ''}
               </tr>
             `;
   }).join('')}
@@ -790,6 +807,168 @@ function renderCommandsTable(commands, groups) {
       </table>
     </div>
   `;
+}
+
+/**
+ * Reorders commands in state by swapping the dragged command before/after the target.
+ * Only operates on the visible (filtered) commands, preserving others in place.
+ */
+function reorderCommands(draggedId, targetId, insertBefore) {
+  const allCommands = state.data.commands;
+  const draggedIdx = allCommands.findIndex(function (c) {return c.id === draggedId;});
+  const targetIdx = allCommands.findIndex(function (c) {return c.id === targetId;});
+
+  if (draggedIdx === -1 || targetIdx === -1 || draggedIdx === targetIdx) {
+    return;
+  }
+
+  // Remove dragged item from array
+  const dragged = allCommands.splice(draggedIdx, 1)[0];
+
+  // Find the updated target index after removal
+  const newTargetIdx = allCommands.findIndex(function (c) {return c.id === targetId;});
+
+  // Insert before or after target
+  const insertIdx = insertBefore ? newTargetIdx : newTargetIdx + 1;
+  allCommands.splice(insertIdx, 0, dragged);
+
+  persistDataThenRender('Order saved.');
+}
+
+/**
+ * Binds HTML5 Drag & Drop on the sortable commands table.
+ * Supports auto-scroll when dragging near the top/bottom edges of the viewport.
+ */
+function bindDragAndDrop() {
+  const table = document.getElementById('commands-sortable-table');
+  if (!table) {return;}
+
+  var draggedId = null;
+  var dropIndicator = null;
+  var autoScrollTimer = null;
+  var lastDragY = 0;
+  var SCROLL_ZONE = 80; // px from edge to start scrolling
+  var SCROLL_SPEED = 12; // px per frame
+
+  function getDropIndicator() {
+    if (!dropIndicator) {
+      dropIndicator = document.createElement('tr');
+      dropIndicator.className = 'drag-drop-indicator';
+      dropIndicator.innerHTML = '<td colspan="10"></td>';
+    }
+    return dropIndicator;
+  }
+
+  function removeDropIndicator() {
+    if (dropIndicator && dropIndicator.parentNode) {
+      dropIndicator.parentNode.removeChild(dropIndicator);
+    }
+  }
+
+  function stopAutoScroll() {
+    if (autoScrollTimer) {
+      cancelAnimationFrame(autoScrollTimer);
+      autoScrollTimer = null;
+    }
+  }
+
+  function startAutoScroll() {
+    stopAutoScroll();
+    function frame() {
+      var y = lastDragY;
+      var vh = window.innerHeight;
+      if (y < SCROLL_ZONE) {
+        // Near top → scroll up
+        window.scrollBy(0, -SCROLL_SPEED * (1 - y / SCROLL_ZONE));
+      } else if (y > vh - SCROLL_ZONE) {
+        // Near bottom → scroll down
+        window.scrollBy(0, SCROLL_SPEED * ((y - (vh - SCROLL_ZONE)) / SCROLL_ZONE));
+      }
+      autoScrollTimer = requestAnimationFrame(frame);
+    }
+    autoScrollTimer = requestAnimationFrame(frame);
+  }
+
+  // Add dragstart on all draggable rows
+  table.querySelectorAll('tr[draggable="true"]').forEach(function (row) {
+    row.addEventListener('dragstart', function (e) {
+      draggedId = row.dataset.commandId;
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', draggedId);
+      setTimeout(function () {
+        row.classList.add('row-dragging');
+      }, 0);
+      startAutoScroll();
+    });
+
+    row.addEventListener('dragend', function () {
+      row.classList.remove('row-dragging');
+      draggedId = null;
+      removeDropIndicator();
+      stopAutoScroll();
+      // Remove all drag-over highlights
+      table.querySelectorAll('.drag-over-top, .drag-over-bottom').forEach(function (el) {
+        el.classList.remove('drag-over-top', 'drag-over-bottom');
+      });
+    });
+  });
+
+  // Add dragover on tbody
+  var tbody = table.querySelector('tbody');
+  if (!tbody) {return;}
+
+  tbody.addEventListener('dragover', function (e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    lastDragY = e.clientY;
+
+    var targetRow = e.target.closest('tr[data-command-id]');
+    if (!targetRow || targetRow.dataset.commandId === draggedId) {
+      return;
+    }
+
+    // Clear previous indicators
+    tbody.querySelectorAll('.drag-over-top, .drag-over-bottom').forEach(function (el) {
+      el.classList.remove('drag-over-top', 'drag-over-bottom');
+    });
+
+    // Determine if we're in the top or bottom half of the row
+    var rect = targetRow.getBoundingClientRect();
+    var midY = rect.top + rect.height / 2;
+    var insertBefore = e.clientY < midY;
+
+    if (insertBefore) {
+      targetRow.classList.add('drag-over-top');
+    } else {
+      targetRow.classList.add('drag-over-bottom');
+    }
+  });
+
+  tbody.addEventListener('dragleave', function (e) {
+    // Only clear if truly leaving tbody
+    if (!tbody.contains(e.relatedTarget)) {
+      tbody.querySelectorAll('.drag-over-top, .drag-over-bottom').forEach(function (el) {
+        el.classList.remove('drag-over-top', 'drag-over-bottom');
+      });
+    }
+  });
+
+  tbody.addEventListener('drop', function (e) {
+    e.preventDefault();
+    var targetRow = e.target.closest('tr[data-command-id]');
+    if (!targetRow || !draggedId || targetRow.dataset.commandId === draggedId) {
+      removeDropIndicator();
+      return;
+    }
+
+    var rect = targetRow.getBoundingClientRect();
+    var midY = rect.top + rect.height / 2;
+    var insertBefore = e.clientY < midY;
+
+    var targetId = targetRow.dataset.commandId;
+    removeDropIndicator();
+    reorderCommands(draggedId, targetId, insertBefore);
+  });
 }
 
 function renderEditTab() {
@@ -1552,6 +1731,11 @@ function bindTabs() {
         uiState.editCommandDraft = {title: '', template: '', description: '', groupId: ''};
       }
 
+      // Exit sort mode when switching away from commands tab
+      if (uiState.sortingMode && nextTab !== 'commands') {
+        uiState.sortingMode = false;
+      }
+
       uiState.activeTab = nextTab;
       render();
     });
@@ -2026,9 +2210,27 @@ function bindCommandsTabEvents() {
   document.querySelectorAll('.group-filter-tag').forEach(function (tagButton) {
     tagButton.addEventListener('click', function () {
       uiState.selectedGroupId = tagButton.dataset.groupId;
+      // Exit sort mode when switching groups
+      if (uiState.sortingMode) {
+        uiState.sortingMode = false;
+      }
       render();
     });
   });
+
+  // --- Sort Toggle Button ---
+  var sortBtn = document.getElementById('btn-toggle-sort');
+  if (sortBtn) {
+    sortBtn.addEventListener('click', function () {
+      uiState.sortingMode = !uiState.sortingMode;
+      render();
+    });
+  }
+
+  // --- Bind Drag & Drop if sorting mode is active ---
+  if (uiState.sortingMode && uiState.selectedGroupId !== 'all') {
+    bindDragAndDrop();
+  }
 
   // --- Column Toggle Dropdown ---
   const colToggleWrap = document.getElementById('col-toggle-wrap');
