@@ -2025,7 +2025,7 @@ tr.drag-over-bottom td {
   font-style: italic;
 }
 
-/* Favorite active button (filled star) - used in tables */
+/* Favorite active button (filled star) - used in Favorites tab (legacy, kept for backward compat) */
 .btn.icon-btn.fav-active {
   color: #d4a017;
   background: color-mix(in srgb, #d4a017 12%, var(--vscode-button-secondaryBackground));
@@ -2034,6 +2034,68 @@ tr.drag-over-bottom td {
 .btn.icon-btn.fav-active:hover {
   background: color-mix(in srgb, #d4a017 22%, var(--vscode-button-secondaryBackground));
   color: #e0b020;
+}
+
+/* Favorite state colors for btn-add-favorite in Commands/Recent tabs */
+/* Local Workspace only → blue */
+.btn.icon-btn.fav-state-local {
+  color: #3d97bf;
+  background: color-mix(in srgb, #3d97bf 12%, var(--vscode-button-secondaryBackground));
+}
+
+.btn.icon-btn.fav-state-local:hover {
+  background: color-mix(in srgb, #3d97bf 22%, var(--vscode-button-secondaryBackground));
+  color: #4aadd6;
+}
+
+/* Global only → golden */
+.btn.icon-btn.fav-state-global {
+  color: #d4a017;
+  background: color-mix(in srgb, #d4a017 12%, var(--vscode-button-secondaryBackground));
+}
+
+.btn.icon-btn.fav-state-global:hover {
+  background: color-mix(in srgb, #d4a017 22%, var(--vscode-button-secondaryBackground));
+  color: #e0b020;
+}
+
+/* Both Local & Global → purple */
+.btn.icon-btn.fav-state-both {
+  color: #9d6fc7;
+  background: color-mix(in srgb, #9d6fc7 12%, var(--vscode-button-secondaryBackground));
+}
+
+.btn.icon-btn.fav-state-both:hover {
+  background: color-mix(in srgb, #9d6fc7 22%, var(--vscode-button-secondaryBackground));
+  color: #b07fdf;
+}
+
+/* Favorites modal tag area */
+.fav-modal-tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 4px 0;
+}
+
+.fav-modal-hint {
+  color: var(--vscode-descriptionForeground);
+  font-size: 0.78rem;
+  margin-top: -4px;
+}
+
+/* "Don't show again" checkbox wrapper in unfavorite confirm modal */
+.fav-dont-show-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.fav-dont-show-wrap input[type="checkbox"] {
+  cursor: pointer;
 }
 
 /* Favorites table adjustments */

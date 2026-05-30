@@ -1,4 +1,4 @@
-﻿const vscode = acquireVsCodeApi();
+const vscode = acquireVsCodeApi();
 
 // ===== SVG Icon Helpers =====
 function iconRun() {
@@ -162,14 +162,20 @@ let enumManagerState = {
   editDescription: '',
 };
 
-// Favorites Modal state
-// mode: 'add' = choosing scope to add favorite (in Commands/Recent tabs)
-//       'move-to-global' | 'move-to-local' = moving between scopes (Favorites tab CTRL+click)
-//       'unfavorite-confirm' = confirm remove when no workspace (Favorites tab CTRL+click)
+// Favorites Unified Modal state
+// selectedLocal / selectedGlobal = tag selections (pre-filled based on current state)
 let favoriteModalState = {
   visible: false,
   commandId: null,
-  mode: null,
+  selectedLocal: false,
+  selectedGlobal: false,
+};
+
+// Unfavorite Confirm Modal (normal click on iconHeartMinus in Favorites tab)
+let unfavoriteConfirmState = {
+  visible: false,
+  commandId: null,
+  scope: null, // 'local' | 'global'
 };
 
 // AI feature state
@@ -528,6 +534,7 @@ function render() {
       ${renderRunConfirmModal()}
       ${renderDeleteConfirmModal()}
       ${favoriteModalState.visible ? renderFavoriteModal() : ''}
+      ${unfavoriteConfirmState.visible ? renderUnfavoriteConfirmModal() : ''}
       ${aiState.view === 'settings' ? renderAiSettingsModal() : ''}
       ${aiState.view === 'prompt' ? renderAiPromptModal() : ''}
       ${aiState.view === 'loading' ? renderAiLoadingOverlay() : ''}
@@ -851,7 +858,13 @@ function renderCommandsTable(commands, groups) {
                   <button class="btn icon-btn secondary btn-copy action" data-command-id="${escapeAttr(command.id)}" data-tooltip="Copy to clipboard">${iconCopy()}</button>
                   <button class="btn icon-btn secondary btn-edit action" data-command-id="${escapeAttr(command.id)}" data-tooltip="Edit command">${iconEdit()}</button>
                   <button class="btn icon-btn danger btn-delete-command" data-command-id="${escapeAttr(command.id)}" data-tooltip="Delete command">${iconDelete()}</button>
-                  <button class="btn icon-btn ${isInFavorites(command.id) ? 'fav-active' : 'secondary'} btn-add-favorite" data-command-id="${escapeAttr(command.id)}" data-tooltip="${isInFavorites(command.id) ? 'Already in favorites' : 'Add to favorites'}">${isInFavorites(command.id) ? iconFavoriteActive() : iconFavorite()}</button>
+                  ${(function () {
+          const _fs = getFavoriteScope(command.id);
+          const _cls = _fs === 'none' ? 'secondary' : _fs === 'local' ? 'fav-state-local' : _fs === 'global' ? 'fav-state-global' : 'fav-state-both';
+          const _icon = _fs === 'none' ? iconHeartPlus() : iconHeartActive();
+          const _tip = _fs === 'none' ? 'Add to favorites' : _fs === 'local' ? 'In Local Favorites (click to manage)' : _fs === 'global' ? 'In Global Favorites (click to manage)' : 'In Local &amp; Global Favorites (click to manage)';
+          return `<button class="btn icon-btn ${_cls} btn-add-favorite" data-command-id="${escapeAttr(command.id)}" data-tooltip="${escapeAttr(_tip)}">${_icon}</button>`;
+        })()}
                 </div>
                 </td>` : ''}
               </tr>
@@ -1403,7 +1416,13 @@ function renderRecentCommandsTab() {
                       ${command.command.includes('\n') ? `<button class="btn icon-btn secondary" disabled data-tooltip="Use is not available for multi-line commands">${iconUse()}</button>` : `<button class="btn icon-btn secondary btn-use action" data-command-id="${escapeAttr(command.id)}" data-tooltip="${escapeAttr(_useTitle)}">${iconUse()}</button>`}
                       <button class="btn icon-btn secondary btn-copy action" data-command-id="${escapeAttr(command.id)}" data-tooltip="Copy to clipboard">${iconCopy()}</button>
                       <button class="btn icon-btn secondary btn-edit action" data-command-id="${escapeAttr(command.id)}" data-tooltip="Edit command">${iconEdit()}</button>
-                      <button class="btn icon-btn ${isInFavorites(command.id) ? 'fav-active' : 'secondary'} btn-add-favorite" data-command-id="${escapeAttr(command.id)}" data-tooltip="${isInFavorites(command.id) ? 'Already in favorites' : 'Add to favorites'}">${isInFavorites(command.id) ? iconFavoriteActive() : iconFavorite()}</button>
+                      ${(function () {
+        const _fs = getFavoriteScope(command.id);
+        const _cls = _fs === 'none' ? 'secondary' : _fs === 'local' ? 'fav-state-local' : _fs === 'global' ? 'fav-state-global' : 'fav-state-both';
+        const _icon = _fs === 'none' ? iconHeartPlus() : iconHeartActive();
+        const _tip = _fs === 'none' ? 'Add to favorites' : _fs === 'local' ? 'In Local Favorites (click to manage)' : _fs === 'global' ? 'In Global Favorites (click to manage)' : 'In Local &amp; Global Favorites (click to manage)';
+        return `<button class="btn icon-btn ${_cls} btn-add-favorite" data-command-id="${escapeAttr(command.id)}" data-tooltip="${escapeAttr(_tip)}">${_icon}</button>`;
+      })()}
                     </div>
                   </td>
                 </tr>
@@ -2927,11 +2946,13 @@ function bindCommandActionButtons() {
   document.querySelectorAll('.btn-add-favorite').forEach(function (button) {
     button.addEventListener('click', function () {
       const commandId = button.dataset.commandId;
-      if (isInFavorites(commandId)) {
-        showNotice('This command is already in your favorites.');
-        return;
-      }
-      favoriteModalState = {visible: true, commandId, mode: 'add'};
+      // Open unified manage modal pre-filled with current favorite state
+      favoriteModalState = {
+        visible: true,
+        commandId,
+        selectedLocal: state.localFavorites.includes(commandId),
+        selectedGlobal: state.globalFavorites.includes(commandId),
+      };
       render();
     });
   });
@@ -4495,6 +4516,18 @@ function isInFavorites(commandId) {
 }
 
 /**
+ * Returns the scope of the favorite: 'none' | 'local' | 'global' | 'both'
+ */
+function getFavoriteScope(commandId) {
+  const inLocal = state.localFavorites.includes(commandId);
+  const inGlobal = state.globalFavorites.includes(commandId);
+  if (inLocal && inGlobal) {return 'both';}
+  if (inLocal) {return 'local';}
+  if (inGlobal) {return 'global';}
+  return 'none';
+}
+
+/**
  * Saves favorites to the extension.
  */
 function persistFavorites(payload) {
@@ -4545,6 +4578,7 @@ function renderFavoritesScopeToggle(scope) {
 
 /**
  * Renders the favorites table (Title, Template, Actions).
+ * Uses iconHeartMinus() for the remove button.
  */
 function renderFavoritesTable(commands) {
   return `
@@ -4565,6 +4599,8 @@ function renderFavoritesTable(commands) {
     const _useMissing = getMissingVariables(command);
     const _useCtrlHint = _useVars.length > 0 && _useMissing.length === 0;
     const _useTitle = _useCtrlHint ? 'Use in terminal\nPress CTRL key to edit the variables' : 'Use in terminal';
+    const _scope = uiState.favoritesScope;
+    const _scopeLabel = _scope === 'local' ? 'Local Workspace' : 'Global';
     return `
             <tr data-command-id="${escapeAttr(command.id)}">
               <td>${titleHtml}<br><span class="muted">${escapeHtml(command.id)}</span></td>
@@ -4576,7 +4612,7 @@ function renderFavoritesTable(commands) {
                   <button class="btn icon-btn secondary btn-copy action" data-command-id="${escapeAttr(command.id)}" data-tooltip="Copy to clipboard">${iconCopy()}</button>
                   <button class="btn icon-btn secondary btn-edit action" data-command-id="${escapeAttr(command.id)}" data-tooltip="Edit command">${iconEdit()}</button>
                   <button class="btn icon-btn danger btn-delete-command" data-command-id="${escapeAttr(command.id)}" data-tooltip="Delete command">${iconDelete()}</button>
-                  <button class="btn icon-btn fav-active btn-unfavorite" data-command-id="${escapeAttr(command.id)}" data-tooltip="Remove from favorites&#10;CTRL+click to move scope">${iconFavoriteActive()}</button>
+                  <button class="btn icon-btn secondary btn-unfavorite" data-command-id="${escapeAttr(command.id)}" data-tooltip="Remove from ${escapeAttr(_scopeLabel)} favorites&#10;CTRL+click to open manage panel">${iconHeartMinus()}</button>
                 </div>
               </td>
             </tr>
@@ -4588,96 +4624,70 @@ function renderFavoritesTable(commands) {
 }
 
 /**
- * Renders the Favorite modal (add / move / confirm).
+ * Renders the unified Favorite modal (manage favorites: add/remove/toggle local+global).
+ * opened from Commands/Recent tabs and from Favorites tab CTRL+click.
  */
 function renderFavoriteModal() {
   const s = favoriteModalState;
   const hasWorkspace = !!state.workspaceFolder;
   const command = (state.data.commands || []).find(function (c) {return c.id === s.commandId;});
   const cmdTitle = command ? command.title : '';
+  const noneSelected = !s.selectedLocal && !s.selectedGlobal;
+  // Only show warning/Unfavorite if command was already in at least one favorites list
+  const wasInFavorites = isInFavorites(s.commandId);
 
-  if (s.mode === 'add') {
-    if (hasWorkspace) {
-      return `
-        <div class="modal-overlay" id="favorite-modal-overlay" data-dismiss-on-outside-click="false">
-          <div class="modal-box">
-            <h3>${iconFavorite()} Add to Favorites</h3>
-            <p class="delete-confirm-command-name">${escapeHtml(cmdTitle)}</p>
-            <p class="modal-description">Where would you like to save this favorite?</p>
-            <div class="row justify-content-flex-end mt-20">
-              <button class="btn small secondary action" id="btn-fav-add-local" data-tooltip="Save for this workspace only">Local Workspace</button>
-              <button class="btn small primary min-w65" id="btn-fav-add-global" data-tooltip="Save for all workspaces">Global</button>
-              <button class="btn small secondary action min-w65" id="btn-fav-cancel">Cancel</button>
-            </div>
-          </div>
+  return `
+    <div class="modal-overlay" id="favorite-modal-overlay" data-dismiss-on-outside-click="false">
+      <div class="modal-box">
+        <h3>${iconHeartPlus()} Manage Favorites</h3>
+        <p class="delete-confirm-command-name">${escapeHtml(cmdTitle)}</p>
+        <p class="modal-description">Select where to save this command as a favorite:</p>
+        <div class="fav-modal-tags">
+          ${hasWorkspace ? `<button class="tag fav-modal-tag ${s.selectedLocal ? 'active' : ''}" data-scope="local" data-tooltip="Save for this workspace only">Local Workspace</button>` : ''}
+          <button class="tag fav-modal-tag ${s.selectedGlobal ? 'active' : ''}" data-scope="global" data-tooltip="Save for all workspaces">Global</button>
         </div>
-      `;
-    } else {
-      return `
-        <div class="modal-overlay" id="favorite-modal-overlay" data-dismiss-on-outside-click="false">
-          <div class="modal-box">
-            <h3>${iconFavorite()} Add to Global Favorites</h3>
-            <p class="delete-confirm-command-name">${escapeHtml(cmdTitle)}</p>
-            <p class="modal-description">This command will be added to your <strong>Global Favorites</strong> (available everywhere).</p>
-            <div class="row justify-content-flex-end mt-20">
-              <button class="btn small primary" id="btn-fav-add-global">Add to Favorites</button>
-              <button class="btn small secondary action min-w65" id="btn-fav-cancel">Cancel</button>
-            </div>
-          </div>
-        </div>
-      `;
-    }
-  }
-
-  if (s.mode === 'move-to-global') {
-    return `
-      <div class="modal-overlay" id="favorite-modal-overlay" data-dismiss-on-outside-click="false">
-        <div class="modal-box">
-          <h3>${iconFavorite()} Move to Global Favorites</h3>
-          <p class="delete-confirm-command-name">${escapeHtml(cmdTitle)}</p>
-          <p class="modal-description">Move from <strong>Local Workspace</strong> to <strong>Global</strong> (available everywhere).</p>
-          <div class="row justify-content-flex-end mt-20">
-            <button class="btn small primary" id="btn-fav-move-confirm">Move to Global</button>
+        ${(wasInFavorites && noneSelected) ? `<p class="modal-description fav-modal-hint">No selection — clicking Save will remove from all favorites.</p>` : ''}
+        <div class="row between mt-20">
+          ${wasInFavorites ? `<button class="btn small danger" id="btn-fav-unfavorite-all" data-tooltip="Remove from all favorites immediately">Unfavorite</button>` : '<span></span>'}
+          <div class="row">
+            <button class="btn small primary min-w65" id="btn-fav-save">Save</button>
             <button class="btn small secondary action min-w65" id="btn-fav-cancel">Cancel</button>
           </div>
         </div>
       </div>
-    `;
-  }
+    </div>
+  `;
+}
 
-  if (s.mode === 'move-to-local') {
-    return `
-      <div class="modal-overlay" id="favorite-modal-overlay" data-dismiss-on-outside-click="false">
-        <div class="modal-box">
-          <h3>${iconFavorite()} Move to Local Favorites</h3>
-          <p class="delete-confirm-command-name">${escapeHtml(cmdTitle)}</p>
-          <p class="modal-description">Move from <strong>Global</strong> to <strong>Local Workspace</strong>.</p>
-          <div class="row justify-content-flex-end mt-20">
-            <button class="btn small primary" id="btn-fav-move-confirm">Move to Local</button>
-            <button class="btn small secondary action min-w65" id="btn-fav-cancel">Cancel</button>
-          </div>
+/**
+ * Renders the unfavorite confirm modal (normal click on btn-unfavorite in Favorites tab).
+ */
+function renderUnfavoriteConfirmModal() {
+  if (!unfavoriteConfirmState.visible) {return '';}
+  const s = unfavoriteConfirmState;
+  const command = (state.data.commands || []).find(function (c) {return c.id === s.commandId;});
+  const cmdTitle = command ? command.title : '';
+  const scopeLabel = s.scope === 'local' ? 'Local Workspace' : 'Global';
+  let skipConfirm = false;
+  try {skipConfirm = localStorage.getItem('unfav_confirm_skip') === '1';} catch { }
+
+  return `
+    <div class="modal-overlay" id="unfav-confirm-overlay" data-dismiss-on-outside-click="false">
+      <div class="modal-box">
+        <h3>Remove from Favorites</h3>
+        <p class="modal-description">Remove from <strong>"${escapeHtml(scopeLabel)}"</strong> favorites?</p>
+        <p class="delete-confirm-command-name">${escapeHtml(cmdTitle)}</p>
+        <label class="fav-dont-show-wrap">
+          <input type="checkbox" id="unfav-dont-show-again" ${skipConfirm ? 'checked' : ''} />
+          Don't show this message again
+        </label>
+        <div class="row justify-content-flex-end mt-20">
+          <button class="btn small danger min-w65" id="btn-unfav-confirm-remove">Remove</button>
+          <button class="btn small secondary action min-w65" id="btn-unfav-confirm-cancel">Cancel</button>
         </div>
       </div>
-    `;
-  }
-
-  if (s.mode === 'unfavorite-confirm') {
-    return `
-      <div class="modal-overlay" id="favorite-modal-overlay" data-dismiss-on-outside-click="false">
-        <div class="modal-box">
-          <h3>Remove from Favorites</h3>
-          <p class="delete-confirm-command-name">${escapeHtml(cmdTitle)}</p>
-          <p class="modal-description">Remove this command from your <strong>Global Favorites</strong>?</p>
-          <div class="row justify-content-flex-end mt-20">
-            <button class="btn small danger min-w65" id="btn-fav-unfavorite-confirm">Remove</button>
-            <button class="btn small secondary action min-w65" id="btn-fav-cancel">Cancel</button>
-          </div>
-        </div>
-      </div>
-    `;
-  }
-
-  return '';
+    </div>
+  `;
 }
 
 /**
@@ -4694,25 +4704,180 @@ function bindFavoritesTabEvents() {
     });
   });
 
-  // Unfavorite buttons
+  // Unfavorite buttons (iconHeartMinus)
   document.querySelectorAll('.btn-unfavorite').forEach(function (button) {
     button.addEventListener('click', function (e) {
       const commandId = button.dataset.commandId;
       const scope = uiState.favoritesScope;
-      const hasWorkspace = !!state.workspaceFolder;
 
       if (e.ctrlKey) {
-        // CTRL+click
-        if (hasWorkspace) {
-          favoriteModalState = {visible: true, commandId, mode: scope === 'local' ? 'move-to-global' : 'move-to-local'};
-        } else {
-          favoriteModalState = {visible: true, commandId, mode: 'unfavorite-confirm'};
-        }
+        // CTRL+click → open unified manage modal with current state pre-filled
+        favoriteModalState = {
+          visible: true,
+          commandId,
+          selectedLocal: state.localFavorites.includes(commandId),
+          selectedGlobal: state.globalFavorites.includes(commandId),
+        };
         render();
         return;
       }
 
-      // Normal click: remove from current scope
+      // Normal click: check "Don't show again" setting
+      let skipConfirm = false;
+      try {skipConfirm = localStorage.getItem('unfav_confirm_skip') === '1';} catch { }
+
+      if (skipConfirm) {
+        // Remove directly
+        if (scope === 'local') {
+          const newLocal = state.localFavorites.filter(function (id) {return id !== commandId;});
+          state.localFavorites = newLocal;
+          persistFavorites({local: newLocal});
+        } else {
+          const newGlobal = state.globalFavorites.filter(function (id) {return id !== commandId;});
+          state.globalFavorites = newGlobal;
+          persistFavorites({global: newGlobal});
+        }
+        render();
+      } else {
+        // Show confirm modal
+        unfavoriteConfirmState = {visible: true, commandId, scope};
+        render();
+      }
+    });
+  });
+
+  bindUnfavoriteConfirmEvents();
+}
+
+/**
+ * Binds events for the unified Favorite modal (tag-style selection).
+ */
+function bindFavoriteModalEvents() {
+  // Tag toggle buttons (Local Workspace / Global)
+  document.querySelectorAll('.fav-modal-tag').forEach(function (tag) {
+    tag.addEventListener('click', function () {
+      const scope = tag.dataset.scope;
+      if (scope === 'local') {
+        favoriteModalState.selectedLocal = !favoriteModalState.selectedLocal;
+      } else if (scope === 'global') {
+        favoriteModalState.selectedGlobal = !favoriteModalState.selectedGlobal;
+      }
+      render();
+    });
+  });
+
+  // Unfavorite All button → remove from ALL favorites
+  const unfavAllBtn = document.getElementById('btn-fav-unfavorite-all');
+  if (unfavAllBtn) {
+    unfavAllBtn.addEventListener('click', function () {
+      const commandId = favoriteModalState.commandId;
+      if (commandId) {
+        const newGlobal = state.globalFavorites.filter(function (id) {return id !== commandId;});
+        const newLocal = state.localFavorites.filter(function (id) {return id !== commandId;});
+        state.globalFavorites = newGlobal;
+        state.localFavorites = newLocal;
+        persistFavorites({global: newGlobal, local: newLocal});
+        showNotice('Removed from all favorites.');
+      }
+      favoriteModalState = {visible: false, commandId: null, selectedLocal: false, selectedGlobal: false};
+      render();
+    });
+  }
+
+  // Save button → apply tag selection
+  const saveBtn = document.getElementById('btn-fav-save');
+  if (saveBtn) {
+    saveBtn.addEventListener('click', function () {
+      const commandId = favoriteModalState.commandId;
+      const wantLocal = favoriteModalState.selectedLocal;
+      const wantGlobal = favoriteModalState.selectedGlobal;
+
+      if (commandId) {
+        // Apply global
+        let newGlobal;
+        if (wantGlobal && !state.globalFavorites.includes(commandId)) {
+          newGlobal = state.globalFavorites.concat([commandId]);
+        } else if (!wantGlobal && state.globalFavorites.includes(commandId)) {
+          newGlobal = state.globalFavorites.filter(function (id) {return id !== commandId;});
+        } else {
+          newGlobal = state.globalFavorites;
+        }
+
+        // Apply local
+        let newLocal;
+        if (wantLocal && !state.localFavorites.includes(commandId)) {
+          newLocal = state.localFavorites.concat([commandId]);
+        } else if (!wantLocal && state.localFavorites.includes(commandId)) {
+          newLocal = state.localFavorites.filter(function (id) {return id !== commandId;});
+        } else {
+          newLocal = state.localFavorites;
+        }
+
+        state.globalFavorites = newGlobal;
+        state.localFavorites = newLocal;
+        persistFavorites({global: newGlobal, local: newLocal});
+
+        if (!wantGlobal && !wantLocal) {
+          showNotice('Removed from all favorites.');
+        } else if (wantGlobal && wantLocal) {
+          showNotice('Saved to Local & Global Favorites.');
+        } else if (wantGlobal) {
+          showNotice('Saved to Global Favorites.');
+        } else {
+          showNotice('Saved to Local Favorites.');
+        }
+      }
+
+      favoriteModalState = {visible: false, commandId: null, selectedLocal: false, selectedGlobal: false};
+      render();
+    });
+  }
+
+  // Cancel button
+  const cancelBtn = document.getElementById('btn-fav-cancel');
+  if (cancelBtn) {
+    cancelBtn.addEventListener('click', function () {
+      favoriteModalState = {visible: false, commandId: null, selectedLocal: false, selectedGlobal: false};
+      render();
+    });
+  }
+
+  // Flash on outside click (modal stays)
+  const overlay = document.getElementById('favorite-modal-overlay');
+  if (overlay) {
+    overlay.addEventListener('pointerdown', function (e) {
+      if (e.target === overlay) {
+        var box = overlay.querySelector('.modal-box');
+        if (box) {
+          box.classList.remove('modal-box-flash');
+          void box.offsetWidth;
+          box.classList.add('modal-box-flash');
+          box.addEventListener('animationend', function () {
+            box.classList.remove('modal-box-flash');
+          }, {once: true});
+        }
+      }
+    });
+  }
+}
+
+/**
+ * Binds events for the unfavorite confirm modal.
+ */
+function bindUnfavoriteConfirmEvents() {
+  const removeBtn = document.getElementById('btn-unfav-confirm-remove');
+  if (removeBtn) {
+    removeBtn.addEventListener('click', function () {
+      const commandId = unfavoriteConfirmState.commandId;
+      const scope = unfavoriteConfirmState.scope;
+
+      // Save "don't show again" preference
+      const checkbox = document.getElementById('unfav-dont-show-again');
+      if (checkbox && checkbox.checked) {
+        try {localStorage.setItem('unfav_confirm_skip', '1');} catch { }
+      }
+
+      // Remove from scope
       if (scope === 'local') {
         const newLocal = state.localFavorites.filter(function (id) {return id !== commandId;});
         state.localFavorites = newLocal;
@@ -4722,95 +4887,23 @@ function bindFavoritesTabEvents() {
         state.globalFavorites = newGlobal;
         persistFavorites({global: newGlobal});
       }
+
+      unfavoriteConfirmState = {visible: false, commandId: null, scope: null};
+      showNotice('Removed from Favorites.');
       render();
     });
-  });
+  }
 
-  bindFavoriteModalEvents();
-}
-
-/**
- * Binds events for the Favorite modal.
- */
-function bindFavoriteModalEvents() {
-  const cancelBtn = document.getElementById('btn-fav-cancel');
+  const cancelBtn = document.getElementById('btn-unfav-confirm-cancel');
   if (cancelBtn) {
     cancelBtn.addEventListener('click', function () {
-      favoriteModalState = {visible: false, commandId: null, mode: null};
+      unfavoriteConfirmState = {visible: false, commandId: null, scope: null};
       render();
     });
   }
 
-  const addLocalBtn = document.getElementById('btn-fav-add-local');
-  if (addLocalBtn) {
-    addLocalBtn.addEventListener('click', function () {
-      const commandId = favoriteModalState.commandId;
-      if (commandId && !state.localFavorites.includes(commandId)) {
-        const newLocal = state.localFavorites.concat([commandId]);
-        state.localFavorites = newLocal;
-        persistFavorites({local: newLocal});
-        showNotice('Added to Local Favorites.');
-      }
-      favoriteModalState = {visible: false, commandId: null, mode: null};
-      render();
-    });
-  }
-
-  const addGlobalBtn = document.getElementById('btn-fav-add-global');
-  if (addGlobalBtn) {
-    addGlobalBtn.addEventListener('click', function () {
-      const commandId = favoriteModalState.commandId;
-      if (commandId && !state.globalFavorites.includes(commandId)) {
-        const newGlobal = state.globalFavorites.concat([commandId]);
-        state.globalFavorites = newGlobal;
-        persistFavorites({global: newGlobal});
-        showNotice('Added to Global Favorites.');
-      }
-      favoriteModalState = {visible: false, commandId: null, mode: null};
-      render();
-    });
-  }
-
-  const moveConfirmBtn = document.getElementById('btn-fav-move-confirm');
-  if (moveConfirmBtn) {
-    moveConfirmBtn.addEventListener('click', function () {
-      const commandId = favoriteModalState.commandId;
-      const mode = favoriteModalState.mode;
-      if (mode === 'move-to-global') {
-        const newLocal = state.localFavorites.filter(function (id) {return id !== commandId;});
-        const newGlobal = state.globalFavorites.includes(commandId) ? state.globalFavorites : state.globalFavorites.concat([commandId]);
-        state.localFavorites = newLocal;
-        state.globalFavorites = newGlobal;
-        persistFavorites({local: newLocal, global: newGlobal});
-        showNotice('Moved to Global Favorites.');
-      } else if (mode === 'move-to-local') {
-        const newGlobal = state.globalFavorites.filter(function (id) {return id !== commandId;});
-        const newLocal = state.localFavorites.includes(commandId) ? state.localFavorites : state.localFavorites.concat([commandId]);
-        state.globalFavorites = newGlobal;
-        state.localFavorites = newLocal;
-        persistFavorites({global: newGlobal, local: newLocal});
-        showNotice('Moved to Local Favorites.');
-      }
-      favoriteModalState = {visible: false, commandId: null, mode: null};
-      render();
-    });
-  }
-
-  const unfavConfirmBtn = document.getElementById('btn-fav-unfavorite-confirm');
-  if (unfavConfirmBtn) {
-    unfavConfirmBtn.addEventListener('click', function () {
-      const commandId = favoriteModalState.commandId;
-      const newGlobal = state.globalFavorites.filter(function (id) {return id !== commandId;});
-      state.globalFavorites = newGlobal;
-      persistFavorites({global: newGlobal});
-      showNotice('Removed from Favorites.');
-      favoriteModalState = {visible: false, commandId: null, mode: null};
-      render();
-    });
-  }
-
-  // Flash on outside click (modal stays)
-  const overlay = document.getElementById('favorite-modal-overlay');
+  // Flash on outside click
+  const overlay = document.getElementById('unfav-confirm-overlay');
   if (overlay) {
     overlay.addEventListener('pointerdown', function (e) {
       if (e.target === overlay) {
