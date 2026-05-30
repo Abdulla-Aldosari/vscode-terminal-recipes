@@ -1100,49 +1100,55 @@ code {
 
 
 
-/* ===== Commands Table - Title Column ===== */
+/* ===== Commands Table - Named Column Classes ===== */
 
-.commands-table.main-table td:first-child {
+/* Drag Handle Column (sorting mode only) */
+.commands-table.main-table .main-t-drag-handle-column {
+  width: 28px;
+  min-width: 28px;
+  max-width: 28px;
+  padding: 0 4px;
+  vertical-align: middle;
+  text-align: center;
+}
+
+/* Title Column */
+.commands-table.main-table .main-t-title-column {
   width: 1%;
   max-width: 250px;
   min-width: 200px;
-  /* white-space: nowrap; */
-  /* overflow: hidden; */
-  /* text-overflow: ellipsis; */
 }
 
-/* ===== Commands Table - Description Column ===== */
-.commands-table.main-table td:nth-child(2) {
+/* Description Column */
+.commands-table.main-table .main-t-description-column {
   color: var(--vscode-descriptionForeground);
   min-width: 200px;
 }
 
-/* ===== Commands Table - Template Column ===== */
-.commands-table.main-table td:nth-child(3) {
+/* Template Column */
+.commands-table.main-table .main-t-template-column {
   min-width: 450px;
 }
 
-/* ===== Commands Table - Groups Column ===== */
-.commands-table.main-table td:nth-last-child(2) {
+/* Groups Column */
+.commands-table.main-table .main-t-groups-column {
   white-space: nowrap;
   width: 1%;
   max-width: 350px;
   min-width: 80px;
 }
 
-/* ===== Commands Table - Actions Column ===== */
-.commands-table.main-table td:last-child {
+/* Actions Column */
+.commands-table.main-table .main-t-action-column {
   width: 1%;
 }
 
 /* ===== Commands Table - Hide Columns ===== */
-.commands-table.main-table.hide-description th:nth-child(2),
-.commands-table.main-table.hide-description td:nth-child(2) {
+.commands-table.main-table.hide-description .main-t-description-column {
   display: none;
 }
 
-.commands-table.main-table.hide-groups th:nth-child(4),
-.commands-table.main-table.hide-groups td:nth-child(4) {
+.commands-table.main-table.hide-groups .main-t-groups-column {
   display: none;
 }
 
@@ -1787,18 +1793,13 @@ tr.row-highlight td {
   margin-bottom: 4px;
 }
 
-.auto-var-label {
-  font-size: 12px;
-  color: var(--vscode-descriptionForeground);
-}
-
 .auto-var-description {
-  font-size: 12px;
+  font-size: 13px;
   margin-bottom: 6px;
 }
 
 .auto-var-preview {
-  font-size: 12px;
+  font-size: 13px;
   margin-bottom: 4px;
 }
 
@@ -1920,17 +1921,13 @@ tr.row-highlight td {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
+  width: 15px;
+  height: 28px;
   cursor: grab;
-  opacity: 0.45;
   border-radius: 3px;
   transition: opacity 0.12s;
   color: var(--vscode-editor-foreground);
-}
-
-.drag-handle:hover {
-  opacity: 0.9;
+  opacity: 0.6;
   background: color-mix(in srgb, var(--vscode-editor-background) 80%, var(--vscode-foreground));
 }
 

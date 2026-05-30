@@ -767,12 +767,12 @@ function renderCommandsTable(commands, groups) {
       <table class="${tableClasses}" id="commands-sortable-table">
         <thead>
           <tr>
-            ${isSorting ? '<th class="drag-handle-col"></th>' : ''}
-            <th>Title</th>
-            <th>Description</th>
-            <th>Template</th>
-            <th>Groups</th>
-            ${!isSorting ? '<th>Actions</th>' : ''}
+            ${isSorting ? '<th class="main-t-drag-handle-column"></th>' : ''}
+            <th class="main-t-title-column">Title</th>
+            <th class="main-t-description-column">Description</th>
+            <th class="main-t-template-column">Template</th>
+            <th class="main-t-groups-column">Groups</th>
+            ${!isSorting ? '<th class="main-t-action-column">Actions</th>' : ''}
           </tr>
         </thead>
         <tbody>
@@ -786,12 +786,12 @@ function renderCommandsTable(commands, groups) {
     const _useTitle = _useCtrlHint ? 'Use in terminal\nPress CTRL key to edit the variables' : 'Use in terminal';
     return `
               <tr data-command-id="${escapeAttr(command.id)}" draggable="${isSorting ? 'true' : 'false'}">
-                ${isSorting ? `<td class="drag-handle-cell"><span class="drag-handle" data-tooltip="Drag to reorder">${iconDragHandle()}</span></td>` : ''}
-                <td>${titleHtml}<br><span class="muted">${escapeHtml(command.id)}</span></td>
-                <td>${escapeHtml(command.description || '-')}</td>
-                <td><pre class="template-cell">${escapeHtml(command.command)}</pre></td>
-                <td>${escapeHtml(resolveGroupTitle(command.groupId || '', groups))}</td>
-                ${!isSorting ? `<td>
+                ${isSorting ? `<td class="main-t-drag-handle-column drag-handle-cell"><span class="drag-handle" data-tooltip="Drag to reorder">${iconDragHandle()}</span></td>` : ''}
+                <td class="main-t-title-column">${titleHtml}<br><span class="muted">${escapeHtml(command.id)}</span></td>
+                <td class="main-t-description-column">${escapeHtml(command.description || '-')}</td>
+                <td class="main-t-template-column"><pre class="template-cell">${escapeHtml(command.command)}</pre></td>
+                <td class="main-t-groups-column">${escapeHtml(resolveGroupTitle(command.groupId || '', groups))}</td>
+                ${!isSorting ? `<td class="main-t-action-column">
                 <div class="actions-cell">
                   <button class="btn icon-btn success btn-run" data-command-id="${escapeAttr(command.id)}" data-tooltip="Run command">${iconRun()}</button>
                   ${command.command.includes('\n') ? `<button class="btn icon-btn secondary" disabled data-tooltip="Use is not available for multi-line commands">${iconUse()}</button>` : `<button class="btn icon-btn secondary btn-use action" data-command-id="${escapeAttr(command.id)}" data-tooltip="${escapeAttr(_useTitle)}">${iconUse()}</button>`}
@@ -1601,11 +1601,11 @@ function renderVariablesTab() {
             <div class="auto-var-info">
               <div class="auto-var-name">
                 <code>\${${escapeHtml(varDef.name)}}</code>
-                <span class="auto-var-label">${escapeHtml(varDef.label)}</span>
+                <span>${escapeHtml(varDef.label)}</span>
               </div>
-              <div class="auto-var-description muted">${escapeHtml(varDef.description)}</div>
+              <div class="auto-var-description">${escapeHtml(varDef.description)}</div>
               ${varDef.enabled ? `<div class="auto-var-preview">
-                <span class="muted">Current value: </span>
+                <span>Current value: </span>
                 <code class="auto-var-value">${escapeHtml(varDef.currentValue || '—')}</code>
               </div>` : ''}
               ${varDef.configurable && varDef.enabled ? `<div class="auto-var-config">
