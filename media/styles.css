@@ -1812,6 +1812,14 @@ tr.row-highlight td {
   margin-bottom: 4px;
 }
 
+.auto-var-name .btn-copy-auto-var {
+  border-radius: 0px 4px 4px 0px;
+  margin-left: -33px;
+  border-color: transparent;
+  width: 25px;
+  height: 25px;
+}
+
 .auto-var-description {
   font-size: 13px;
   margin-bottom: 6px;
@@ -1824,6 +1832,7 @@ tr.row-highlight td {
 
 .auto-var-value {
   color: var(--vscode-textLink-foreground);
+  padding: 2px 5px 2px 5px;
 }
 
 .auto-var-config {
@@ -2134,4 +2143,30 @@ tr.drag-over-bottom td {
 .favorites-table td:last-child {
   width: 1%;
   white-space: nowrap;
+}
+
+/* ─── Variables Tab: clickable code element ─────────────────────────────── */
+
+.auto-var-name-code {
+  cursor: pointer;
+  position: relative;
+  padding: 5px 7px 5px 7px;
+}
+
+@keyframes auto-var-copy-flash {
+  0% {
+    box-shadow: 0 0 0 2px rgba(74, 222, 128, 0.85), 0 0 6px rgba(74, 222, 128, 0.4);
+  }
+
+  40% {
+    box-shadow: 0 3px 0 2px rgba(74, 222, 128, 0.4), 0 6px 8px rgba(74, 222, 128, 0.2);
+  }
+
+  100% {
+    box-shadow: 0 8px 0 0px rgba(74, 222, 128, 0), 0 12px 12px rgba(74, 222, 128, 0);
+  }
+}
+
+.auto-var-name-code.auto-var-copy-success {
+  animation: auto-var-copy-flash 0.65s ease-out forwards;
 }

@@ -1713,7 +1713,7 @@ function renderVariablesTab() {
             </div>
             <div class="auto-var-info">
               <div class="auto-var-name">
-                <code>\${${escapeHtml(varDef.name)}}</code>
+                <code class="auto-var-name-code" data-copy-value="${escapeAttr('${' + varDef.name + '}')}" data-tooltip="Copy variable">\${${escapeHtml(varDef.name)}}</code>
                 <span>${escapeHtml(varDef.label)}</span>
               </div>
               <div class="auto-var-description">${escapeHtml(varDef.description)}</div>
@@ -1767,6 +1767,23 @@ function bindVariablesTabEvents() {
         type: 'saveAutoVariablesSettings',
         payload: newSettings,
       });
+    });
+  });
+
+  // نسخ اسم المتغير عند الضغط على عنصر code
+  document.querySelectorAll('.auto-var-name-code').forEach(function (el) {
+    el.addEventListener('click', function () {
+      const value = el.dataset.copyValue;
+      if (value) {
+        navigator.clipboard.writeText(value).then(function () {
+          el.classList.remove('auto-var-copy-success');
+          void el.offsetWidth; // force reflow to restart animation
+          el.classList.add('auto-var-copy-success');
+          el.addEventListener('animationend', function () {
+            el.classList.remove('auto-var-copy-success');
+          }, {once: true});
+        });
+      }
     });
   });
 
