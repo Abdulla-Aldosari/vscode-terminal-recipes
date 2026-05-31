@@ -56,11 +56,16 @@ a:focus {
   box-shadow: 0 8px 18px rgba(0, 0, 0, 0.28);
 }
 
-.meta {
+.workspace-label {
   margin: 0;
   font-size: 0.85rem;
   opacity: 0.85;
 }
+
+.workspace-label code {
+  padding: 3px 6px;
+}
+
 
 .card {
   border: 1px solid var(--vscode-panel-border);
@@ -1303,8 +1308,8 @@ input[type="checkbox"]:checked::after {
 }
 
 .ai-key-missing {
-  color: #d46c81;
-  /* opacity: 0.8; */
+  color: var(--vscode-charts-yellow, #e9b44c);
+  opacity: 0.8;
 }
 
 
@@ -1596,8 +1601,17 @@ tr.row-highlight td {
 .move-category-warning {
   font-size: 0.8rem;
   color: var(--vscode-charts-yellow, #e9b44c);
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }
 
+.run-cmd-warning {
+  color: var(--vscode-charts-yellow, #e9b44c);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
 
 
 /* ===== Column Toggle: push to right ===== */
@@ -1818,15 +1832,15 @@ tr.row-highlight td {
 
 /* ===== VS Code-style Tooltip ===== */
 .tr-tooltip-hover {
+  --tooltip-border-color: #787878;
   position: fixed;
   z-index: 9999;
   padding: 4px 8px;
-  border-radius: var(--vscode-cornerRadius-small, 4px);
+  border-radius: var(--vscode-cornerRadius-xSmall, 2px);
   /* No border here — drop-shadow traces the full combined shape (box + arrow) */
   background-color: var(--vscode-editorHoverWidget-background);
   color: var(--vscode-editorHoverWidget-foreground);
-  filter:
-    drop-shadow(0 0 0.5px var(--vscode-editorHoverWidget-border)) drop-shadow(0 0 0.5px var(--vscode-editorHoverWidget-border)) drop-shadow(0 2px 6px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.36)));
+  filter: drop-shadow(0 0 0.6px var(--tooltip-border-color)) drop-shadow(0 0 0.5px var(--vscode-editorHoverWidget-border)) drop-shadow(0 2px 6px var(--vscode-widget-shadow, rgba(0, 0, 0, 0.36)));
   font-family: var(--vscode-font-family);
   font-size: 12px;
   line-height: 1.5em;
@@ -1846,7 +1860,7 @@ tr.row-highlight td {
 .tr-tooltip-hover::before {
   content: '';
   position: absolute;
-  border: 7px solid transparent;
+  border: 6px solid transparent;
   pointer-events: none;
 }
 
