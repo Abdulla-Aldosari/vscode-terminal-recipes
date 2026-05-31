@@ -1964,21 +1964,24 @@ tr.row-highlight td {
   opacity: 1;
 }
 
-/* Row being dragged — fade it out */
+/* Row being dragged — hide content, show dashed placeholder */
 tr.row-dragging {
-  opacity: 0.3;
-  background: color-mix(in srgb, var(--vscode-button-background) 10%, var(--vscode-editor-background)) !important;
+  opacity: 0.4;
+  outline: 2px dashed #adb5bd;
+  outline-offset: -4px;
+  border-radius: 8px;
+  pointer-events: none;
+  background: transparent !important;
 }
 
-/* Drop indicator — top border when inserting BEFORE the row */
-tr.drag-over-top td {
-  border-top: 2px solid var(--vscode-button-background) !important;
+tr.row-dragging td {
+  visibility: hidden;
+  border-color: transparent !important;
+  background: transparent !important;
 }
 
-/* Drop indicator — bottom border when inserting AFTER the row */
-tr.drag-over-bottom td {
-  border-bottom: 2px solid var(--vscode-button-background) !important;
-}
+/* ── Live-reorder: row being repositioned ── */
+/* (no horizontal drop-indicator lines — rows move live in the DOM) */
 
 /* Sorting mode: table cursor hint */
 .sorting-mode tbody tr[draggable="true"] {

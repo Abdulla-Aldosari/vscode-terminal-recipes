@@ -287,8 +287,8 @@ window.addEventListener('message', function (event) {
     } else {
       showNotice(`Save failed: ${message.payload && message.payload.message ? message.payload.message : 'Unknown error'}`);
     }
-
-    render();
+    // Page is already rendered by persistDataThenRender() — just update the notice element
+    paintNotice();
     return;
   }
 
@@ -393,7 +393,8 @@ window.addEventListener('message', function (event) {
     } else {
       showNotice('Failed to save: ' + (message.payload && message.payload.message ? message.payload.message : 'Unknown error'));
     }
-    render();
+    // Page is already rendered — just insert the notice element directly
+    paintNotice();
     return;
   }
 
@@ -915,60 +916,68 @@ function renderCommandsTable(commands, groups) {
 }
 
 /**
- * Reorders commands in state by swapping the dragged command before/after the target.
- * Only operates on the visible (filtered) commands, preserving others in place.
+ * Reads the current DOM row order and syncs it back to state.data.commands,
+ * then persists. Called after live DOM reordering completes (on dragend).
+ *
+ * Strategy:
+ *  1. Collect new order of visible IDs from DOM.
+ *  2. Find which indices in allCommands correspond to the visible set.
+ *  3. Write the new order into exactly those indices (all other indices untouched).
  */
-function reorderCommands(draggedId, targetId, insertBefore) {
-  const allCommands = state.data.commands;
-  const draggedIdx = allCommands.findIndex(function (c) {return c.id === draggedId;});
-  const targetIdx = allCommands.findIndex(function (c) {return c.id === targetId;});
+function syncCommandOrderFromDOM(tbody) {
+  var rows = tbody.querySelectorAll('tr[data-command-id]');
+  if (!rows.length) {return;}
 
-  if (draggedIdx === -1 || targetIdx === -1 || draggedIdx === targetIdx) {
-    return;
+  var allCommands = state.data.commands;
+
+  // Step 1: new order of visible command IDs (as they appear in the DOM right now)
+  var newOrderIds = [];
+  rows.forEach(function (row) {
+    newOrderIds.push(row.dataset.commandId);
+  });
+
+  // Step 2: build a set of visible IDs for fast lookup
+  var visibleIdSet = {};
+  newOrderIds.forEach(function (id) {visibleIdSet[id] = true;});
+
+  // Step 3: find which positions in allCommands belong to the visible set
+  var visibleIndices = [];
+  for (var i = 0; i < allCommands.length; i++) {
+    if (visibleIdSet[allCommands[i].id]) {
+      visibleIndices.push(i);
+    }
   }
 
-  // Remove dragged item from array
-  const dragged = allCommands.splice(draggedIdx, 1)[0];
+  // Step 4: build a lookup map id → command object
+  var cmdMap = {};
+  allCommands.forEach(function (c) {cmdMap[c.id] = c;});
 
-  // Find the updated target index after removal
-  const newTargetIdx = allCommands.findIndex(function (c) {return c.id === targetId;});
-
-  // Insert before or after target
-  const insertIdx = insertBefore ? newTargetIdx : newTargetIdx + 1;
-  allCommands.splice(insertIdx, 0, dragged);
+  // Step 5: write new order into exactly those positions
+  newOrderIds.forEach(function (id, idx) {
+    if (idx < visibleIndices.length && cmdMap[id]) {
+      allCommands[visibleIndices[idx]] = cmdMap[id];
+    }
+  });
 
   persistDataThenRender('Order saved.');
 }
 
 /**
- * Binds HTML5 Drag & Drop on the sortable commands table.
+ * Binds live-reorder Drag & Drop on the sortable commands table.
+ * Rows are physically moved in the DOM during dragover — no drop indicator line.
  * Supports auto-scroll when dragging near the top/bottom edges of the viewport.
  */
 function bindDragAndDrop() {
-  const table = document.getElementById('commands-sortable-table');
+  var table = document.getElementById('commands-sortable-table');
   if (!table) {return;}
 
+  var draggedRow = null;
   var draggedId = null;
-  var dropIndicator = null;
+  var lastTargetId = null;
   var autoScrollTimer = null;
   var lastDragY = 0;
-  var SCROLL_ZONE = 80; // px from edge to start scrolling
-  var SCROLL_SPEED = 12; // px per frame
-
-  function getDropIndicator() {
-    if (!dropIndicator) {
-      dropIndicator = document.createElement('tr');
-      dropIndicator.className = 'drag-drop-indicator';
-      dropIndicator.innerHTML = '<td colspan="10"></td>';
-    }
-    return dropIndicator;
-  }
-
-  function removeDropIndicator() {
-    if (dropIndicator && dropIndicator.parentNode) {
-      dropIndicator.parentNode.removeChild(dropIndicator);
-    }
-  }
+  var SCROLL_ZONE = 80;
+  var SCROLL_SPEED = 12;
 
   function stopAutoScroll() {
     if (autoScrollTimer) {
@@ -983,10 +992,8 @@ function bindDragAndDrop() {
       var y = lastDragY;
       var vh = window.innerHeight;
       if (y < SCROLL_ZONE) {
-        // Near top → scroll up
         window.scrollBy(0, -SCROLL_SPEED * (1 - y / SCROLL_ZONE));
       } else if (y > vh - SCROLL_ZONE) {
-        // Near bottom → scroll down
         window.scrollBy(0, SCROLL_SPEED * ((y - (vh - SCROLL_ZONE)) / SCROLL_ZONE));
       }
       autoScrollTimer = requestAnimationFrame(frame);
@@ -994,85 +1001,76 @@ function bindDragAndDrop() {
     autoScrollTimer = requestAnimationFrame(frame);
   }
 
-  // Add dragstart on all draggable rows
+  var tbody = table.querySelector('tbody');
+  if (!tbody) {return;}
+
+  // dragstart
   table.querySelectorAll('tr[draggable="true"]').forEach(function (row) {
     row.addEventListener('dragstart', function (e) {
+      draggedRow = row;
       draggedId = row.dataset.commandId;
+      lastTargetId = null;
       e.dataTransfer.effectAllowed = 'move';
       e.dataTransfer.setData('text/plain', draggedId);
+      // Delay so the ghost image captures the row before opacity drops
       setTimeout(function () {
         row.classList.add('row-dragging');
       }, 0);
       startAutoScroll();
     });
 
+    // dragend — sync DOM order to state and persist
     row.addEventListener('dragend', function () {
       row.classList.remove('row-dragging');
-      draggedId = null;
-      removeDropIndicator();
       stopAutoScroll();
-      // Remove all drag-over highlights
-      table.querySelectorAll('.drag-over-top, .drag-over-bottom').forEach(function (el) {
-        el.classList.remove('drag-over-top', 'drag-over-bottom');
-      });
+      if (draggedRow) {
+        syncCommandOrderFromDOM(tbody);
+      }
+      draggedRow = null;
+      draggedId = null;
+      lastTargetId = null;
     });
   });
 
-  // Add dragover on tbody
-  var tbody = table.querySelector('tbody');
-  if (!tbody) {return;}
-
+  // dragover — live DOM reorder
   tbody.addEventListener('dragover', function (e) {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
     lastDragY = e.clientY;
 
+    if (!draggedRow) {return;}
+
     var targetRow = e.target.closest('tr[data-command-id]');
-    if (!targetRow || targetRow.dataset.commandId === draggedId) {
-      return;
-    }
-
-    // Clear previous indicators
-    tbody.querySelectorAll('.drag-over-top, .drag-over-bottom').forEach(function (el) {
-      el.classList.remove('drag-over-top', 'drag-over-bottom');
-    });
-
-    // Determine if we're in the top or bottom half of the row
-    var rect = targetRow.getBoundingClientRect();
-    var midY = rect.top + rect.height / 2;
-    var insertBefore = e.clientY < midY;
-
-    if (insertBefore) {
-      targetRow.classList.add('drag-over-top');
-    } else {
-      targetRow.classList.add('drag-over-bottom');
-    }
-  });
-
-  tbody.addEventListener('dragleave', function (e) {
-    // Only clear if truly leaving tbody
-    if (!tbody.contains(e.relatedTarget)) {
-      tbody.querySelectorAll('.drag-over-top, .drag-over-bottom').forEach(function (el) {
-        el.classList.remove('drag-over-top', 'drag-over-bottom');
-      });
-    }
-  });
-
-  tbody.addEventListener('drop', function (e) {
-    e.preventDefault();
-    var targetRow = e.target.closest('tr[data-command-id]');
-    if (!targetRow || !draggedId || targetRow.dataset.commandId === draggedId) {
-      removeDropIndicator();
-      return;
-    }
-
-    var rect = targetRow.getBoundingClientRect();
-    var midY = rect.top + rect.height / 2;
-    var insertBefore = e.clientY < midY;
+    if (!targetRow || targetRow === draggedRow) {return;}
 
     var targetId = targetRow.dataset.commandId;
-    removeDropIndicator();
-    reorderCommands(draggedId, targetId, insertBefore);
+
+    // Determine: insert before or after target based on mouse Y
+    var rect = targetRow.getBoundingClientRect();
+    var midY = rect.top + rect.height / 2;
+    var insertBefore = e.clientY < midY;
+
+    // Build a positional key to avoid redundant DOM moves
+    var posKey = targetId + (insertBefore ? '-before' : '-after');
+    if (posKey === lastTargetId) {return;}
+    lastTargetId = posKey;
+
+    // Move the dragged row in the DOM immediately
+    if (insertBefore) {
+      tbody.insertBefore(draggedRow, targetRow);
+    } else {
+      var nextSibling = targetRow.nextElementSibling;
+      if (nextSibling) {
+        tbody.insertBefore(draggedRow, nextSibling);
+      } else {
+        tbody.appendChild(draggedRow);
+      }
+    }
+  });
+
+  // drop — just prevent default; dragend handles the persist
+  tbody.addEventListener('drop', function (e) {
+    e.preventDefault();
   });
 }
 
@@ -3432,7 +3430,9 @@ function showNotice(message) {
   noticeTimer = setTimeout(function () {
     uiState.noticeMessage = '';
     noticeIsError = false;
-    render();
+    // Remove the notice element directly — no full re-render needed
+    var noticeEl = document.querySelector('.notice');
+    if (noticeEl) {noticeEl.remove();}
     noticeTimer = null;
   }, 3000);
 }
@@ -3448,9 +3448,35 @@ function showError(message) {
   noticeTimer = setTimeout(function () {
     uiState.noticeMessage = '';
     noticeIsError = false;
-    render();
+    // Remove the notice element directly — no full re-render needed
+    var noticeEl = document.querySelector('.notice');
+    if (noticeEl) {noticeEl.remove();}
     noticeTimer = null;
   }, 4000);
+}
+
+/**
+ * Inserts or updates the notice element in the DOM directly,
+ * without triggering a full page re-render.
+ * Call this after showNotice() / showError() when a full render is not needed.
+ */
+function paintNotice() {
+  var layout = document.querySelector('.layout');
+  if (!layout) {return;}
+  // Remove any existing notice
+  var existing = layout.querySelector('.notice');
+  if (existing) {existing.remove();}
+  if (!uiState.noticeMessage) {return;}
+  var el = document.createElement('div');
+  el.className = 'notice' + (noticeIsError ? ' notice-error' : '');
+  el.textContent = uiState.noticeMessage;
+  // Insert after workspace-label (2nd child), before the tabs section
+  var workspaceLabel = layout.querySelector('.workspace-label');
+  if (workspaceLabel && workspaceLabel.nextSibling) {
+    layout.insertBefore(el, workspaceLabel.nextSibling);
+  } else {
+    layout.appendChild(el);
+  }
 }
 
 /**
