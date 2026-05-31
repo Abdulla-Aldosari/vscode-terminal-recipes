@@ -121,6 +121,10 @@ a:focus {
   opacity: 1;
 }
 
+.card .tabs .tab svg {
+  transform: translateY(2px);
+}
+
 .tab-push-right {
   margin-left: auto;
   /* Restore button style for "Add New Command" */
@@ -848,6 +852,8 @@ code {
   white-space: nowrap;
   transition: background 0.12s, border-color 0.12s;
   min-width: 200px;
+  min-height: 27px;
+  max-height: 27px;
 }
 
 .cs-btn:hover {
@@ -1163,7 +1169,6 @@ code {
 
 .cs-btn-col-toggle {
   min-width: unset;
-  padding: 5px 9px;
   gap: 5px;
   flex-shrink: 0;
 }
@@ -1983,7 +1988,7 @@ tr.drag-over-bottom td {
 .fav-scope-toggle {
   display: inline-flex;
   border: 1px solid var(--vscode-input-border);
-  border-radius: 6px;
+  border-radius: 4px;
   background: var(--vscode-input-background);
   overflow: hidden;
   min-height: 32px;
@@ -2008,10 +2013,10 @@ tr.drag-over-bottom td {
 }
 
 .fav-scope-btn.active {
-  background: color-mix(in srgb, var(--vscode-button-background) 22%, var(--vscode-editor-background));
+  background: var(--vscode-button-background);
   color: var(--vscode-editor-foreground);
   opacity: 1;
-  font-weight: 600;
+  /* font-weight: 600; */
 }
 
 .fav-scope-btn:hover:not(.active) {
