@@ -566,9 +566,8 @@ td.actions-cell {
 }
 
 .cmds-table tr:hover {
-  background-color: color-mix(in srgb, var(--vscode-editor-background) 93%, var(--vscode-foreground)) !important;
-  /* transition: none; */
-  transition: background-color 0.1s ease;
+  background-color: color-mix(in srgb, var(--vscode-editor-background) 97%, var(--vscode-foreground)) !important;
+  transition: none;
 }
 
 
@@ -618,7 +617,7 @@ td.actions-cell {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.25);
+  background: rgba(0, 0, 0, 0.20);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -850,7 +849,7 @@ code {
   padding: 4px 8px;
   border: 1px solid color-mix(in srgb, var(--vscode-panel-border) 75%, transparent);
   border-radius: 4px;
-  background: color-mix(in srgb, var(--vscode-editor-background) 96%, var(--vscode-foreground));
+  background: color-mix(in srgb, var(--vscode-editor-background) 92%, var(--vscode-foreground));
   color: var(--vscode-editor-foreground);
   font-size: 0.82rem;
   cursor: pointer;
@@ -1557,16 +1556,6 @@ tr.row-highlight td {
 }
 
 
-
-
-.enum-cell-actions .btn.small {
-  background: color-mix(in srgb, #2e2e2e 72%, var(--vscode-editor-background));
-  border-color: transparent;
-  width: 26px;
-  height: 26px;
-  padding: 0px 0px 0px 0px;
-}
-
 .enum-cell-value code {
   padding: 4px 7px;
 }
@@ -1577,7 +1566,7 @@ tr.row-highlight td {
   border: 1px solid var(--vscode-panel-border);
   border-radius: 5px;
   padding: 10px 12px;
-  background: color-mix(in srgb, var(--vscode-editor-background) 95%, var(--vscode-foreground));
+  background: color-mix(in srgb, var(--vscode-editor-background) 97%, var(--vscode-foreground));
   margin-top: 8px;
 }
 
@@ -1607,7 +1596,6 @@ tr.row-highlight td {
 }
 
 .run-cmd-warning {
-  color: var(--vscode-charts-yellow, #e9b44c);
   display: flex;
   align-items: center;
   gap: 5px;
@@ -1920,10 +1908,10 @@ tr.row-highlight td {
 /* ===== Sort Button (active state) ===== */
 
 .sort-btn-active {
-  background: color-mix(in srgb, var(--vscode-button-background) 20%, var(--vscode-button-secondaryBackground)) !important;
+  background: var(--vscode-button-background) !important;
   color: var(--vscode-button-foreground) !important;
   border-color: var(--vscode-button-background) !important;
-  outline: 1px solid var(--vscode-button-background);
+  /* outline: 1px solid var(--vscode-button-background); */
 }
 
 /* ===== Drag & Drop Sorting ===== */
@@ -1966,8 +1954,8 @@ tr.row-highlight td {
 
 /* Row being dragged — hide content, show dashed placeholder */
 tr.row-dragging {
-  opacity: 0.4;
-  outline: 2px dashed #adb5bd;
+  opacity: 0.8;
+  outline: 2px dashed var(--vscode-button-background);
   outline-offset: -4px;
   border-radius: 8px;
   pointer-events: none;
@@ -2003,12 +1991,24 @@ tr.row-dragging td {
 /* Scope Toggle (Local / Global) in Favorites tab */
 .fav-scope-toggle-wrap {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  justify-content: space-between;
   align-items: flex-start;
   gap: 6px;
   padding-bottom: 12px;
   border-bottom: 1px solid var(--vscode-panel-border);
   margin-bottom: 12px;
+}
+
+.fav-scope-toggle-section {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.fav-confirm-skip-notice {
+  margin-block: 0px;
+  margin-left: auto;
 }
 
 .fav-scope-toggle {
@@ -2040,9 +2040,8 @@ tr.row-dragging td {
 
 .fav-scope-btn.active {
   background: var(--vscode-button-background);
-  color: var(--vscode-editor-foreground);
+  color: var(--vscode-button-foreground);
   opacity: 1;
-  /* font-weight: 600; */
 }
 
 .fav-scope-btn:hover:not(.active) {

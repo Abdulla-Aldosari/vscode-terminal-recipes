@@ -106,7 +106,13 @@ const columnSvg = `<svg viewBox="0 0 21 21" width="14" height="14" fill="none" s
 
 
 const uiState = {
-  activeTab: 'recent',
+  activeTab: (function () {
+    try {
+      const SAVED_TABS = ['recent', 'favorites', 'manage', 'commands', 'variables'];
+      const saved = localStorage.getItem('selectedTab');
+      return saved && SAVED_TABS.includes(saved) ? saved : 'recent';
+    } catch { return 'recent'; }
+  }()),
   noticeMessage: '',
   selectedCategoryId: (function () {
     try {
@@ -751,7 +757,7 @@ function renderCommandsTab(selectedCategory) {
           ${renderColumnToggleDropdown()}
         </div>
         <button class="btn small secondary ai-create-btn" id="btn-add-with-ai" data-tooltip="${uiState.selectedGroupId === 'all' ? 'Select a specific group first' : 'Generate a command using AI'}" ${uiState.selectedGroupId === 'all' || uiState.sortingMode ? 'disabled' : ''}>${iconSparkles()} Add with AI</button>
-        <button class="btn small secondary ${uiState.sortingMode ? 'sort-btn-active' : ''}" id="btn-toggle-sort" data-tooltip="${uiState.selectedGroupId === 'all' ? 'Select a specific group first to enable sorting' : (uiState.sortingMode ? 'Click to exit sort mode' : 'Drag to reorder commands')}" ${uiState.selectedGroupId === 'all' ? 'disabled' : ''}>${iconSort()} ${uiState.sortingMode ? 'Done Sorting' : 'Sort'}</button>
+        <button class="btn small secondary ${uiState.sortingMode ? 'sort-btn-active' : ''}" id="btn-toggle-sort" data-tooltip="${uiState.sortingMode ? 'Click to exit sort mode' : 'Drag to reorder commands'}">${iconSort()} ${uiState.sortingMode ? 'Done Sorting' : 'Sort'}</button>
       </div>
       <div class="group-tags-row ${uiState.sortingMode ? 'sort-disabled-wrap' : ''}">
         <span class="groups-label">Groups:</span>
@@ -852,7 +858,7 @@ function renderCommandsTable(commands, groups) {
     return '<p>No commands found for this filter.</p>';
   }
 
-  const isSorting = uiState.sortingMode && uiState.selectedGroupId !== 'all';
+  const isSorting = uiState.sortingMode;
 
   const tableClasses = [
     'cmds-table commands-table main-table',
@@ -1865,6 +1871,11 @@ function bindTabs() {
       }
 
       uiState.activeTab = nextTab;
+      // Persist only the main saveable tabs (not 'add' which is a transient form state)
+      const SAVED_TABS = ['recent', 'favorites', 'manage', 'commands', 'variables'];
+      if (SAVED_TABS.includes(nextTab)) {
+        try { localStorage.setItem('selectedTab', nextTab); } catch { }
+      }
       render();
     });
   });
@@ -2345,7 +2356,7 @@ function bindCommandsTabEvents() {
   }
 
   // --- Bind Drag & Drop if sorting mode is active ---
-  if (uiState.sortingMode && uiState.selectedGroupId !== 'all') {
+  if (uiState.sortingMode) {
     bindDragAndDrop();
   }
 
@@ -4615,9 +4626,14 @@ function renderFavoritesTab() {
     ? 'No local favorites for this workspace yet. Click the star icon on any command to add it.'
     : 'No global favorites yet. Click the star icon on any command to add it.';
 
+  let skipConfirm = false;
+  try {skipConfirm = localStorage.getItem('unfav_confirm_skip') === '1';} catch { }
+
+  const showWrap = hasWorkspace || skipConfirm;
+
   return `
     <section class="card">
-      ${hasWorkspace ? renderFavoritesScopeToggle(scope) : ''}
+      ${showWrap ? renderFavoritesScopeToggle(scope, hasWorkspace, skipConfirm) : ''}
       <div class="table-wrap">
         ${favoritedCommands.length === 0
       ? `<p class="muted">${emptyMsg}</p>`
@@ -4630,15 +4646,23 @@ function renderFavoritesTab() {
 
 /**
  * Renders the big scope toggle (Local Workspace / Global) for the Favorites tab.
+ * @param {string} scope - current favorites scope ('local' | 'global')
+ * @param {boolean} showToggle - whether to show the scope toggle (requires workspace)
+ * @param {boolean} skipConfirm - whether to show the restore confirmation link
  */
-function renderFavoritesScopeToggle(scope) {
+function renderFavoritesScopeToggle(scope, showToggle, skipConfirm) {
   return `
     <div class="fav-scope-toggle-wrap">
-      <div class="fav-scope-toggle">
-        <button class="fav-scope-btn ${scope === 'local' ? 'active' : ''}" data-scope="local" data-tooltip="Show favorites for this workspace only">Local Workspace</button>
-        <button class="fav-scope-btn ${scope === 'global' ? 'active' : ''}" data-scope="global" data-tooltip="Show favorites available in all workspaces">Global</button>
-      </div>
-      <span class="muted fav-scope-hint">${scope === 'local' ? escapeHtml(state.workspaceFolder || '') : 'Available everywhere'}</span>
+      ${showToggle ? `
+      <div class="fav-scope-toggle-section">
+        <div class="fav-scope-toggle">
+          <button class="fav-scope-btn ${scope === 'local' ? 'active' : ''}" data-scope="local" data-tooltip="Show favorites for this workspace only">Local Workspace</button>
+          <button class="fav-scope-btn ${scope === 'global' ? 'active' : ''}" data-scope="global" data-tooltip="Show favorites available in all workspaces">Global</button>
+        </div>
+        <span class="muted fav-scope-hint">${scope === 'local' ? escapeHtml(state.workspaceFolder || '') : 'Available everywhere'}</span>
+      </div>` : ''}
+      ${skipConfirm ? `
+      <p class="muted fav-confirm-skip-notice">Removal confirmations are disabled. <a href="#" id="btn-restore-unfav-confirm" data-tooltip="Re-enable the confirmation dialog when removing from favorites">Restore</a></p>` : ''}
     </div>
   `;
 }
@@ -4819,6 +4843,16 @@ function bindFavoritesTabEvents() {
       }
     });
   });
+
+  // Restore unfav confirmation dialog
+  const restoreUnfavConfirmBtn = document.getElementById('btn-restore-unfav-confirm');
+  if (restoreUnfavConfirmBtn) {
+    restoreUnfavConfirmBtn.addEventListener('click', function (e) {
+      e.preventDefault();
+      try { localStorage.removeItem('unfav_confirm_skip'); } catch { }
+      render();
+    });
+  }
 
   bindUnfavoriteConfirmEvents();
 }
