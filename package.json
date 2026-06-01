@@ -11,7 +11,7 @@
   "categories": [
     "Other"
   ],
-  "main": "./extension.js",
+  "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
@@ -59,7 +59,10 @@
     }
   },
   "scripts": {
-    "check": "node --check extension.js && node --check media/main.js"
+    "check": "node --check extension.js && node --check media/main.js",
+    "build": "esbuild extension.js --bundle --outfile=dist/extension.js --external:vscode --platform=node --target=node18 --minify",
+    "watch": "esbuild extension.js --bundle --outfile=dist/extension.js --external:vscode --platform=node --target=node18 --sourcemap --watch",
+    "vscode:prepublish": "npm run build"
   },
   "license": "MIT",
   "repository": {
@@ -70,5 +73,8 @@
     "@anthropic-ai/sdk": "^0.52.0",
     "@google/generative-ai": "^0.24.1",
     "openai": "^4.103.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.0"
   }
 }

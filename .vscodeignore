@@ -1,5 +1,9 @@
 .temp/**
-node_modules/**
 .vscode/**
+ai/**
+dist/*.map
+node_modules/**
 AGENTS.md
-AUTO-VARIABLES-PLAN.md
+auto-variables.js
+extension.js
+package-lock.json
