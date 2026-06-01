@@ -1,11 +1,15 @@
+// Terminal Recipes — VS Code Extension
+// Copyright (c) 2026 Abdulla Aldosari
+// Licensed under the MIT License. See LICENSE in the project root for details.
+
 "use strict";
 
 const os = require("os");
 const path = require("path");
 
 /**
- * قائمة المتغيرات التلقائية.
- * لإضافة متغير جديد: أضف كائناً جديداً هنا فقط — لا تعديل في أي ملف آخر.
+ * List of auto variables.
+ * To add a new variable: just add a new object here — no changes needed in any other file.
  */
 const AUTO_VARIABLES = [
     {
@@ -65,8 +69,8 @@ const AUTO_VARIABLES = [
 ];
 
 /**
- * يُنسّق التاريخ الحالي حسب الصيغة المطلوبة.
- * الصيغ المدعومة: YYYY-MM-DD | DD/MM/YYYY | MM/DD/YYYY | DD-MM-YYYY
+ * Formats the current date according to the specified format.
+ * Supported formats: YYYY-MM-DD | DD/MM/YYYY | MM/DD/YYYY | DD-MM-YYYY
  */
 function formatDate(format) {
     const now = new Date();
@@ -78,12 +82,12 @@ function formatDate(format) {
 }
 
 /**
- * يحل جميع المتغيرات التلقائية المفعّلة في نص القالب.
+ * Resolves all enabled auto variables in the template string.
  *
- * @param {string} template        - نص الأمر الذي يحتوي على ${varName}
- * @param {object} context         - السياق: { workspaceFolder: string|null }
- * @param {object} userSettings    - إعدادات المستخدم: { varName: { enabled, config } }
- * @returns {string}               - النص بعد استبدال المتغيرات
+ * @param {string} template        - The command string containing ${varName} placeholders
+ * @param {object} context         - The context: { workspaceFolder: string|null }
+ * @param {object} userSettings    - User settings: { varName: { enabled, config } }
+ * @returns {string}               - The string after variable substitution
  */
 function resolveAutoVariables(template, context, userSettings) {
     if (typeof template !== "string") {
@@ -115,7 +119,7 @@ function resolveAutoVariables(template, context, userSettings) {
 }
 
 /**
- * يرجع قائمة أسماء جميع المتغيرات التلقائية (للاستخدام في الفلترة).
+ * Returns a list of all auto variable names (used for filtering).
  * @returns {string[]}
  */
 function getAutoVariableNames() {
@@ -125,8 +129,8 @@ function getAutoVariableNames() {
 }
 
 /**
- * يُولّد كائن preview لكل متغير (القيمة الفعلية الحالية).
- * يُرسَل من extension.js إلى الـ webview ضمن state.
+ * Builds a preview payload for each variable (with its current resolved value).
+ * Sent from extension.js to the webview as part of the state.
  *
  * @param {object} context         - { workspaceFolder: string|null }
  * @param {object} userSettings    - { varName: { enabled, config } }

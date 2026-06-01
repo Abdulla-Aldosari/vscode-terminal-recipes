@@ -1,3 +1,7 @@
+// Terminal Recipes — VS Code Extension
+// Copyright (c) 2026 Abdulla Aldosari
+// Licensed under the MIT License. See LICENSE in the project root for details.
+
 const OpenAI = require('openai');
 const {SCHEMA_FULL, SCHEMA_SINGLE, addAdditionalPropertiesFalse} = require('../schemas');
 const {formatRequestLog, formatResponseLog, formatErrorLog} = require('../debugLogger');

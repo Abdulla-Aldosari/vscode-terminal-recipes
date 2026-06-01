@@ -1,3 +1,7 @@
+// Terminal Recipes — VS Code Extension
+// Copyright (c) 2026 Abdulla Aldosari
+// Licensed under the MIT License. See LICENSE in the project root for details.
+
 /**
  * Default system instruction for the AI command generator.
  * This is exposed in package.json as `terminalRecipes.customSystemInstructions`

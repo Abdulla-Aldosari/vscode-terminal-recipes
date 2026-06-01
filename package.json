@@ -3,7 +3,7 @@
   "displayName": "Terminal Recipes",
   "description": "Manage categorized terminal commands and run, use, or copy them with variable support.",
   "version": "0.0.1",
-  "publisher": "local",
+  "publisher": "abdulla-aldosari",
   "icon": "media/icon.png",
   "engines": {
     "vscode": "^1.86.0"
@@ -64,7 +64,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/abdulla-aldosari/altaybat-meal-system"
+    "url": "https://github.com/Abdulla-Aldosari/vscode-terminal-recipes"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.52.0",

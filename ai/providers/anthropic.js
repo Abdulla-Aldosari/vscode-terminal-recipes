@@ -1,3 +1,7 @@
+// Terminal Recipes — VS Code Extension
+// Copyright (c) 2026 Abdulla Aldosari
+// Licensed under the MIT License. See LICENSE in the project root for details.
+
 const Anthropic = require('@anthropic-ai/sdk');
 const {SCHEMA_FULL, SCHEMA_SINGLE} = require('../schemas');
 const {formatRequestLog, formatResponseLog, formatErrorLog} = require('../debugLogger');

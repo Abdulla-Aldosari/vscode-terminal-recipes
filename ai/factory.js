@@ -1,3 +1,7 @@
+// Terminal Recipes — VS Code Extension
+// Copyright (c) 2026 Abdulla Aldosari
+// Licensed under the MIT License. See LICENSE in the project root for details.
+
 const {GeminiProvider} = require('./providers/gemini');
 const {OpenAIProvider} = require('./providers/openai');
 const {AnthropicProvider} = require('./providers/anthropic');

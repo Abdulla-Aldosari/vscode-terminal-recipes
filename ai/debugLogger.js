@@ -1,3 +1,7 @@
+// Terminal Recipes — VS Code Extension
+// Copyright (c) 2026 Abdulla Aldosari
+// Licensed under the MIT License. See LICENSE in the project root for details.
+
 /**
  * Shared debug logging utilities for AI providers.
  * Used only when `terminalRecipes.aiDebugOutput` setting is enabled.

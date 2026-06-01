@@ -1,3 +1,7 @@
+// Terminal Recipes — VS Code Extension
+// Copyright (c) 2026 Abdulla Aldosari
+// Licensed under the MIT License. See LICENSE in the project root for details.
+
 /**
  * JSON Schemas for AI structured output.
  * Used to enforce exact response format from AI providers.
