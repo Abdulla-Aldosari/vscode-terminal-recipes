@@ -1,6 +1,8 @@
 const vscode = acquireVsCodeApi();
 
 // ===== SVG Icon Helpers =====
+// Each function returns an inline SVG string for use in HTML templates.
+// Icons sourced from Lucide Icons (https://lucide.dev) and Tabler Icons (https://tabler.io/icons).
 function iconRun() {
   return `<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M7 4v16l13 -8l-13 -8" /></svg>`;
 }
@@ -38,58 +40,57 @@ function iconAiSetupHelp() {
   return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M12 16v.01" /><path d="M12 13a2 2 0 0 0 .914 -3.782a1.98 1.98 0 0 0 -2.414 .483" /><path d="M10 20.777a8.942 8.942 0 0 1 -2.48 -.969" /><path d="M14 3.223a9.003 9.003 0 0 1 0 17.554" /><path d="M4.579 17.093a8.961 8.961 0 0 1 -1.227 -2.592" /><path d="M3.124 10.5c.16 -.95 .468 -1.85 .9 -2.675l.169 -.305" /><path d="M6.907 4.579a8.954 8.954 0 0 1 3.093 -1.356" /></svg>`;
 }
 
-function iconCheckboxOk() { // ✅
+function iconCheckboxOk() {
   return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M9 11l3 3l8 -8" /><path d="M20 12v6a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h9" /></svg>`;
 }
-function iconSort() { // ✅
+function iconSort() {
   return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 16-4 4-4-4"/><path d="M17 20V4"/><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/></svg>`;
 }
 function iconDragHandle() {
   return `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/></svg>`;
 }
-function iconHeart() { // ✅
+function iconHeart() {
   return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"/></svg>`;
 }
-function iconHeartActive() { // ✅
+function iconHeartActive() {
   return `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"/></svg>`;
 }
-function iconHeartPlus() { // ✅
+function iconHeartPlus() {
   return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m14.479 19.374-.971.939a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5a5.2 5.2 0 0 1-.219 1.49"/><path d="M15 15h6"/><path d="M18 12v6"/></svg>`;
 }
-function iconHeartMinus() { // ✅
+function iconHeartMinus() {
   return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m14.876 18.99-1.368 1.323a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5a5.2 5.2 0 0 1-.244 1.572"/><path d="M15 15h6"/></svg>`;
 }
 
-function iconCommand() { // ✅
+function iconCommand() {
   return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3"/></svg>`;
 }
-function iconGroup() { // ✅
+function iconGroup() {
   return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.536 11.293a1 1 0 0 0 0 1.414l2.376 2.377a1 1 0 0 0 1.414 0l2.377-2.377a1 1 0 0 0 0-1.414l-2.377-2.377a1 1 0 0 0-1.414 0z"/><path d="M2.297 11.293a1 1 0 0 0 0 1.414l2.377 2.377a1 1 0 0 0 1.414 0l2.377-2.377a1 1 0 0 0 0-1.414L6.088 8.916a1 1 0 0 0-1.414 0z"/><path d="M8.916 17.912a1 1 0 0 0 0 1.415l2.377 2.376a1 1 0 0 0 1.414 0l2.377-2.376a1 1 0 0 0 0-1.415l-2.377-2.376a1 1 0 0 0-1.414 0z"/><path d="M8.916 4.674a1 1 0 0 0 0 1.414l2.377 2.376a1 1 0 0 0 1.414 0l2.377-2.376a1 1 0 0 0 0-1.414l-2.377-2.377a1 1 0 0 0-1.414 0z"/></svg>`;
 }
-function iconRecent() { // ✅
+function iconRecent() {
   return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>`;
 }
-function iconAdd() { // ✅
+function iconAdd() {
   return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>`;
 }
-function iconVariables() { // ✅
+function iconVariables() {
   return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.828 14.828 21 21"/><path d="M21 16v5h-5"/><path d="m21 3-9 9-4-4-6 6"/><path d="M21 8V3h-5"/></svg>`;
 }
-
 
 function iconExclamationTriangle() {
   return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>`;
 }
 
-function IconCircleCheck() { // ✅
+function IconCircleCheck() {
   return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /><path d="M9 12l2 2l4 -4" /></svg>`;
 }
 
-function IconCircleX() { // ✅
+function IconCircleX() {
   return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /><path d="M10 10l4 4m0 -4l-4 4" /></svg>`;
 }
 
-function IconCircleExclamation() { // ✅
+function IconCircleExclamation() {
   return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /><path d="M12 9v4" /><path d="M12 16v.01" /></svg>`;
 }
 
@@ -276,6 +277,12 @@ const state = {
   localFavorites: [],
 };
 
+/**
+ * Central message dispatcher for all messages received from the VS Code extension.
+ * Handles: state, saveResult, actionResult, saveVariablesResult, aiSettingsResult,
+ * aiSaveSettingsResult, aiGenerateResult, aiInsertResult,
+ * saveAutoVariablesSettingsResult, saveFavoritesResult.
+ */
 window.addEventListener('message', function (event) {
   const message = event.data;
 
@@ -421,6 +428,12 @@ window.addEventListener('message', function (event) {
   }
 });
 
+/**
+ * Hydrates the global `state` object from the extension payload.
+ * Called on every 'state' message from the extension.
+ * Also initializes commandDrafts/commandRemember for all known command IDs.
+ * @param {object} payload - Data payload from the extension
+ */
 function hydrateState(payload) {
   state.data = payload && payload.data ? payload.data : state.data;
   state.globalCommandsFile = payload && payload.globalCommandsFile ? payload.globalCommandsFile : '';
@@ -473,6 +486,10 @@ function hydrateState(payload) {
   });
 }
 
+/**
+ * Ensures selectedCategoryId and selectedGroupId point to valid existing items.
+ * Falls back to the first category / 'all' group if the saved selection is stale.
+ */
 function ensureSelectionDefaults() {
   const categories = state.data.categories || [];
 
@@ -497,6 +514,10 @@ function ensureSelectionDefaults() {
   }
 }
 
+/**
+ * Persists the selected category ID to localStorage and updates uiState.
+ * @param {string} categoryId
+ */
 function setSelectedCategory(categoryId) {
   uiState.selectedCategoryId = categoryId;
   try {
@@ -504,17 +525,29 @@ function setSelectedCategory(categoryId) {
   } catch { }
 }
 
+/**
+ * Returns the currently selected category object, or null if none matches.
+ * @returns {object|null}
+ */
 function getSelectedCategory() {
   return (state.data.categories || []).find(function (category) {
     return category.id === uiState.selectedCategoryId;
   }) || null;
 }
 
+/**
+ * Returns the groups array of the currently selected category.
+ * @returns {Array}
+ */
 function getSelectedCategoryGroups() {
   const category = getSelectedCategory();
   return category ? category.groups || [] : [];
 }
 
+/**
+ * Returns commands visible under the current category + group filter.
+ * @returns {Array}
+ */
 function getVisibleCommands() {
   return (state.data.commands || []).filter(function (command) {
     if (command.categoryId !== uiState.selectedCategoryId) {
@@ -529,6 +562,10 @@ function getVisibleCommands() {
   });
 }
 
+/**
+ * Returns the command object currently being edited, or null.
+ * @returns {object|null}
+ */
 function getEditingCommand() {
   if (!uiState.editingCommandId) {
     return null;
@@ -539,6 +576,10 @@ function getEditingCommand() {
   }) || null;
 }
 
+/**
+ * Full re-render of the app. Rebuilds innerHTML of #app and re-binds all events.
+ * Called after any state change. Also handles pending scroll highlights.
+ */
 function render() {
   ensureSelectionDefaults();
 
@@ -620,6 +661,10 @@ function render() {
   }
 }
 
+/**
+ * Renders the Categories & Groups management tab (two-panel layout).
+ * @returns {string} HTML string
+ */
 function renderManageTab() {
   const categories = state.data.categories || [];
   const selectedCategory = getSelectedCategory();
@@ -691,6 +736,11 @@ function renderManageTab() {
   `;
 }
 
+/**
+ * Renders the inline modal for add/rename category/group actions.
+ * Returns empty string if the modal is not currently visible.
+ * @returns {string} HTML string
+ */
 function renderManageModal() {
   if (!manageModalState.visible) {
     return '';

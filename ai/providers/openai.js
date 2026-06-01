@@ -3,6 +3,12 @@ const {SCHEMA_FULL, SCHEMA_SINGLE, addAdditionalPropertiesFalse} = require('../s
 const {formatRequestLog, formatResponseLog, formatErrorLog} = require('../debugLogger');
 const {getProviderConfig} = require('../providers-config');
 
+/**
+ * AI provider implementation for OpenAI (GPT-4.1).
+ * Uses OpenAI's structured JSON output (`json_schema`) for reliable response formatting.
+ * OpenAI strict mode requires `additionalProperties: false` on every object schema,
+ * which is injected via `addAdditionalPropertiesFalse` before sending.
+ */
 class OpenAIProvider {
   constructor(apiKey) {
     this.client = new OpenAI({apiKey});

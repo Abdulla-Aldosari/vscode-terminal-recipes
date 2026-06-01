@@ -201,16 +201,12 @@ a:focus {
   /* Restore button style for "Add New Command" */
   background: var(--vscode-button-secondaryBackground) !important;
   color: var(--vscode-button-secondaryForeground) !important;
-  /* border: 1px solid var(--vscode-input-border) !important; */
-  /* border-radius: 6px !important; */
-  /* border-bottom: 1px solid var(--vscode-input-border) !important; */
   opacity: 1 !important;
   align-self: center;
 }
 
 .tab-push-right.active {
   background: color-mix(in srgb, var(--vscode-editor-background) 85%, var(--vscode-foreground));
-  /* background: var(--vscode-button-background) !important; */
   color: var(--vscode-editor-foreground) !important;
   border-color: var(--vscode-button-background) !important;
   border-bottom: 2px solid var(--vscode-button-background) !important;
@@ -769,6 +765,9 @@ td.actions-cell {
   text-align: center;
 }
 
+/* ===== Layout & Spacing Utility Classes ===== */
+/* Single-purpose helpers used inline via class attribute in JS templates. */
+
 .mt-5 {
   margin-top: 5px;
 }
@@ -1167,14 +1166,13 @@ code {
   font-size: 0.85rem;
 }
 
+.recent-table th:nth-child(4) {
+  text-align: center;
+}
+
 /* ===== recent Table - Actions Column ===== */
 .recent-table td:last-child {
   width: 1%;
-}
-
-/* ===== Recent Commands Table: ×Runs column ===== */
-.recent-table th:nth-child(4) {
-  text-align: center;
 }
 
 

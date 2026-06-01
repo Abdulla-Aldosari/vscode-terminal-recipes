@@ -3,6 +3,12 @@ const {SCHEMA_FULL, SCHEMA_SINGLE} = require('../schemas');
 const {formatRequestLog, formatResponseLog, formatErrorLog} = require('../debugLogger');
 const {getProviderConfig} = require('../providers-config');
 
+/**
+ * AI provider implementation for Anthropic Claude.
+ * Claude lacks native structured output support (unlike OpenAI/Gemini),
+ * so the JSON schema is embedded directly in the system instruction and
+ * JSON is extracted from the response via regex before parsing.
+ */
 class AnthropicProvider {
   constructor(apiKey) {
     this.client = new Anthropic({apiKey});
@@ -38,7 +44,7 @@ Do NOT include any text, explanation, or markdown before or after the JSON.`;
     try {
       response = await this.client.messages.create({
         model: this.modelId,
-        max_tokens: 8096,
+        max_tokens: 8096, // Claude requires an explicit max_tokens; 8096 comfortably fits full-mode responses
         system: enhancedSystem,
         messages: [
           {role: 'user', content: prompt},
