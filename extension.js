@@ -7,13 +7,13 @@ const fs = require("fs/promises");
 const os = require("os");
 const path = require("path");
 const crypto = require("crypto");
-const { generateWithAI } = require("./ai/factory");
-const { DEFAULT_SYSTEM_INSTRUCTION } = require("./ai/systemInstruction");
-const { AI_PROVIDERS, getProvidersArray } = require("./ai/providers-config");
+const { generateWithAI } = require("./lib/ai/factory");
+const { DEFAULT_SYSTEM_INSTRUCTION } = require("./lib/ai/systemInstruction");
+const { AI_PROVIDERS, getProvidersArray } = require("./lib/ai/providers-config");
 const {
   resolveAutoVariables,
   buildAutoVariablesPayload,
-} = require("./auto-variables");
+} = require("./lib/auto-variables");
 
 const GLOBAL_DIR = path.join(os.homedir(), ".vscode-terminal-recipes");
 const GLOBAL_COMMANDS_FILE = path.join(GLOBAL_DIR, "commands.json");
