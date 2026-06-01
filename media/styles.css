@@ -43,18 +43,84 @@ a:focus {
   gap: 8px;
 }
 
+/* ===== Notice modal ===== */
+
 .notice {
   position: fixed;
   top: 14px;
   right: 14px;
   z-index: 999;
   max-width: min(420px, calc(100vw - 24px));
-  padding: 9px 12px;
-  border: 1px solid var(--vscode-inputOption-activeBorder);
+  padding: 12px 20px 10px 11px;
+  border: 1px solid;
+  border-color: color-mix(in srgb, var(--vscode-editor-background) 70%, #828282);
   border-radius: 5px;
-  background: color-mix(in srgb, var(--vscode-editor-background) 70%, var(--vscode-button-background));
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.28);
+  background: color-mix(in srgb, var(--vscode-editor-background) 88%, #828282);
+  box-shadow: 0px 0px 5px 2px rgb(0 0 0 / 7%);
+  color: var(--vscode-foreground);
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+  border-left-width: 4px;
 }
+
+.notice svg {
+  width: 17px;
+  height: 17px;
+  margin-top: 1px;
+}
+
+.notice .notice-icon {
+  padding: 0px 12px 0px 5px;
+}
+
+.notice .notice-message {
+  border-inline-start-width: 1px;
+  border-inline-start-style: solid;
+  border-color: var(--msg-type-current-border-color);
+  padding-inline-start: 13px;
+}
+
+
+
+.notice.notice-error {
+  --msg-notice-color: #9f3a41;
+  --msg-type-current-border-color: color-mix(in srgb, var(--msg-notice-color) 32%, transparent);
+  background: color-mix(in srgb, var(--msg-notice-color) 18%, var(--vscode-editor-background)) !important;
+  border-color: var(--msg-type-current-border-color) !important;
+  color: var(--vscode-editor-foreground);
+  font-weight: 500;
+}
+
+.notice.notice-warning {
+  --msg-notice-color: #e7d23f;
+  --msg-type-current-border-color: color-mix(in srgb, var(--msg-notice-color) 32%, transparent);
+  background: color-mix(in srgb, var(--msg-notice-color) 18%, var(--vscode-editor-background)) !important;
+  border-color: var(--msg-type-current-border-color) !important;
+  color: var(--vscode-editor-foreground);
+  font-weight: 500;
+}
+
+.notice.notice-success {
+  --msg-notice-color: #6fc951;
+  --msg-type-current-border-color: color-mix(in srgb, var(--msg-notice-color) 32%, transparent);
+  background: color-mix(in srgb, var(--msg-notice-color) 18%, var(--vscode-editor-background)) !important;
+  border-color: var(--msg-type-current-border-color) !important;
+  color: var(--vscode-editor-foreground);
+  font-weight: 500;
+  border-left-color: var(--msg-notice-color) !important;
+}
+
+.notice.notice-info {
+  --msg-notice-color: #56ccff;
+  --msg-type-current-border-color: color-mix(in srgb, var(--msg-notice-color) 32%, transparent);
+  background: color-mix(in srgb, var(--msg-notice-color) 18%, var(--vscode-editor-background)) !important;
+  border-color: var(--msg-type-current-border-color) !important;
+  color: var(--vscode-editor-foreground);
+  font-weight: 500;
+}
+
+
 
 .workspace-label {
   margin: 0;
@@ -139,14 +205,13 @@ a:focus {
   /* border-radius: 6px !important; */
   /* border-bottom: 1px solid var(--vscode-input-border) !important; */
   opacity: 1 !important;
-  margin-bottom: 0 !important;
   align-self: center;
 }
 
 .tab-push-right.active {
   background: color-mix(in srgb, var(--vscode-editor-background) 85%, var(--vscode-foreground));
   /* background: var(--vscode-button-background) !important; */
-  color: var(--vscode-button-foreground) !important;
+  color: var(--vscode-editor-foreground) !important;
   border-color: var(--vscode-button-background) !important;
   border-bottom: 2px solid var(--vscode-button-background) !important;
 }
@@ -734,6 +799,10 @@ td.actions-cell {
 
 .gap-6 {
   gap: 6px;
+}
+
+.margin-block-0 {
+  margin-block: 0px;
 }
 
 .white-space-nowrap {
@@ -1423,14 +1492,6 @@ tr.row-highlight td {
   opacity: 0.45;
 }
 
-/* ===== Error Notice ===== */
-
-.notice-error {
-  background: color-mix(in srgb, #d1242f 18%, var(--vscode-editor-background)) !important;
-  border-color: color-mix(in srgb, #d1242f 55%, transparent) !important;
-  color: var(--vscode-editor-foreground);
-  font-weight: 500;
-}
 
 /* ===== Enum Variable Input Row (in variable modal) ===== */
 
@@ -2004,11 +2065,6 @@ tr.row-dragging td {
   display: flex;
   flex-direction: column;
   gap: 5px;
-}
-
-.fav-confirm-skip-notice {
-  margin-block: 0px;
-  margin-left: auto;
 }
 
 .fav-scope-toggle {

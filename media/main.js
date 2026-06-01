@@ -37,9 +37,7 @@ function iconExternalLink() {
 function iconAiSetupHelp() {
   return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M12 16v.01" /><path d="M12 13a2 2 0 0 0 .914 -3.782a1.98 1.98 0 0 0 -2.414 .483" /><path d="M10 20.777a8.942 8.942 0 0 1 -2.48 -.969" /><path d="M14 3.223a9.003 9.003 0 0 1 0 17.554" /><path d="M4.579 17.093a8.961 8.961 0 0 1 -1.227 -2.592" /><path d="M3.124 10.5c.16 -.95 .468 -1.85 .9 -2.675l.169 -.305" /><path d="M6.907 4.579a8.954 8.954 0 0 1 3.093 -1.356" /></svg>`;
 }
-function iconExclamation() {
-  return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>`;
-}
+
 function iconCheckboxOk() { // ✅
   return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M9 11l3 3l8 -8" /><path d="M20 12v6a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h9" /></svg>`;
 }
@@ -78,21 +76,24 @@ function iconVariables() { // ✅
   return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.828 14.828 21 21"/><path d="M21 16v5h-5"/><path d="m21 3-9 9-4-4-6 6"/><path d="M21 8V3h-5"/></svg>`;
 }
 
-// function iconArrowDown() {
-//   return ``;
-// }
-// function iconXXXXX() {
-//   return ``;
-// }
-// function iconXXXXX() {
-//   return ``;
-// }
-// function iconXXXXX() {
-//   return ``;
-// }
-// function iconXXXXX() {
-//   return ``;
-// }
+
+function iconExclamationTriangle() {
+  return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>`;
+}
+
+function IconCircleCheck() { // ✅
+  return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /><path d="M9 12l2 2l4 -4" /></svg>`;
+}
+
+function IconCircleX() { // ✅
+  return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /><path d="M10 10l4 4m0 -4l-4 4" /></svg>`;
+}
+
+function IconCircleExclamation() { // ✅
+  return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /><path d="M12 9v4" /><path d="M12 16v.01" /></svg>`;
+}
+
+
 
 
 // SVG: chevron down (For custom dropdown menues) - using for indicating expandable dropdown arrows
@@ -111,9 +112,11 @@ const uiState = {
       const SAVED_TABS = ['recent', 'favorites', 'manage', 'commands', 'variables'];
       const saved = localStorage.getItem('selectedTab');
       return saved && SAVED_TABS.includes(saved) ? saved : 'recent';
-    } catch { return 'recent'; }
+    } catch {return 'recent';}
   }()),
   noticeMessage: '',
+  noticeIcon: '',
+  noticeType: '',
   selectedCategoryId: (function () {
     try {
       return localStorage.getItem('selectedCategoryId') || '';
@@ -289,9 +292,9 @@ window.addEventListener('message', function (event) {
 
   if (message.type === 'saveResult') {
     if (message.payload && message.payload.success) {
-      showNotice('Saved successfully.');
+      showNotice('Saved successfully.', IconCircleCheck(), 'success');
     } else {
-      showNotice(`Save failed: ${message.payload && message.payload.message ? message.payload.message : 'Unknown error'}`);
+      showNotice(`Save failed: ${message.payload && message.payload.message ? message.payload.message : 'Unknown error'}`, IconCircleX(), 'error');
     }
     // Page is already rendered by persistDataThenRender() — just update the notice element
     paintNotice();
@@ -300,7 +303,7 @@ window.addEventListener('message', function (event) {
 
   if (message.type === 'actionResult') {
     if (message.payload && message.payload.success) {
-      showNotice(`Action "${message.payload.action}" completed.`);
+      showNotice(`Action "${message.payload.action}" completed.`, IconCircleCheck(), 'info');
 
       if (message.payload.commandVariables && typeof message.payload.commandVariables === 'object') {
         state.commandVariables = message.payload.commandVariables;
@@ -310,7 +313,7 @@ window.addEventListener('message', function (event) {
         state.globalCommandVariables = message.payload.globalCommandVariables;
       }
     } else {
-      showNotice(`Action failed: ${message.payload && message.payload.message ? message.payload.message : 'Unknown error'}`);
+      showNotice(`Action failed: ${message.payload && message.payload.message ? message.payload.message : 'Unknown error'}`, IconCircleX(), 'error');
     }
 
     render();
@@ -348,9 +351,9 @@ window.addEventListener('message', function (event) {
     if (message.payload && message.payload.success) {
       // Re-fetch settings to refresh keyStatus
       vscode.postMessage({type: 'aiGetSettings'});
-      showNotice('AI settings saved.');
+      showNotice('AI settings saved.', IconCircleCheck(), 'success');
     } else {
-      showNotice(`Failed to save settings: ${message.payload && message.payload.message ? message.payload.message : 'Unknown error'}`);
+      showNotice(`Failed to save settings: ${message.payload && message.payload.message ? message.payload.message : 'Unknown error'}`, IconCircleX(), 'error');
       render();
     }
     return;
@@ -384,7 +387,7 @@ window.addEventListener('message', function (event) {
       aiState.result = null;
       aiState.prompt = '';
       aiState.error = '';
-      showNotice(`✅ Inserted ${message.payload.count} command(s) successfully.`);
+      showNotice(`Inserted ${message.payload.count} command(s) successfully.`, IconCircleCheck(), 'success');
     } else {
       aiState.error = message.payload && message.payload.message ? message.payload.message : 'Unknown error';
       aiState.view = 'results';
@@ -395,9 +398,9 @@ window.addEventListener('message', function (event) {
 
   if (message.type === 'saveAutoVariablesSettingsResult') {
     if (message.payload && message.payload.success) {
-      showNotice('Auto variables settings saved.');
+      showNotice('Auto variables settings saved.', IconCircleCheck(), 'success');
     } else {
-      showNotice('Failed to save: ' + (message.payload && message.payload.message ? message.payload.message : 'Unknown error'));
+      showNotice('Failed to save: ' + (message.payload && message.payload.message ? message.payload.message : 'Unknown error'), IconCircleX(), 'error');
     }
     // Page is already rendered — just insert the notice element directly
     paintNotice();
@@ -554,7 +557,9 @@ function render() {
         </div>
       </header>
       <p class="workspace-label">Workspace: <code>${escapeHtml(state.workspaceFolder || 'No workspace open')}</code></p>
-      ${uiState.noticeMessage ? `<div class="notice${noticeIsError ? ' notice-error' : ''}">${uiState.noticeMessage}</div>` : ''}
+
+
+      ${uiState.noticeMessage ? `<div class="notice${uiState.noticeType ? ' notice-' + uiState.noticeType : ''}"><div class="notice-icon">${uiState.noticeIcon}</div><div class="notice-message">${uiState.noticeMessage}</div></div>` : ''}
 
       <section class="card tabs-section">
         <div class="tabs">
@@ -907,7 +912,9 @@ function renderCommandsTable(commands, groups) {
           const _fs = getFavoriteScope(command.id);
           const _cls = _fs === 'none' ? 'secondary' : _fs === 'local' ? 'fav-state-local' : _fs === 'global' ? 'fav-state-global' : 'fav-state-both';
           const _icon = _fs === 'none' ? iconHeartPlus() : iconHeartActive();
-          const _tip = _fs === 'none' ? 'Add to favorites' : _fs === 'local' ? 'In Local Favorites<br>(click to manage)' : _fs === 'global' ? 'In Global Favorites<br>(click to manage)' : 'In Local &amp; Global Favorites<br>(click to manage)';
+          const _tip = _fs === 'none'
+            ? 'Ctrl+Click: Add Global  •  Ctrl+Right-Click: Remove Global<br>Shift+Click: Add Local  •  Shift+Right-Click: Remove Local<br>Ctrl+Shift+Click: Add Both  •  Ctrl+Shift+Right-Click: Remove Both<br><span class="muted-tip">(Click to manage)</span>'
+            : _fs === 'local' ? 'In Local Favorites<br>(click to manage)' : _fs === 'global' ? 'In Global Favorites<br>(click to manage)' : 'In Local &amp; Global Favorites<br>(click to manage)';
           return `<button class="btn icon-btn ${_cls} btn-add-favorite" data-command-id="${escapeAttr(command.id)}" data-tooltip="${escapeAttr(_tip)}" data-tooltip-pos="left">${_icon}</button>`;
         })()}
                 </div>
@@ -1134,7 +1141,7 @@ function renderEditTab() {
     false, // menuUp
     'cs-wrap-full' // `wrapExtraClass`
   )}
-          ${isMoved ? `<span class="muted move-category-warning">${iconExclamation()} Moving to new category — (Please select a group from the list below)</span>` : ''}
+          ${isMoved ? `<span class="muted move-category-warning">${iconExclamationTriangle()} Moving to new category — (Please select a group from the list below)</span>` : ''}
         </div>
         <div class="full-width grouped-tags-wrap">
           <span class="groups-label">Groups:</span>
@@ -1176,7 +1183,7 @@ function renderEditTab() {
         ` : ''}
         ${command.lastRunAt ? `
         <div class="full-width mt-5">
-          <span class="muted">Last Run: <strong data-tooltip="${escapeAttr(formatDateTime(command.lastRunAt))}">${escapeHtml(timeAgo(command.lastRunAt))}</strong> &nbsp;·&nbsp; x${command.runCount || 0} runs</span>
+          <span class="muted">Last Run: <strong data-tooltip="${escapeAttr(formatDateTime(command.lastRunAt))}">${escapeHtml(timeAgo(command.lastRunAt))}</strong> &nbsp;·&nbsp; ×${command.runCount || 0} runs</span>
         </div>
         ` : ''}
         <div class="row full-width justify-content-flex-end mt-20">
@@ -1257,7 +1264,7 @@ function renderRunConfirmModal() {
       <div class="modal-box">
         <h3>Do you want to run this command?</h3>
         <pre class="modal-command-preview">${escapeHtml(runConfirmState.resolvedCommand)}</pre>
-        <span class="muted run-cmd-warning">${iconExclamation()} This command will be executed immediately</span>
+        <span class="muted run-cmd-warning">${iconExclamationTriangle()} This command will be executed immediately</span>
         <div class="row justify-content-flex-end">
         ${hasVariables ? `<button class="btn small secondary min-w65" id="btn-confirm-run-variables">Edit Variables</button>` : ''}
           ${renderShellSelector()}
@@ -1874,7 +1881,7 @@ function bindTabs() {
       // Persist only the main saveable tabs (not 'add' which is a transient form state)
       const SAVED_TABS = ['recent', 'favorites', 'manage', 'commands', 'variables'];
       if (SAVED_TABS.includes(nextTab)) {
-        try { localStorage.setItem('selectedTab', nextTab); } catch { }
+        try {localStorage.setItem('selectedTab', nextTab);} catch { }
       }
       render();
     });
@@ -2040,7 +2047,7 @@ function executeManageModalConfirm() {
   const mode = manageModalState.mode;
 
   if (!value) {
-    showNotice('Name is required.');
+    showNotice('Name is required.', iconExclamationTriangle(), 'warning');
     if (input) {
       input.focus();
     }
@@ -2074,7 +2081,7 @@ function executeManageModalConfirm() {
   if (mode === 'add-group') {
     const selectedCategory = getSelectedCategory();
     if (!selectedCategory) {
-      showNotice('Select a category first.');
+      showNotice('Select a category first.', iconExclamationTriangle(), 'warning');
       return;
     }
     const newGroup = {
@@ -2543,7 +2550,7 @@ function bindAddCommandTabEvents() {
       const selectedCategory = getSelectedCategory();
 
       if (!selectedCategory) {
-        showNotice('Select category first.');
+        showNotice('Select category first.', iconExclamationTriangle(), 'warning');
         render();
         return;
       }
@@ -2573,7 +2580,7 @@ function bindAddCommandTabEvents() {
       }
 
       if (!groupId) {
-        showError(`${iconExclamation()} Please select at least one group from the list below.`);
+        showError('Please select at least one group from the list below.', iconExclamationTriangle(), 'warning');
         render();
         return;
       }
@@ -2663,7 +2670,7 @@ function bindEditTabEvents() {
     draft.template = templateTrimmed;
 
     if (!draft.groupId) {
-      showError(`${iconExclamation()} Please select at least one group from the list below.`);
+      showError('Please select at least one group from the list below.', iconExclamationTriangle(), 'warning');
       render();
       return;
     }
@@ -2993,17 +3000,121 @@ function bindCommandActionButtons() {
   });
 
   // --- Add to Favorites buttons (in Commands and Recent tabs) ---
+  // Modifier shortcuts (left-click):
+  //   Ctrl+Click           → Add to Global
+  //   Shift+Click          → Add to Local  (workspace required)
+  //   Ctrl+Shift+Click     → Add to Both
+  //   Plain click          → Open manage modal
+  // Modifier shortcuts (right-click / contextmenu):
+  //   Ctrl+Right           → Remove from Global
+  //   Shift+Right          → Remove from Local  (workspace required)
+  //   Ctrl+Shift+Right     → Remove from Both
   document.querySelectorAll('.btn-add-favorite').forEach(function (button) {
-    button.addEventListener('click', function () {
+
+    // ── Left-click ────────────────────────────────────────────────────────────
+    button.addEventListener('click', function (e) {
       const commandId = button.dataset.commandId;
-      // Open unified manage modal pre-filled with current favorite state
-      favoriteModalState = {
-        visible: true,
-        commandId,
-        selectedLocal: state.localFavorites.includes(commandId),
-        selectedGlobal: state.globalFavorites.includes(commandId),
-      };
-      render();
+      const ctrlOrMeta = e.ctrlKey || e.metaKey;
+      const shift = e.shiftKey;
+      const hasWorkspace = !!state.workspaceFolder;
+
+      if (ctrlOrMeta && shift) {
+        // Ctrl+Shift+Click → Add to Both
+        const newGlobal = state.globalFavorites.includes(commandId)
+          ? state.globalFavorites
+          : state.globalFavorites.concat([commandId]);
+        const newLocal = hasWorkspace
+          ? (state.localFavorites.includes(commandId)
+            ? state.localFavorites
+            : state.localFavorites.concat([commandId]))
+          : state.localFavorites;
+        state.globalFavorites = newGlobal;
+        state.localFavorites = newLocal;
+        persistFavorites({global: newGlobal, local: newLocal});
+        showNotice(hasWorkspace ? 'Added to Global & Local Favorites.' : 'Added to Global Favorites. (No workspace for local)', iconHeartPlus(), 'success');
+        render();
+      } else if (ctrlOrMeta) {
+        // Ctrl+Click → Add to Global
+        const newGlobal = state.globalFavorites.includes(commandId)
+          ? state.globalFavorites
+          : state.globalFavorites.concat([commandId]);
+        state.globalFavorites = newGlobal;
+        persistFavorites({global: newGlobal, local: state.localFavorites});
+        showNotice('Added to Global Favorites.', iconHeartPlus(), 'success');
+        render();
+      } else if (shift) {
+        // Shift+Click → Add to Local (requires workspace)
+        if (!hasWorkspace) {
+          showNotice('Local favorites require an open workspace.', iconExclamationTriangle(), 'warning');
+          paintNotice();
+          return;
+        }
+        const newLocal = state.localFavorites.includes(commandId)
+          ? state.localFavorites
+          : state.localFavorites.concat([commandId]);
+        state.localFavorites = newLocal;
+        persistFavorites({global: state.globalFavorites, local: newLocal});
+        showNotice('Added to Local Favorites.', iconHeartPlus(), 'success');
+        render();
+      } else {
+        // Plain click → Open unified manage modal
+        favoriteModalState = {
+          visible: true,
+          commandId,
+          selectedLocal: state.localFavorites.includes(commandId),
+          selectedGlobal: state.globalFavorites.includes(commandId),
+        };
+        render();
+      }
+    });
+
+    // ── Right-click (contextmenu) — modifier key required ─────────────────────
+    button.addEventListener('contextmenu', function (e) {
+      const ctrlOrMeta = e.ctrlKey || e.metaKey;
+      const shift = e.shiftKey;
+
+      // Only intercept when a modifier is held; otherwise let global handler handle it
+      if (!ctrlOrMeta && !shift) {return;}
+
+      e.preventDefault();
+      e.stopPropagation();
+
+      const commandId = button.dataset.commandId;
+      const hasWorkspace = !!state.workspaceFolder;
+
+      if (ctrlOrMeta && shift) {
+        // Ctrl+Shift+Right → Remove from Both
+        const newGlobal = state.globalFavorites.filter(function (id) {return id !== commandId;});
+        const newLocal = state.localFavorites.filter(function (id) {return id !== commandId;});
+        state.globalFavorites = newGlobal;
+        state.localFavorites = newLocal;
+        persistFavorites({global: newGlobal, local: newLocal});
+        showNotice('Removed from Global & Local Favorites.', iconHeartMinus(), 'info');
+        render();
+      } else if (ctrlOrMeta) {
+        // Ctrl+Right → Remove from Global
+        if (state.globalFavorites.includes(commandId)) {
+          const newGlobal = state.globalFavorites.filter(function (id) {return id !== commandId;});
+          state.globalFavorites = newGlobal;
+          persistFavorites({global: newGlobal, local: state.localFavorites});
+          showNotice('Removed from Global Favorites.', iconHeartMinus(), 'info');
+          render();
+        }
+      } else if (shift) {
+        // Shift+Right → Remove from Local (requires workspace)
+        if (!hasWorkspace) {
+          showNotice('Local favorites require an open workspace.', iconExclamationTriangle(), 'warning');
+          paintNotice();
+          return;
+        }
+        if (state.localFavorites.includes(commandId)) {
+          const newLocal = state.localFavorites.filter(function (id) {return id !== commandId;});
+          state.localFavorites = newLocal;
+          persistFavorites({global: state.globalFavorites, local: newLocal});
+          showNotice('Removed from Local Favorites.', iconHeartMinus(), 'info');
+          render();
+        }
+      }
     });
   });
 
@@ -3380,7 +3491,7 @@ function executeDeleteConfirm() {
 }
 
 function persistDataThenRender(successMessage) {
-  showNotice(successMessage);
+  showNotice(successMessage, IconCircleCheck(), 'success');
   render();
   vscode.postMessage({type: 'saveData', payload: state.data});
 }
@@ -3430,9 +3541,11 @@ function syncEditCommandDraftFromCommand(command) {
   }
 }
 
-function showNotice(message) {
+function showNotice(message, icon, type) {
   noticeIsError = false;
   uiState.noticeMessage = message;
+  uiState.noticeIcon = icon !== undefined ? icon : IconCircleExclamation();
+  uiState.noticeType = type || 'info';
 
   if (noticeTimer) {
     clearTimeout(noticeTimer);
@@ -3440,6 +3553,8 @@ function showNotice(message) {
 
   noticeTimer = setTimeout(function () {
     uiState.noticeMessage = '';
+    uiState.noticeIcon = '';
+    uiState.noticeType = '';
     noticeIsError = false;
     // Remove the notice element directly — no full re-render needed
     var noticeEl = document.querySelector('.notice');
@@ -3448,9 +3563,11 @@ function showNotice(message) {
   }, 3000);
 }
 
-function showError(message) {
+function showError(message, icon, type) {
   noticeIsError = true;
   uiState.noticeMessage = message;
+  uiState.noticeIcon = icon !== undefined ? icon : IconCircleX();
+  uiState.noticeType = type || 'error';
 
   if (noticeTimer) {
     clearTimeout(noticeTimer);
@@ -3458,6 +3575,8 @@ function showError(message) {
 
   noticeTimer = setTimeout(function () {
     uiState.noticeMessage = '';
+    uiState.noticeIcon = '';
+    uiState.noticeType = '';
     noticeIsError = false;
     // Remove the notice element directly — no full re-render needed
     var noticeEl = document.querySelector('.notice');
@@ -3479,8 +3598,8 @@ function paintNotice() {
   if (existing) {existing.remove();}
   if (!uiState.noticeMessage) {return;}
   var el = document.createElement('div');
-  el.className = 'notice' + (noticeIsError ? ' notice-error' : '');
-  el.textContent = uiState.noticeMessage;
+  el.className = 'notice' + (uiState.noticeType ? ' notice-' + uiState.noticeType : '');
+  el.innerHTML = '<div class="notice-icon">' + uiState.noticeIcon + '</div><div class="notice-message">' + uiState.noticeMessage + '</div>';
   // Insert after workspace-label (2nd child), before the tabs section
   var workspaceLabel = layout.querySelector('.workspace-label');
   if (workspaceLabel && workspaceLabel.nextSibling) {
@@ -3840,7 +3959,7 @@ function bindEnumManagerEvents() {
       const description = descInput ? descInput.value.trim() : '';
 
       if (!title || !value) {
-        showNotice('Title and Value are required.');
+        showNotice('Title and Value are required.', iconExclamationTriangle(), 'warning');
         return;
       }
 
@@ -4096,7 +4215,7 @@ function renderAiSettingsModal() {
           </div>
           ` : `
           <div class="ai-provider-key-status-item ai-key-missing">
-            ${iconExclamation()}
+            ${iconExclamationTriangle()}
             <span class="ai-key-status ai-key-missing">No key saved</span>
           </div>
         `}
@@ -4660,9 +4779,8 @@ function renderFavoritesScopeToggle(scope, showToggle, skipConfirm) {
           <button class="fav-scope-btn ${scope === 'global' ? 'active' : ''}" data-scope="global" data-tooltip="Show favorites available in all workspaces">Global</button>
         </div>
         <span class="muted fav-scope-hint">${scope === 'local' ? escapeHtml(state.workspaceFolder || '') : 'Available everywhere'}</span>
-      </div>` : ''}
-      ${skipConfirm ? `
-      <p class="muted fav-confirm-skip-notice">Removal confirmations are disabled. <a href="#" id="btn-restore-unfav-confirm" data-tooltip="Re-enable the confirmation dialog when removing from favorites">Restore</a></p>` : ''}
+      </div>` : `<p class="muted margin-block-0">Showing only global favorites, as no workspace is currently open.</p>`}
+      ${skipConfirm ? `<p class="muted margin-block-0">Removal confirmations are disabled. <a href="#" id="btn-restore-unfav-confirm" data-tooltip="Re-enable the confirmation dialog when removing from favorites">Restore</a></p>` : ''}
     </div>
   `;
 }
@@ -4830,10 +4948,12 @@ function bindFavoritesTabEvents() {
           const newLocal = state.localFavorites.filter(function (id) {return id !== commandId;});
           state.localFavorites = newLocal;
           persistFavorites({local: newLocal});
+          showNotice('Removed from Local Workspace Favorites.', iconHeartMinus(), 'info');
         } else {
           const newGlobal = state.globalFavorites.filter(function (id) {return id !== commandId;});
           state.globalFavorites = newGlobal;
           persistFavorites({global: newGlobal});
+          showNotice('Removed from Global Favorites.', iconHeartMinus(), 'info');
         }
         render();
       } else {
@@ -4849,7 +4969,7 @@ function bindFavoritesTabEvents() {
   if (restoreUnfavConfirmBtn) {
     restoreUnfavConfirmBtn.addEventListener('click', function (e) {
       e.preventDefault();
-      try { localStorage.removeItem('unfav_confirm_skip'); } catch { }
+      try {localStorage.removeItem('unfav_confirm_skip');} catch { }
       render();
     });
   }
@@ -4885,7 +5005,7 @@ function bindFavoriteModalEvents() {
         state.globalFavorites = newGlobal;
         state.localFavorites = newLocal;
         persistFavorites({global: newGlobal, local: newLocal});
-        showNotice('Removed from all favorites.');
+        showNotice('Removed from all favorites.', iconHeartMinus(), 'info');
       }
       favoriteModalState = {visible: false, commandId: null, selectedLocal: false, selectedGlobal: false};
       render();
@@ -4926,13 +5046,13 @@ function bindFavoriteModalEvents() {
         persistFavorites({global: newGlobal, local: newLocal});
 
         if (!wantGlobal && !wantLocal) {
-          showNotice('Removed from all favorites.');
+          showNotice('Removed from all favorites.', iconHeartMinus(), 'info');
         } else if (wantGlobal && wantLocal) {
-          showNotice('Saved to Local & Global Favorites.');
+          showNotice('Saved to Local & Global Favorites.', iconHeartPlus(), 'success');
         } else if (wantGlobal) {
-          showNotice('Saved to Global Favorites.');
+          showNotice('Saved to Global Favorites.', iconHeartPlus(), 'success');
         } else {
-          showNotice('Saved to Local Favorites.');
+          showNotice('Saved to Local Favorites.', iconHeartPlus(), 'success');
         }
       }
 
@@ -4997,7 +5117,7 @@ function bindUnfavoriteConfirmEvents() {
       }
 
       unfavoriteConfirmState = {visible: false, commandId: null, scope: null};
-      showNotice('Removed from Favorites.');
+      showNotice('Removed from Favorites.', iconHeartMinus(), 'info');
       render();
     });
   }
