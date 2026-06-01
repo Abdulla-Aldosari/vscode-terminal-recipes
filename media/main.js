@@ -1764,7 +1764,7 @@ function renderAutoVarConfig(varDef) {
 }
 
 function bindVariablesTabEvents() {
-  // Checkbox تفعيل/تعطيل متغير
+  // Checkbox to enable/disable a variable
   document.querySelectorAll('.auto-var-checkbox').forEach(function (checkbox) {
     checkbox.addEventListener('change', function () {
       const varName = checkbox.dataset.varName;
@@ -1781,7 +1781,7 @@ function bindVariablesTabEvents() {
     });
   });
 
-  // نسخ اسم المتغير عند الضغط على عنصر code
+  // Copy variable name when clicking on a code element
   document.querySelectorAll('.auto-var-name-code').forEach(function (el) {
     el.addEventListener('click', function () {
       const value = el.dataset.copyValue;
@@ -1798,7 +1798,7 @@ function bindVariablesTabEvents() {
     });
   });
 
-  // تغيير تنسيق التاريخ
+  // Change the date format
   bindCustomSelect(
     'auto-var-date-format-wrap',
     'auto-var-date-format-btn',
@@ -3610,8 +3610,8 @@ function paintNotice() {
 }
 
 /**
- * يرجع قائمة أسماء المتغيرات التلقائية المفعّلة حالياً.
- * تُستخدم لاستثناء هذه المتغيرات من نوافذ الإدخال.
+ * Returns a list of currently enabled auto variable names.
+ * Used to exclude these variables from input prompts.
  * @returns {string[]}
  */
 function getEnabledAutoVariableNames() {
