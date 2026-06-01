@@ -949,7 +949,7 @@ function renderCommandsTable(commands, groups) {
                 ${isSorting ? `<td class="main-t-drag-handle-column drag-handle-cell"><span class="drag-handle" data-tooltip="Drag to reorder">${iconDragHandle()}</span></td>` : ''}
                 <td class="main-t-title-column">${titleHtml}<br><span class="muted">${escapeHtml(command.id)}</span></td>
                 <td class="main-t-description-column">${escapeHtml(command.description || '-')}</td>
-                <td class="main-t-template-column"><pre class="template-cell">${escapeHtml(command.command)}</pre></td>
+                <td class="main-t-template-column"><pre class="template-cell">${highlightTemplateHtml(command.command)}</pre></td>
                 <td class="main-t-groups-column">${escapeHtml(resolveGroupTitle(command.groupId || '', groups))}</td>
                 ${!isSorting ? `<td class="main-t-action-column">
                 <div class="actions-cell">
@@ -1313,7 +1313,7 @@ function renderRunConfirmModal() {
     <div class="modal-overlay" id="run-confirm-overlay" data-dismiss-on-outside-click="false">
       <div class="modal-box">
         <h3>Do you want to run this command?</h3>
-        <pre class="modal-command-preview">${escapeHtml(runConfirmState.resolvedCommand)}</pre>
+        <pre class="modal-command-preview">${command ? highlightResolvedHtml(command) : escapeHtml(runConfirmState.resolvedCommand)}</pre>
         <span class="muted run-cmd-warning">${iconExclamationTriangle()} This command will be executed immediately</span>
         <div class="row justify-content-flex-end">
         ${hasVariables ? `<button class="btn small secondary min-w65" id="btn-confirm-run-variables">Edit Variables</button>` : ''}
@@ -1431,7 +1431,7 @@ function renderDeleteConfirmModal() {
     heading = `Do you want to delete this command?`;
     detailHtml = `
       <p class="delete-confirm-command-name">${escapeHtml(deleteConfirmState.title)}</p>
-      <pre class="modal-command-preview">${escapeHtml(deleteConfirmState.template)}</pre>
+      <pre class="modal-command-preview">${highlightTemplateHtml(deleteConfirmState.template)}</pre>
     `;
   } else {
     heading = `Do you want to delete this ${escapeHtml(deleteConfirmState.type)}?`;
@@ -1503,7 +1503,7 @@ function renderRecentCommandsTab() {
     return `
                 <tr>
                   <td>${titleHtml}</td>
-                  <td><pre class="template-cell">${escapeHtml(command.command)}</pre></td>
+                  <td><pre class="template-cell">${highlightTemplateHtml(command.command)}</pre></td>
                   <td data-tooltip="${escapeAttr(formatDateTime(command.lastRunAt))}">${escapeHtml(timeAgo(command.lastRunAt))}</td>
                   <td><strong>×${command.runCount || 0}</strong></td>
                     <td>
@@ -1619,6 +1619,55 @@ function updateTemplateHighlight(textarea) {
     if (autoItem) {autoItem.classList.toggle('hidden', !hasAuto);}
     if (userItem) {userItem.classList.toggle('hidden', !hasUser);}
   }
+}
+
+/**
+ * Returns HTML string with ${varName} tokens wrapped in colored spans.
+ * .var-auto for reserved/auto-resolved variables, .var-user for user-defined.
+ * @param {string} text - raw template text
+ * @returns {string} HTML string safe for innerHTML
+ */
+function highlightTemplateHtml(text) {
+  var autoVarNames = getEnabledAutoVariableNames();
+  return escapeHtml(text).replace(
+    /\$\{([a-zA-Z0-9_]+)\}/g,
+    function (match, name) {
+      var cls = autoVarNames.includes(name) ? 'var-auto' : 'var-user';
+      return '<span class="' + cls + '">' + match + '</span>';
+    }
+  );
+}
+
+/**
+ * Returns HTML string of a resolved command where each substituted variable value
+ * is wrapped in a colored span reflecting its origin:
+ * .var-auto (green) for auto-resolved variables, .var-user (blue) for user-defined.
+ * @param {object} command - the command object with .command template
+ * @returns {string} HTML string safe for innerHTML
+ */
+function highlightResolvedHtml(command) {
+  var names = collectVariables([command.command]);
+  var draft = getCommandDraft(command.id);
+  var autoVarNames = getEnabledAutoVariableNames();
+  var result = escapeHtml(command.command);
+
+  names.forEach(function (name) {
+    var cls, value;
+    if (autoVarNames.includes(name)) {
+      var autoVarDef = (state.autoVariables || []).find(function (v) {return v.name === name;});
+      value = autoVarDef ? (autoVarDef.currentValue || '') : '';
+      cls = 'var-auto';
+    } else {
+      value = draft[name] || '';
+      cls = 'var-user';
+    }
+    result = result.replace(
+      new RegExp('\\$\\{' + escapeRegExp(name) + '\\}', 'g'),
+      '<span class="' + cls + '">' + escapeHtml(value) + '</span>'
+    );
+  });
+
+  return result;
 }
 
 /**
@@ -4430,7 +4479,7 @@ function renderAiResultsModal() {
                   <tr class="${isChecked ? '' : 'ai-row-unchecked'}">
                     <td><strong>${escapeHtml(cmd.title)}</strong></td>
                     <td>${escapeHtml(cmd.description || '-')}</td>
-                    <td><pre class="template-cell">${escapeHtml(cmd.command)}</pre></td>
+                    <td><pre class="template-cell">${highlightTemplateHtml(cmd.command)}</pre></td>
                     ${isFullMode ? `<td>${escapeHtml(cmdGroups || '-')}</td>` : ''}
                     <td>
                       <input type="checkbox" class="ai-cmd-checkbox" data-cmd-id="${escapeAttr(cmd.id)}" ${isChecked ? 'checked' : ''} />
@@ -4869,7 +4918,7 @@ function renderFavoritesTable(commands) {
             <tr data-command-id="${escapeAttr(command.id)}">
               <td class="main-t-title-column">${titleHtml}<br><span class="muted">${escapeHtml(command.id)}</span></td>
               <td class="main-t-description-column">${escapeHtml(command.description || '-')}</td>
-              <td class="main-t-template-column"><pre class="template-cell">${escapeHtml(command.command)}</pre></td>
+              <td class="main-t-template-column"><pre class="template-cell">${highlightTemplateHtml(command.command)}</pre></td>
               <td class="main-t-groups-column">${escapeHtml(_groupTitle)}</td>
               <td class="main-t-action-column">
                 <div class="actions-cell">
