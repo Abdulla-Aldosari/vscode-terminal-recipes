@@ -20,6 +20,10 @@ a:focus {
   outline-offset: unset;
 }
 
+button:focus {
+  outline: none;
+}
+
 .layout {
   display: grid;
   gap: 14px;
@@ -774,6 +778,10 @@ td.actions-cell {
 
 .mt-20 {
   margin-top: 20px;
+}
+
+.ml-auto {
+  margin-left: auto;
 }
 
 .mr-auto {
@@ -1658,12 +1666,6 @@ tr.row-highlight td {
   display: flex;
   align-items: center;
   gap: 5px;
-}
-
-
-/* ===== Column Toggle: push to right ===== */
-.col-toggle-wrap {
-  margin-left: auto;
 }
 
 /* ===== Enum Manager: Add/Edit form heading ===== */

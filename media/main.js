@@ -39,7 +39,6 @@ function iconExternalLink() {
 function iconAiSetupHelp() {
   return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M12 16v.01" /><path d="M12 13a2 2 0 0 0 .914 -3.782a1.98 1.98 0 0 0 -2.414 .483" /><path d="M10 20.777a8.942 8.942 0 0 1 -2.48 -.969" /><path d="M14 3.223a9.003 9.003 0 0 1 0 17.554" /><path d="M4.579 17.093a8.961 8.961 0 0 1 -1.227 -2.592" /><path d="M3.124 10.5c.16 -.95 .468 -1.85 .9 -2.675l.169 -.305" /><path d="M6.907 4.579a8.954 8.954 0 0 1 3.093 -1.356" /></svg>`;
 }
-
 function iconCheckboxOk() {
   return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M9 11l3 3l8 -8" /><path d="M20 12v6a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h9" /></svg>`;
 }
@@ -61,7 +60,6 @@ function iconHeartPlus() {
 function iconHeartMinus() {
   return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m14.876 18.99-1.368 1.323a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5a5.2 5.2 0 0 1-.244 1.572"/><path d="M15 15h6"/></svg>`;
 }
-
 function iconCommand() {
   return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3"/></svg>`;
 }
@@ -77,25 +75,18 @@ function iconAdd() {
 function iconVariables() {
   return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.828 14.828 21 21"/><path d="M21 16v5h-5"/><path d="m21 3-9 9-4-4-6 6"/><path d="M21 8V3h-5"/></svg>`;
 }
-
 function iconExclamationTriangle() {
   return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>`;
 }
-
 function IconCircleCheck() {
   return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /><path d="M9 12l2 2l4 -4" /></svg>`;
 }
-
 function IconCircleX() {
   return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /><path d="M10 10l4 4m0 -4l-4 4" /></svg>`;
 }
-
 function IconCircleExclamation() {
   return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /><path d="M12 9v4" /><path d="M12 16v.01" /></svg>`;
 }
-
-
-
 
 // SVG: chevron down (For custom dropdown menues) - using for indicating expandable dropdown arrows
 const chevronSvg = `<svg viewBox="0 0 21 21" width="17" height="17" class="cs-chevron" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="m6 9l6 6l6-6"></path></svg>`;
@@ -805,16 +796,12 @@ function renderCommandsTab(selectedCategory) {
       
       <div class="row align-items-center commands-toolbar">
         <h2 class="pb-5">Commands Browser</h2>
-        <div class="${uiState.sortingMode ? 'sort-disabled-wrap' : ''}">
-          ${renderCustomCategorySelect()}
-        </div>
-        <div class="${uiState.sortingMode ? 'sort-disabled-wrap' : ''}">
-          ${renderColumnToggleDropdown()}
-        </div>
+        ${renderCustomCategorySelect()}
+        <button class="btn small secondary ml-auto${uiState.sortingMode ? ' sort-btn-active' : ''}" id="btn-toggle-sort" data-tooltip="${uiState.sortingMode ? 'Click to exit sort mode' : 'Drag to reorder commands'}">${iconSort()} ${uiState.sortingMode ? 'Done Sorting' : 'Sort'}</button>
+        ${renderColumnToggleDropdown()}
         <button class="btn small secondary ai-create-btn" id="btn-add-with-ai" data-tooltip="${uiState.selectedGroupId === 'all' ? 'Select a specific group first' : 'Generate a command using AI'}" ${uiState.selectedGroupId === 'all' || uiState.sortingMode ? 'disabled' : ''}>${iconSparkles()} Add with AI</button>
-        <button class="btn small secondary ${uiState.sortingMode ? 'sort-btn-active' : ''}" id="btn-toggle-sort" data-tooltip="${uiState.sortingMode ? 'Click to exit sort mode' : 'Drag to reorder commands'}">${iconSort()} ${uiState.sortingMode ? 'Done Sorting' : 'Sort'}</button>
       </div>
-      <div class="group-tags-row ${uiState.sortingMode ? 'sort-disabled-wrap' : ''}">
+      <div class="group-tags-row${uiState.sortingMode ? ' sort-disabled-wrap' : ''}">
         <span class="groups-label">Groups:</span>
         <button class="tag group-filter-tag ${uiState.selectedGroupId === 'all' ? 'active' : ''}" data-group-id="all">All</button>
         ${groups.map(function (group) {
@@ -2333,7 +2320,7 @@ function renderCustomCategorySelect() {
   }).join('');
 
   return `
-    <div class="cs-wrap" id="custom-category-select">
+    <div class="cs-wrap${uiState.sortingMode ? ' sort-disabled-wrap' : ''}" id="custom-category-select">
       <button class="cs-btn" type="button" aria-haspopup="menu" aria-expanded="false" id="cs-btn-toggle">
         <span class="cs-btn-label">${escapeHtml(selectedTitle)}</span>
         ${chevronSvg}
@@ -2363,7 +2350,7 @@ function renderColumnToggleDropdown() {
   }).join('');
 
   return `
-    <div class="cs-wrap col-toggle-wrap" id="col-toggle-wrap">
+    <div class="cs-wrap${uiState.sortingMode ? ' sort-disabled-wrap' : ''}" id="col-toggle-wrap">
       <button class="cs-btn cs-btn-col-toggle" type="button" aria-haspopup="menu" aria-expanded="false" id="col-toggle-btn" data-tooltip="Show/Hide Columns">
         ${columnSvg}
         <span class="cs-btn-label col-toggle-btn-label">Columns</span>
@@ -2458,6 +2445,17 @@ function bindCommandsTabEvents() {
     sortBtn.addEventListener('click', function () {
       uiState.sortingMode = !uiState.sortingMode;
       render();
+    });
+  }
+
+  // --- ESC key to exit sort mode ---
+  if (uiState.sortingMode) {
+    document.addEventListener('keydown', function onEscExitSort(e) {
+      if (e.key === 'Escape') {
+        uiState.sortingMode = false;
+        document.removeEventListener('keydown', onEscExitSort);
+        render();
+      }
     });
   }
 
