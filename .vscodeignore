@@ -6,3 +6,5 @@ node_modules/**
 AGENTS.md
 extension.js
 package-lock.json
+.gitignore
+*.vsix

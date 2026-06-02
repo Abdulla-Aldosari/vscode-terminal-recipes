@@ -2,15 +2,32 @@
   "name": "terminal-recipes",
   "displayName": "Terminal Recipes",
   "description": "Manage categorized terminal commands and run, use, or copy them with variable support.",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "publisher": "abdulla-aldosari",
   "icon": "media/icon.png",
   "engines": {
     "vscode": "^1.86.0"
   },
   "categories": [
-    "Other"
+    "Other",
+    "Snippets"
   ],
+  "keywords": [
+    "terminal",
+    "commands",
+    "cli",
+    "shell",
+    "productivity",
+    "runner",
+    "manager",
+    "ai",
+    "variables",
+    "favorites"
+  ],
+  "galleryBanner": {
+    "color": "#1e1e1e",
+    "theme": "dark"
+  },
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
