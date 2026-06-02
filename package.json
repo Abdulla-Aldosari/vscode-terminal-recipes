@@ -13,22 +13,29 @@
     "Snippets"
   ],
   "keywords": [
-    "terminal",
-    "commands",
-    "cli",
-    "shell",
-    "productivity",
-    "runner",
-    "manager",
-    "ai",
-    "variables",
-    "favorites"
+    "Terminal",
+    "Commands",
+    "Command Line",
+    "CLI",
+    "CMD",
+    "Shell",
+    "PowerShell",
+    "Run",
+    "Productivity",
+    "Runner",
+    "Manager",
+    "AI",
+    "Variables",
+    "Favorites"
   ],
   "galleryBanner": {
     "color": "#1e1e1e",
     "theme": "dark"
   },
   "main": "./dist/extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
   "contributes": {
     "commands": [
       {

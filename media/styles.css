@@ -1903,7 +1903,7 @@ tr.row-highlight td {
   font-size: 12px;
   line-height: 1.5em;
   pointer-events: none;
-  max-width: 320px;
+  max-width: 450px;
   overflow: visible;
 }
 

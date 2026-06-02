@@ -158,6 +158,16 @@ function activate(context) {
   );
 
   context.subscriptions.push(openPanelCommand);
+
+  const statusBarItem = vscode.window.createStatusBarItem(
+    vscode.StatusBarAlignment.Right,
+    100,
+  );
+  statusBarItem.text = "$(terminal) Recipes";
+  statusBarItem.tooltip = "Open Terminal Recipes";
+  statusBarItem.command = "terminalRecipes.openPanel";
+  statusBarItem.show();
+  context.subscriptions.push(statusBarItem);
 }
 
 /**

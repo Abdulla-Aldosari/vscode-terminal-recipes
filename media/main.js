@@ -966,7 +966,7 @@ function renderAddCommandTab(selectedCategory) {
                 <input class="input variable-input" data-command-id="__new__" data-variable-name="${escapeAttr(name)}" value="${escapeAttr(value)}" />
                 ${renderToggleSwitch3("__new__", name, rememberValue, "variable-remember-toggle")}
                 <button type="button" class="btn small ${isEnum ? "primary" : "secondary"} btn-open-enum-manager" data-var-name="${escapeAttr(name)}" data-command-id="" data-tooltip="Manage Enum values for this variable">
-                  ${icons.adjustments()} ${isEnum ? `Enum (${enumCount})` : "Set Enum"}
+                  ${icons.adjustments} ${isEnum ? `Enum (${enumCount})` : "Set Enum"}
                 </button>
               </div>
             `;
@@ -1030,8 +1030,8 @@ function renderCommandsTable(commands, groups) {
               const _useCtrlHint =
                 _useVars.length > 0 && _useMissing.length === 0;
               const _useTitle = _useCtrlHint
-                ? "Use in terminal\nPress CTRL key to edit the variables"
-                : "Use in terminal";
+                ? "Insert into terminal (without running)<br>Press CTRL key to edit the variables"
+                : "Insert into terminal (without running)";
               return `
               <tr data-command-id="${escapeAttr(command.id)}" draggable="${isSorting ? "true" : "false"}">
                 ${isSorting ? `<td class="main-t-drag-handle-column drag-handle-cell"><span class="drag-handle" data-tooltip="Drag to reorder">${icons.dragHandle}</span></td>` : ""}
@@ -1361,7 +1361,7 @@ function renderEditTab() {
                 <label class="variable-name">\${${escapeHtml(name)}}</label>
                 <input class="input variable-input" data-command-id="${escapeAttr(command.id)}" data-variable-name="${escapeAttr(name)}" value="${escapeAttr(value)}" />
                 ${renderToggleSwitch3(command.id, name, rememberValue, "variable-remember-toggle")}
-                <button type="button" class="btn small ${isEnum ? "primary" : "secondary"} btn-open-enum-manager" data-var-name="${escapeAttr(name)}" data-command-id="${escapeAttr(command.id)}" data-tooltip="Manage Enum values">${icons.adjustments()} ${isEnum ? `Enum (${enumCount})` : "Set Enum"}</button>
+                <button type="button" class="btn small ${isEnum ? "primary" : "secondary"} btn-open-enum-manager" data-var-name="${escapeAttr(name)}" data-command-id="${escapeAttr(command.id)}" data-tooltip="Manage Enum values">${icons.adjustments} ${isEnum ? `Enum (${enumCount})` : "Set Enum"}</button>
               </div>
             `;
               })
@@ -1695,8 +1695,8 @@ function renderRecentCommandsTab() {
                 const _useCtrlHint =
                   _useVars.length > 0 && _useMissing.length === 0;
                 const _useTitle = _useCtrlHint
-                  ? "Use in terminal\nPress CTRL key to edit the variables"
-                  : "Use in terminal";
+                  ? "Insert into terminal (without running)<br>Press CTRL key to edit the variables"
+                  : "Insert into terminal (without running)";
                 return `
                 <tr>
                   <td>${titleHtml}</td>
@@ -5634,8 +5634,8 @@ function renderFavoritesScopeToggle(scope, showToggle, skipConfirm) {
           ? `
       <div class="fav-scope-toggle-section">
         <div class="fav-scope-toggle">
-          <button class="fav-scope-btn ${scope === "local" ? "active" : ""}" data-scope="local" data-tooltip="Show favorites for this workspace only">Local Workspace</button>
-          <button class="fav-scope-btn ${scope === "global" ? "active" : ""}" data-scope="global" data-tooltip="Show favorites available in all workspaces">Global</button>
+          <button class="fav-scope-btn ${scope === "local" ? "active" : ""}" data-scope="local" data-tooltip="Show favorites for this workspace only">Local Workspace (${state.localFavorites.length})</button>
+          <button class="fav-scope-btn ${scope === "global" ? "active" : ""}" data-scope="global" data-tooltip="Show favorites available in all workspaces">Global (${state.globalFavorites.length})</button>
         </div>
         <span class="muted fav-scope-hint">${scope === "local" ? escapeHtml(state.workspaceFolder || "") : "Available everywhere"}</span>
       </div>`
@@ -5677,8 +5677,8 @@ function renderFavoritesTable(commands) {
             const _useCtrlHint =
               _useVars.length > 0 && _useMissing.length === 0;
             const _useTitle = _useCtrlHint
-              ? "Use in terminal\nPress CTRL key to edit the variables"
-              : "Use in terminal";
+              ? "Insert into terminal (without running)<br>Press CTRL key to edit the variables"
+              : "Insert into terminal (without running)";
             const _scope = uiState.favoritesScope;
             const _scopeLabel =
               _scope === "local" ? "Local Workspace" : "Global";
