@@ -77,6 +77,7 @@
   },
   "scripts": {
     "check": "node --check extension.js && node --check media/main.js",
+    "lint": "eslint extension.js media/main.js lib/",
     "build": "esbuild extension.js --bundle --outfile=dist/extension.js --external:vscode --platform=node --target=node18 --minify",
     "watch": "esbuild extension.js --bundle --outfile=dist/extension.js --external:vscode --platform=node --target=node18 --sourcemap --watch",
     "vscode:prepublish": "npm run build"
@@ -92,6 +93,8 @@
     "openai": "^4.103.0"
   },
   "devDependencies": {
-    "esbuild": "^0.28.0"
+    "@eslint/js": "^10.0.1",
+    "esbuild": "^0.28.0",
+    "eslint": "^10.4.1"
   }
 }

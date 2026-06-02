@@ -8,8 +8,7 @@ const os = require("os");
 const path = require("path");
 const crypto = require("crypto");
 const { generateWithAI } = require("./lib/ai/factory");
-const { DEFAULT_SYSTEM_INSTRUCTION } = require("./lib/ai/systemInstruction");
-const { AI_PROVIDERS, getProvidersArray } = require("./lib/ai/providers-config");
+const { AI_PROVIDERS } = require("./lib/ai/providers-config");
 const {
   resolveAutoVariables,
   buildAutoVariablesPayload,

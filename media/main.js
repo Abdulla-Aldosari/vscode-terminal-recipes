@@ -119,7 +119,6 @@ const uiState = {
 };
 
 let noticeTimer = null;
-let noticeIsError = false;
 let runConfirmState = {
   commandId: null,
   resolvedCommand: "",
@@ -1323,7 +1322,7 @@ function renderEditTab() {
             false, // menuUp
             "cs-wrap-full", // `wrapExtraClass`
           )}
-          ${isMoved ? `<span class="muted move-category-warning">${iconExclamationTriangle()} Moving to new category — (Please select a group from the list below)</span>` : ""}
+          ${isMoved ? `<span class="muted move-category-warning">${icons.exclamationTriangle} Moving to new category — (Please select a group from the list below)</span>` : ""}
         </div>
         <div class="full-width grouped-tags-wrap">
           <span class="groups-label">Groups:</span>
@@ -1470,7 +1469,7 @@ function renderRunConfirmModal() {
       <div class="modal-box">
         <h3>Do you want to run this command?</h3>
         <pre class="modal-command-preview">${command ? highlightResolvedHtml(command) : escapeHtml(runConfirmState.resolvedCommand)}</pre>
-        <span class="muted run-cmd-warning">${iconExclamationTriangle()} This command will be executed immediately</span>
+        <span class="muted run-cmd-warning">${icons.exclamationTriangle} This command will be executed immediately</span>
         <div class="row justify-content-flex-end">
         ${hasVariables ? `<button class="btn small secondary min-w65" id="btn-confirm-run-variables">Edit Variables</button>` : ""}
           ${renderShellSelector()}
@@ -2469,7 +2468,7 @@ function executeManageModalConfirm() {
   const mode = manageModalState.mode;
 
   if (!value) {
-    showNotice("Name is required.", iconExclamationTriangle(), "warning");
+    showNotice("Name is required.", icons.exclamationTriangle, "warning");
     if (input) {
       input.focus();
     }
@@ -2505,7 +2504,7 @@ function executeManageModalConfirm() {
     if (!selectedCategory) {
       showNotice(
         "Select a category first.",
-        iconExclamationTriangle(),
+        icons.exclamationTriangle,
         "warning",
       );
       return;
@@ -3069,7 +3068,7 @@ function bindAddCommandTabEvents() {
       if (!selectedCategory) {
         showNotice(
           "Select category first.",
-          iconExclamationTriangle(),
+          icons.exclamationTriangle,
           "warning",
         );
         render();
@@ -3105,7 +3104,7 @@ function bindAddCommandTabEvents() {
       if (!groupId) {
         showError(
           "Please select at least one group from the list below.",
-          iconExclamationTriangle(),
+          icons.exclamationTriangle,
           "warning",
         );
         render();
@@ -3214,7 +3213,7 @@ function bindEditTabEvents() {
     if (!draft.groupId) {
       showError(
         "Please select at least one group from the list below.",
-        iconExclamationTriangle(),
+        icons.exclamationTriangle,
         "warning",
       );
       render();
@@ -3455,24 +3454,6 @@ function bindEditTabEvents() {
     });
 }
 
-function syncNewCommandDraftFromDom() {
-  const titleInput = document.getElementById("new-command-title");
-  const templateInput = document.getElementById("new-command-template");
-  const descriptionInput = document.getElementById("new-command-description");
-
-  if (titleInput) {
-    uiState.newCommandDraft.title = titleInput.value;
-  }
-
-  if (templateInput) {
-    uiState.newCommandDraft.template = templateInput.value;
-  }
-
-  if (descriptionInput) {
-    uiState.newCommandDraft.description = descriptionInput.value;
-  }
-}
-
 function bindCommandActionButtons() {
   document.querySelectorAll(".btn-run").forEach(function (button) {
     button.addEventListener("click", function () {
@@ -3640,7 +3621,7 @@ function bindCommandActionButtons() {
         if (!hasWorkspace) {
           showNotice(
             "Local favorites require an open workspace.",
-            iconExclamationTriangle(),
+            icons.exclamationTriangle,
             "warning",
           );
           paintNotice();
@@ -3718,7 +3699,7 @@ function bindCommandActionButtons() {
         if (!hasWorkspace) {
           showNotice(
             "Local favorites require an open workspace.",
-            iconExclamationTriangle(),
+            icons.exclamationTriangle,
             "warning",
           );
           paintNotice();
@@ -3940,7 +3921,6 @@ function bindCommandActionButtons() {
     variableInputConfirmButton.addEventListener("click", function () {
       const commandId = variableInputState.commandId;
       const action = variableInputState.action;
-      const returnToRunConfirm = variableInputState.returnToRunConfirm;
 
       if (!commandId || !action) {
         variableInputState = {
@@ -4268,7 +4248,6 @@ function syncEditCommandDraftFromCommand(command) {
 }
 
 function showNotice(message, icon, type) {
-  noticeIsError = false;
   uiState.noticeMessage = message;
   uiState.noticeIcon = icon !== undefined ? icon : icons.circleExclamation;
   uiState.noticeType = type || "info";
@@ -4281,7 +4260,6 @@ function showNotice(message, icon, type) {
     uiState.noticeMessage = "";
     uiState.noticeIcon = "";
     uiState.noticeType = "";
-    noticeIsError = false;
     // Remove the notice element directly — no full re-render needed
     var noticeEl = document.querySelector(".notice");
     if (noticeEl) {
@@ -4292,7 +4270,6 @@ function showNotice(message, icon, type) {
 }
 
 function showError(message, icon, type) {
-  noticeIsError = true;
   uiState.noticeMessage = message;
   uiState.noticeIcon = icon !== undefined ? icon : icons.circleX;
   uiState.noticeType = type || "error";
@@ -4305,7 +4282,6 @@ function showError(message, icon, type) {
     uiState.noticeMessage = "";
     uiState.noticeIcon = "";
     uiState.noticeType = "";
-    noticeIsError = false;
     // Remove the notice element directly — no full re-render needed
     var noticeEl = document.querySelector(".notice");
     if (noticeEl) {
@@ -4730,7 +4706,7 @@ function bindEnumManagerEvents() {
       if (!title || !value) {
         showNotice(
           "Title and Value are required.",
-          iconExclamationTriangle(),
+          icons.exclamationTriangle,
           "warning",
         );
         return;

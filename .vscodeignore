@@ -1,5 +1,7 @@
 .temp/**
 .vscode/**
+.github/**
+eslint.config.js
 lib/**
 dist/*.map
 node_modules/**
