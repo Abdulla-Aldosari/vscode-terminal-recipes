@@ -1,7 +1,8 @@
 :root {
   color-scheme: light dark;
-  --v-auto-resolved-variables: #92a781;
-  --v-user-defined-variables: #3d97bf;
+  --recipes-auto-resolved-variables: #92a781;
+  --recipes-user-defined-variables: #3d97bf;
+  --recipes-editor-background: var(--vscode-editor-background);
 }
 
 * {
@@ -366,12 +367,12 @@ textarea {
 /* Reserved/auto variables, indicating auto-resolved */
 .var-auto {
   opacity: 0.9;
-  color: var(--v-auto-resolved-variables);
+  color: var(--recipes-auto-resolved-variables);
 }
 
 /* User-defined variables, indicating needs input */
 .var-user {
-  color: var(--v-user-defined-variables);
+  color: var(--recipes-user-defined-variables);
   opacity: 0.9;
 }
 
@@ -410,7 +411,7 @@ textarea {
 }
 
 .legend-auto .legend-dot {
-  background: var(--v-auto-resolved-variables);
+  background: var(--recipes-auto-resolved-variables);
 }
 
 .legend-user {
@@ -418,7 +419,7 @@ textarea {
 }
 
 .legend-user .legend-dot {
-  background: var(--v-user-defined-variables);
+  background: var(--recipes-user-defined-variables);
 }
 
 
@@ -595,7 +596,6 @@ textarea {
 
 .tag.active {
   background: color-mix(in srgb, var(--vscode-editor-background) 83%, var(--vscode-foreground));
-  /* background: color-mix(in srgb, var(--vscode-button-background) 74%, var(--vscode-editor-background)); */
   color: var(--vscode-editor-foreground);
   border-color: transparent;
 }
@@ -713,7 +713,6 @@ td.actions-cell {
   }
 
   50% {
-    /* border-color: var(--vscode-charts-blue, #0078d4); */
     border-color: color-mix(in srgb, var(--vscode-charts-blue) 50%, var(--vscode-panel-border));
   }
 
@@ -1972,7 +1971,6 @@ tr.row-highlight td {
   background: var(--vscode-button-background) !important;
   color: var(--vscode-button-foreground) !important;
   border-color: var(--vscode-button-background) !important;
-  /* outline: 1px solid var(--vscode-button-background); */
 }
 
 /* ===== Drag & Drop Sorting ===== */
@@ -2074,6 +2072,7 @@ tr.row-dragging td {
   background: var(--vscode-input-background);
   overflow: hidden;
   min-height: 32px;
+  width: fit-content;
 }
 
 .fav-scope-btn {
