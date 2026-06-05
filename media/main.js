@@ -843,8 +843,8 @@ function renderManageModal() {
         <h3>${escapeHtml(title)}</h3>
         <input id="manage-modal-input" class="input" placeholder="${escapeAttr(placeholder)}" value="${escapeAttr(manageModalState.value)}" autocomplete="off" />
         <div class="row justify-content-flex-end">
-          <button class="btn primary min-w65" id="btn-manage-modal-confirm">${escapeHtml(btnLabel)}</button>
-          <button class="btn secondary action min-w65" id="btn-manage-modal-cancel">Cancel</button>
+          <button class="btn small primary min-w65" id="btn-manage-modal-confirm">${escapeHtml(btnLabel)}</button>
+          <button class="btn small secondary action min-w65" id="btn-manage-modal-cancel">Cancel</button>
         </div>
       </div>
     </div>
@@ -915,7 +915,7 @@ function renderAddCommandTab(selectedCategory) {
   const newCommandRemember = getCommandRemember("__new__");
 
   return `
-    <section class="card">
+    <section class="card recipe-editor">
       <h2>Add Command to ( ${escapeHtml(selectedCategory.title)} )</h2>
       <form id="form-new-command" class="form-grid add-command-grid">
         <label class="add-command-title">Command Title<input id="new-command-title" class="input" required value="${escapeAttr(draft.title)}" /></label>
@@ -978,8 +978,8 @@ function renderAddCommandTab(selectedCategory) {
             : ""
         }
         <div class="row full-width justify-content-flex-end mt-20">
-          <button type="submit" class="btn medium primary">Add Command</button>
-          <button type="button" id="btn-cancel-add-command" class="btn medium secondary action">Cancel</button>
+          <button type="submit" class="btn small primary">Add Command</button>
+          <button type="button" id="btn-cancel-add-command" class="btn small secondary action">Cancel</button>
         </div>
       </form>
     </section>
@@ -1292,7 +1292,7 @@ function renderEditTab() {
   const isMoved = targetCategoryId !== command.categoryId;
 
   return `
-    <section class="card">
+    <section class="card recipe-editor">
       <h2>Edit Command</h2>
       <form id="form-edit-command" class="form-grid add-command-grid">
         <label class="add-command-title">Command Title<input id="edit-command-title" class="input" required value="${escapeAttr(editDraft.title)}" /></label>
@@ -1359,7 +1359,7 @@ function renderEditTab() {
                 return `
               <div class="variable-row">
                 <label class="variable-name">\${${escapeHtml(name)}}</label>
-                <input class="input variable-input" data-command-id="${escapeAttr(command.id)}" data-variable-name="${escapeAttr(name)}" value="${escapeAttr(value)}" />
+                <input class="input variable-input" data-command-id="${escapeAttr(command.id)}" data-variable-name="${escapeAttr(name)}" value="${escapeAttr(value)}" placeholder="Enter value..."/>
                 ${renderToggleSwitch3(command.id, name, rememberValue, "variable-remember-toggle")}
                 <button type="button" class="btn small ${isEnum ? "primary" : "secondary"} btn-open-enum-manager" data-var-name="${escapeAttr(name)}" data-command-id="${escapeAttr(command.id)}" data-tooltip="Manage Enum values">${icons.adjustments} ${isEnum ? `Enum (${enumCount})` : "Set Enum"}</button>
               </div>
@@ -1381,8 +1381,8 @@ function renderEditTab() {
             : ""
         }
         <div class="row full-width justify-content-flex-end mt-20">
-          <button type="submit" class="btn medium primary">Save Changes</button>
-          <button type="button" id="btn-cancel-edit-command" class="btn medium secondary action">Cancel</button>
+          <button type="submit" class="btn small primary">Save Changes</button>
+          <button type="button" id="btn-cancel-edit-command" class="btn small secondary action">Cancel</button>
         </div>
       </form>
     </section>
@@ -1666,7 +1666,7 @@ function renderRecentCommandsTab() {
         <h2>Recent Commands</h2>
         <div class="row">
           <span class="muted total-runs">Total runs: <strong>${totalRuns}</strong></span>
-          <button id="btn-clear-recent" class="btn danger small" data-tooltip="Clear all recent command history">Clear Recent</button>
+          <button id="btn-clear-recent" class="btn small danger" data-tooltip="Clear all recent command history">Clear Recent</button>
         </div>
       </div>
       <div class="table-wrap recent-commands">
@@ -4679,8 +4679,8 @@ function renderEnumManagerModal() {
         }
         ${editFormHtml}
         <div class="row justify-content-flex-end mt-20">
-          <button class="btn medium primary min-w65" id="btn-enum-manager-save">Save</button>
-          <button class="btn medium secondary action min-w65" id="btn-enum-manager-cancel">Cancel</button>
+          <button class="btn small primary min-w65" id="btn-enum-manager-save">Save</button>
+          <button class="btn small secondary action min-w65" id="btn-enum-manager-cancel">Cancel</button>
         </div>
       </div>
     </div>
