@@ -3,4 +3,5 @@
 dist/
 node_modules/
 AGENTS.md
+.clinerules
 *.vsix

@@ -666,7 +666,7 @@ textarea {
 }
 
 .tag {
-  border: 1px solid var(--recipes-input-border);
+  border: 1px solid var(--recipes-panel-border);
   border-radius: 4px;
   background: transparent;
   color: var(--recipes-editor-foreground);
@@ -2338,19 +2338,23 @@ tr.row-dragging td {
   margin: 0;
   font-size: 0.75rem;
   align-self: center;
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  font-family: var(--recipes-editor-font-family, Consolas, monospace);
 }
 
 /* <kbd> element styling */
 kbd {
-  display: inline-block;
-  padding: 1px 5px;
+  /* display: inline-block; */
+  padding: 2px 8px;
   font-family: var(--recipes-editor-font-family, Consolas, monospace);
-  font-size: 0.73rem;
-  line-height: 1.4;
-  border: 1px solid var(--recipes-input-border);
-  border-radius: 3px;
+  /* font-size: 0.73rem; */
+  /* line-height: 1.4; */
+  /* border: 1px solid var(--recipes-input-border); */
+  /* border-radius: 3px; */
   background: var(--recipes-input-background);
   color: var(--recipes-foreground);
   box-shadow: 0 1px 0 var(--recipes-input-border);
-  vertical-align: middle;
+  /* vertical-align: middle; */
 }

@@ -6,6 +6,7 @@ lib/**
 dist/*.map
 node_modules/**
 AGENTS.md
+.clinerules
 extension.js
 package-lock.json
 .gitignore
