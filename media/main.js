@@ -4,6 +4,10 @@
 
 const vscode = acquireVsCodeApi();
 
+// Special sentinel value stored in commandDraft to represent an explicitly empty variable.
+// When a variable holds this value it is passed as "" to the resolved command template.
+const RECIPES_EMPTY_VALUE = "__EMPTY_VALUE__";
+
 // ===== SVG Icons =====
 // Inline SVG strings for use in HTML templates.
 // Icons sourced from Lucide Icons (https://lucide.dev) and Tabler Icons (https://tabler.io/icons).
@@ -41,6 +45,7 @@ const icons = {
   chevron:              `<svg width="17" height="17" viewBox="0 0 21 21" class="cs-chevron" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="m6 9l6 6l6-6"></path></svg>`,
   checkmark:            `<svg width="17" height="17" viewBox="0 0 24 24" class="cs-check" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 6L9 17l-5-5"></path></svg>`,
   column:               `<svg width="14" height="14" viewBox="0 0 21 21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M4 6h2" /><path d="M4 10h5.5" /><path d="M4 14h5.5" /><path d="M4 18h5.5" /><path d="M14.5 6h5.5" /><path d="M14.5 10h5.5" /><path d="M18 14h2" /><path d="M14.5 18h3.5" /><path d="M3 3l18 18" /></svg>`,
+  emptyValue:           `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M9 12h6" /></svg>`,
 };
 
 const uiState = {
@@ -955,7 +960,9 @@ function renderAddCommandTab(selectedCategory) {
             </div>
             ${detectedVars
               .map(function (name) {
-                const value = newCommandDraft[name] || "";
+                const rawVal = newCommandDraft[name];
+                const isEmptyVal = rawVal === RECIPES_EMPTY_VALUE;
+                const displayVal = isEmptyVal ? "[EmptyValue]" : (rawVal || "");
                 const rememberValue = newCommandRemember[name] || "off";
                 const meta = draft.variableMeta && draft.variableMeta[name];
                 const isEnum = meta && meta.type === "enum";
@@ -963,7 +970,7 @@ function renderAddCommandTab(selectedCategory) {
                 return `
               <div class="variable-row">
                 <label class="variable-name">\${${escapeHtml(name)}}</label>
-                <input class="input variable-input" data-command-id="__new__" data-variable-name="${escapeAttr(name)}" value="${escapeAttr(value)}" />
+                <input class="input variable-input" data-command-id="__new__" data-variable-name="${escapeAttr(name)}" value="${escapeAttr(displayVal)}" placeholder="Enter value..."${isEmptyVal ? ' readonly data-is-empty-value="true"' : ""} />
                 ${renderToggleSwitch3("__new__", name, rememberValue, "variable-remember-toggle")}
                 <button type="button" class="btn small ${isEnum ? "primary" : "secondary"} btn-open-enum-manager" data-var-name="${escapeAttr(name)}" data-command-id="" data-tooltip="Manage Enum values for this variable">
                   ${icons.adjustments} ${isEnum ? `Enum (${enumCount})` : "Set Enum"}
@@ -972,6 +979,12 @@ function renderAddCommandTab(selectedCategory) {
             `;
               })
               .join("")}
+            <div class="variable-row">
+              <span></span>
+              <p class="muted variables-empty-hint"><kbd>Alt+0</kbd> to set focused variable as empty value</p>
+              <span></span>
+              <span></span>
+            </div>
           </div>
         </div>
         `
@@ -1350,7 +1363,9 @@ function renderEditTab() {
             </div>
             ${variables
               .map(function (name) {
-                const value = commandDraft[name] || "";
+                const rawVal = commandDraft[name];
+                const isEmptyVal = rawVal === RECIPES_EMPTY_VALUE;
+                const displayVal = isEmptyVal ? "[EmptyValue]" : rawVal || "";
                 const rememberValue = commandRemember[name] || "off";
                 const meta =
                   editDraft.variableMeta && editDraft.variableMeta[name];
@@ -1359,13 +1374,19 @@ function renderEditTab() {
                 return `
               <div class="variable-row">
                 <label class="variable-name">\${${escapeHtml(name)}}</label>
-                <input class="input variable-input" data-command-id="${escapeAttr(command.id)}" data-variable-name="${escapeAttr(name)}" value="${escapeAttr(value)}" placeholder="Enter value..."/>
+                <input class="input variable-input" data-command-id="${escapeAttr(command.id)}" data-variable-name="${escapeAttr(name)}" value="${escapeAttr(displayVal)}" placeholder="Enter value..."${isEmptyVal ? ' readonly data-is-empty-value="true"' : ""}/>
                 ${renderToggleSwitch3(command.id, name, rememberValue, "variable-remember-toggle")}
                 <button type="button" class="btn small ${isEnum ? "primary" : "secondary"} btn-open-enum-manager" data-var-name="${escapeAttr(name)}" data-command-id="${escapeAttr(command.id)}" data-tooltip="Manage Enum values">${icons.adjustments} ${isEnum ? `Enum (${enumCount})` : "Set Enum"}</button>
               </div>
             `;
               })
               .join("")}
+            <div class="variable-row">
+              <span></span>
+              <p class="muted variables-empty-hint"><kbd>Alt+0</kbd> to set focused variable as empty value</p>
+              <span></span>
+              <span></span>
+            </div>
           </div>
         </div>
         `
@@ -1571,20 +1592,27 @@ function renderVariableInputModal() {
             `;
               }
 
+              const isEmptyValue = currentValue === RECIPES_EMPTY_VALUE;
               return `
               <div class="variable-row">
                 <label class="variable-name">\${${escapeHtml(name)}}</label>
                 <input
                   class="input variable-modal-input"
                   data-variable-name="${escapeAttr(name)}"
-                  value="${escapeAttr(currentValue)}"
+                  value="${isEmptyValue ? "[EmptyValue]" : escapeAttr(currentValue)}"
                   placeholder="Enter value..."
+                  ${isEmptyValue ? 'readonly data-is-empty-value="true"' : ""}
                 />
                 ${renderToggleSwitch3(variableInputState.commandId, name, rememberValue, "variable-modal-remember-toggle")}
               </div>
             `;
             })
             .join("")}
+          <div class="variable-row">
+            <span></span>
+            <p class="muted variables-empty-hint"><kbd>Alt+0</kbd> to set focused variable as empty value</p>
+            <span></span>
+          </div>
         </div>
         <div class="row justify-content-flex-end mt-20">
         <span class="muted mr-auto">Enter the values before using them</span>
@@ -1900,7 +1928,9 @@ function highlightResolvedHtml(command) {
       value = autoVarDef ? autoVarDef.currentValue || "" : "";
       cls = "var-auto";
     } else {
-      value = draft[name] || "";
+      // RECIPES_EMPTY_VALUE → display as empty string, never reveal the sentinel
+      const rawDraft = draft[name];
+      value = rawDraft === RECIPES_EMPTY_VALUE ? "" : rawDraft || "";
       cls = "var-user";
     }
     result = result.replace(
@@ -3007,6 +3037,30 @@ function bindAddCommandTabEvents() {
         draft[variableName] = input.value;
         uiState.commandDrafts["__new__"] = draft;
       });
+
+      // Alt+0 to toggle empty value on Add Command tab inputs
+      input.addEventListener("keydown", function (e) {
+        if (e.altKey && e.key === "0") {
+          e.preventDefault();
+          const varName = input.dataset.variableName;
+          if (!varName) return;
+          if (input.dataset.isEmptyValue === "true") {
+            input.readOnly = false;
+            input.removeAttribute("data-is-empty-value");
+            input.value = "";
+            const d = getCommandDraft("__new__");
+            d[varName] = "";
+            uiState.commandDrafts["__new__"] = d;
+          } else {
+            input.readOnly = true;
+            input.setAttribute("data-is-empty-value", "true");
+            input.value = "[EmptyValue]";
+            const d = getCommandDraft("__new__");
+            d[varName] = RECIPES_EMPTY_VALUE;
+            uiState.commandDrafts["__new__"] = d;
+          }
+        }
+      });
     });
 
   // --- Toggle switches in Add Command tab ---
@@ -3126,13 +3180,16 @@ function bindAddCommandTabEvents() {
       state.data.commands.push(newCommand);
 
       // Read latest variable values from DOM before state is cleared
+      // If input has data-is-empty-value="true" → store RECIPES_EMPTY_VALUE
       document
         .querySelectorAll('.variable-input[data-command-id="__new__"]')
         .forEach(function (varInput) {
           const vname = varInput.dataset.variableName;
           if (vname) {
             const d = getCommandDraft("__new__");
-            d[vname] = varInput.value;
+            d[vname] = varInput.dataset.isEmptyValue === "true"
+              ? RECIPES_EMPTY_VALUE
+              : varInput.value;
           }
         });
 
@@ -3241,12 +3298,16 @@ function bindEditTabEvents() {
     }
 
     // Read variable values from DOM before re-render
+    // If input has data-is-empty-value="true" → store RECIPES_EMPTY_VALUE
     document.querySelectorAll(".variable-input").forEach(function (varInput) {
       const cid = varInput.dataset.commandId;
       const vname = varInput.dataset.variableName;
       if (cid && vname) {
         const d = getCommandDraft(cid);
-        d[vname] = varInput.value;
+        d[vname] =
+          varInput.dataset.isEmptyValue === "true"
+            ? RECIPES_EMPTY_VALUE
+            : varInput.value;
         uiState.commandDrafts[cid] = d;
       }
     });
@@ -3355,6 +3416,31 @@ function bindEditTabEvents() {
       draft[variableName] = input.value;
       uiState.commandDrafts[commandId] = draft;
       // No auto-save here — save happens on form submit
+    });
+
+    // Alt+0 to toggle empty value on edit tab inputs
+    input.addEventListener("keydown", function (e) {
+      if (e.altKey && e.key === "0") {
+        e.preventDefault();
+        const commandId = input.dataset.commandId;
+        const varName = input.dataset.variableName;
+        if (!varName || !commandId) return;
+        if (input.dataset.isEmptyValue === "true") {
+          input.readOnly = false;
+          input.removeAttribute("data-is-empty-value");
+          input.value = "";
+          const d = getCommandDraft(commandId);
+          d[varName] = "";
+          uiState.commandDrafts[commandId] = d;
+        } else {
+          input.readOnly = true;
+          input.setAttribute("data-is-empty-value", "true");
+          input.value = "[EmptyValue]";
+          const d = getCommandDraft(commandId);
+          d[varName] = RECIPES_EMPTY_VALUE;
+          uiState.commandDrafts[commandId] = d;
+        }
+      }
     });
   });
 
@@ -3857,6 +3943,28 @@ function bindCommandActionButtons() {
     });
   }
 
+  // Alt+0 to toggle empty value on modal inputs
+  document.querySelectorAll(".variable-modal-input").forEach(function (input) {
+    input.addEventListener("keydown", function (e) {
+      if (e.altKey && e.key === "0") {
+        e.preventDefault();
+        const varName = input.dataset.variableName;
+        if (!varName) return;
+        if (input.dataset.isEmptyValue === "true") {
+          input.readOnly = false;
+          input.removeAttribute("data-is-empty-value");
+          input.value = "";
+          variableInputState.inputValues[varName] = "";
+        } else {
+          input.readOnly = true;
+          input.setAttribute("data-is-empty-value", "true");
+          input.value = "[EmptyValue]";
+          variableInputState.inputValues[varName] = RECIPES_EMPTY_VALUE;
+        }
+      }
+    });
+  });
+
   // Bind custom selects for enum variables in variable input modal
   document
     .querySelectorAll(".enum-input-wrap[data-variable-name]")
@@ -3936,11 +4044,16 @@ function bindCommandActionButtons() {
       }
 
       // Collect current values from the modal DOM
+      // If input has data-is-empty-value="true" → store RECIPES_EMPTY_VALUE, not ""
       document
         .querySelectorAll(".variable-modal-input")
         .forEach(function (input) {
           const varName = input.dataset.variableName;
-          variableInputState.inputValues[varName] = input.value;
+          if (input.dataset.isEmptyValue === "true") {
+            variableInputState.inputValues[varName] = RECIPES_EMPTY_VALUE;
+          } else {
+            variableInputState.inputValues[varName] = input.value;
+          }
         });
 
       // Collect remember flags from toggle switches in the modal DOM
@@ -4351,7 +4464,10 @@ function getMissingVariables(command) {
     if (autoVarNames.includes(name)) {
       return false;
     }
-
+    // RECIPES_EMPTY_VALUE is an explicit empty value — it is NOT missing
+    if (draft[name] === RECIPES_EMPTY_VALUE) {
+      return false;
+    }
     return !draft[name];
   });
 }
@@ -4465,7 +4581,9 @@ function resolveCommandTemplate(command) {
       return;
     }
     // Regular variables: from user draft
-    const value = draft[name] || "";
+    // RECIPES_EMPTY_VALUE means the user explicitly wants an empty string
+    const rawVal = draft[name];
+    const value = rawVal === RECIPES_EMPTY_VALUE ? "" : rawVal || "";
     resolved = resolved.replace(
       new RegExp("\\$\\{" + escapeRegExp(name) + "\\}", "g"),
       value,

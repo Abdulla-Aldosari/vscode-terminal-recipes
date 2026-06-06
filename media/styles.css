@@ -345,7 +345,7 @@ label {
 
 .input {
   width: 100%;
-  border-radius: 4px;
+  border-radius: var(--vscode-cornerRadius-small, 4px);
   border: 1px solid var(--recipes-settings-textInputBorder);
   background: var(--recipes-settings-textInputBackground);
   color: var(--recipes-settings-textInputForeground);
@@ -415,7 +415,7 @@ textarea {
   box-sizing: border-box;
   border: 1px solid transparent;
   /* same width as textarea border */
-  border-radius: 4px;
+  border-radius: var(--vscode-cornerRadius-small, 4px);
   /* same as .input */
   pointer-events: none;
   overflow: hidden;
@@ -513,7 +513,7 @@ textarea {
 
 
 .btn {
-  border-radius: 4px;
+  border-radius: var(--vscode-cornerRadius-small, 4px);
   border: 1px solid transparent;
   padding: 4px 9px 4px 9px;
   font-size: 0.75rem;
@@ -2322,4 +2322,35 @@ tr.row-dragging td {
 
 .auto-var-name-code.auto-var-copy-success {
   animation: auto-var-copy-flash 0.32s ease-out forwards;
+}
+
+/* ─── Empty Value (Alt+0) ─────────────────────────────────────────────────── */
+
+/* Input in empty-value state: readonly, styled with muted yellow italic */
+.input[data-is-empty-value="true"] {
+  color: color-mix(in srgb, var(--recipes-charts-yellow) 80%, var(--recipes-foreground));
+  font-style: italic;
+  cursor: default;
+}
+
+/* Hint text shown inside variables-list as a grid row */
+.variables-empty-hint {
+  margin: 0;
+  font-size: 0.75rem;
+  align-self: center;
+}
+
+/* <kbd> element styling */
+kbd {
+  display: inline-block;
+  padding: 1px 5px;
+  font-family: var(--recipes-editor-font-family, Consolas, monospace);
+  font-size: 0.73rem;
+  line-height: 1.4;
+  border: 1px solid var(--recipes-input-border);
+  border-radius: 3px;
+  background: var(--recipes-input-background);
+  color: var(--recipes-foreground);
+  box-shadow: 0 1px 0 var(--recipes-input-border);
+  vertical-align: middle;
 }
