@@ -87,7 +87,8 @@
     "lint": "eslint extension.js media/main.js lib/",
     "build": "esbuild extension.js --bundle --outfile=dist/extension.js --external:vscode --platform=node --target=node18 --minify",
     "watch": "esbuild extension.js --bundle --outfile=dist/extension.js --external:vscode --platform=node --target=node18 --sourcemap --watch",
-    "vscode:prepublish": "npm run build"
+    "vscode:prepublish": "npm run build",
+    "test": "node testing/syntax.test.js && node testing/normalize.test.js && node testing/terminal.test.js && node testing/exports.test.js"
   },
   "license": "MIT",
   "repository": {

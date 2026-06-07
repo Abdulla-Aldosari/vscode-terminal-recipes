@@ -1,0 +1,208 @@
+// Terminal Recipes — VS Code Extension
+// Copyright (c) 2026 Abdulla Aldosari
+// Licensed under the MIT License. See LICENSE in the project root for details.
+
+// media/messages.js
+// Handles all messages received from the extension host via window.addEventListener("message", ...).
+// Each handler updates uiState/state then calls render().
+// Loads after render.js.
+
+/**
+ * Central message dispatcher for all messages received from the VS Code extension.
+ * Handles: state, saveResult, actionResult, saveVariablesResult, aiSettingsResult,
+ * aiSaveSettingsResult, aiGenerateResult, aiInsertResult,
+ * saveAutoVariablesSettingsResult, saveFavoritesResult.
+ */
+window.addEventListener("message", function (event) {
+  const message = event.data;
+
+  if (!message || typeof message.type !== "string") {
+    return;
+  }
+
+  if (message.type === "state") {
+    hydrateState(message.payload);
+    ensureSelectionDefaults();
+    render();
+    return;
+  }
+
+  if (message.type === "saveResult") {
+    if (message.payload && message.payload.success) {
+      showNotice("Saved successfully.", icons.circleCheck, "success");
+    } else {
+      showNotice(
+        `Save failed: ${message.payload && message.payload.message ? message.payload.message : "Unknown error"}`,
+        icons.circleX,
+        "error",
+      );
+    }
+    // Page is already rendered by persistDataThenRender() — just update the notice element
+    paintNotice();
+    return;
+  }
+
+  if (message.type === "actionResult") {
+    if (message.payload && message.payload.success) {
+      showNotice(
+        `Action "${message.payload.action}" completed.`,
+        icons.circleCheck,
+        "info",
+      );
+
+      if (
+        message.payload.commandVariables &&
+        typeof message.payload.commandVariables === "object"
+      ) {
+        state.commandVariables = message.payload.commandVariables;
+      }
+
+      if (
+        message.payload.globalCommandVariables &&
+        typeof message.payload.globalCommandVariables === "object"
+      ) {
+        state.globalCommandVariables = message.payload.globalCommandVariables;
+      }
+    } else {
+      showNotice(
+        `Action failed: ${message.payload && message.payload.message ? message.payload.message : "Unknown error"}`,
+        icons.circleX,
+        "error",
+      );
+    }
+
+    render();
+    return;
+  }
+
+  if (message.type === "saveVariablesResult") {
+    if (message.payload && message.payload.success) {
+      if (message.payload.commandVariables) {
+        state.commandVariables = message.payload.commandVariables;
+      }
+
+      if (message.payload.globalCommandVariables) {
+        state.globalCommandVariables = message.payload.globalCommandVariables;
+      }
+    }
+    // No render() here to avoid focus loss while editing
+  }
+
+  if (message.type === "aiSettingsResult") {
+    if (message.payload) {
+      aiState.providerName         = message.payload.providerName || "gemini";
+      aiState.settingsProviderName = message.payload.providerName || "gemini";
+      aiState.keyStatus            = message.payload.keyStatus || {};
+      // Store provider setup data from providers-config.js (sent by extension)
+      if (
+        message.payload.aiProviderSetup &&
+        typeof message.payload.aiProviderSetup === "object"
+      ) {
+        aiState.aiProviderSetup = message.payload.aiProviderSetup;
+      }
+    }
+    render();
+    return;
+  }
+
+  if (message.type === "aiSaveSettingsResult") {
+    if (message.payload && message.payload.success) {
+      // Re-fetch settings to refresh keyStatus
+      vscode.postMessage({ type: "aiGetSettings" });
+      showNotice("AI settings saved.", icons.circleCheck, "success");
+    } else {
+      showNotice(
+        `Failed to save settings: ${message.payload && message.payload.message ? message.payload.message : "Unknown error"}`,
+        icons.circleX,
+        "error",
+      );
+      render();
+    }
+    return;
+  }
+
+  if (message.type === "aiGenerateResult") {
+    if (message.payload && message.payload.success) {
+      aiState.result = message.payload.result;
+      aiState.mode   = message.payload.mode;
+      // Initialize all commands as checked
+      const cmds =
+        message.payload.mode === "full"
+          ? message.payload.result.commands || []
+          : [message.payload.result];
+      const checked = {};
+      cmds.forEach(function (cmd) {
+        checked[cmd.id] = true;
+      });
+      aiState.checkedIds    = checked;
+      aiState.filterGroupId = "all";
+      aiState.error         = "";
+      aiState.view          = "results";
+    } else {
+      aiState.error =
+        message.payload && message.payload.message
+          ? message.payload.message
+          : "Unknown error";
+      aiState.view = "prompt";
+    }
+    render();
+    return;
+  }
+
+  if (message.type === "aiInsertResult") {
+    if (message.payload && message.payload.success) {
+      aiState.view   = null;
+      aiState.result = null;
+      aiState.prompt = "";
+      aiState.error  = "";
+      showNotice(
+        `Inserted ${message.payload.count} command(s) successfully.`,
+        icons.circleCheck,
+        "success",
+      );
+    } else {
+      aiState.error =
+        message.payload && message.payload.message
+          ? message.payload.message
+          : "Unknown error";
+      aiState.view = "results";
+    }
+    render();
+    return;
+  }
+
+  if (message.type === "saveAutoVariablesSettingsResult") {
+    if (message.payload && message.payload.success) {
+      showNotice(
+        "Auto variables settings saved.",
+        icons.circleCheck,
+        "success",
+      );
+    } else {
+      showNotice(
+        "Failed to save: " +
+          (message.payload && message.payload.message
+            ? message.payload.message
+            : "Unknown error"),
+        icons.circleX,
+        "error",
+      );
+    }
+    // Page is already rendered — just insert the notice element directly
+    paintNotice();
+    return;
+  }
+
+  if (message.type === "saveFavoritesResult") {
+    if (message.payload && message.payload.success) {
+      if (Array.isArray(message.payload.globalFavorites)) {
+        state.globalFavorites = message.payload.globalFavorites;
+      }
+      if (Array.isArray(message.payload.localFavorites)) {
+        state.localFavorites = message.payload.localFavorites;
+      }
+    }
+    render();
+    return;
+  }
+});

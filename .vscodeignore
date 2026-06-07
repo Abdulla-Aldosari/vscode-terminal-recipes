@@ -1,4 +1,5 @@
 .temp/**
+testing/**
 .vscode/**
 .github/**
 eslint.config.js
