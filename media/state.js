@@ -38,7 +38,13 @@ const uiState = {
       return "";
     }
   })(),
-  selectedGroupId:        "all",
+  selectedGroupId: (function () {
+    try {
+      return localStorage.getItem("selectedGroupId") || "all";
+    } catch {
+      return "all";
+    }
+  })(),
   sortingMode:            false,
   editingCommandId:       null,
   editSourceTab:          null,

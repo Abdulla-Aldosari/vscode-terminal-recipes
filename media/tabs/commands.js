@@ -380,6 +380,9 @@ function bindCommandsTabEvents() {
     function (value) {
       setSelectedCategory(value);
       uiState.selectedGroupId = "all";
+      try {
+        localStorage.setItem("selectedGroupId", "all");
+      } catch {}
       render();
     },
   );
@@ -387,6 +390,9 @@ function bindCommandsTabEvents() {
   document.querySelectorAll(".group-filter-tag").forEach(function (tagButton) {
     tagButton.addEventListener("click", function () {
       uiState.selectedGroupId = tagButton.dataset.groupId;
+      try {
+        localStorage.setItem("selectedGroupId", uiState.selectedGroupId);
+      } catch {}
       // Exit sort mode when switching groups
       if (uiState.sortingMode) {
         uiState.sortingMode = false;
