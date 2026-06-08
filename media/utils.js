@@ -505,9 +505,21 @@ function highlightResolvedHtml(command) {
   var result       = escapeHtml(command.command);
 
   names.forEach(function (name) {
-    var rawVal = draft[name];
-    var value  = rawVal === RECIPES_EMPTY_VALUE ? "" : rawVal || "";
-    var cls    = autoVarNames.includes(name) ? "var-auto" : "var-user";
+    var value;
+    var cls = autoVarNames.includes(name) ? "var-auto" : "var-user";
+
+    if (autoVarNames.includes(name)) {
+      // Auto variables: read resolved value from state.autoVariables (sent by the extension)
+      var autoVarDef = (state.autoVariables || []).find(function (v) {
+        return v.name === name;
+      });
+      value = autoVarDef ? autoVarDef.currentValue || "" : "";
+    } else {
+      // Regular variables: read from the user's command draft
+      var rawVal = draft[name];
+      value = rawVal === RECIPES_EMPTY_VALUE ? "" : rawVal || "";
+    }
+
     result = result.replace(
       new RegExp("\\$\\{" + escapeRegExp(name) + "\\}", "g"),
       '<span class="' + cls + '">' + escapeHtml(value) + "</span>",
