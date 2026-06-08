@@ -51,33 +51,20 @@ function renderCommandsTab(selectedCategory) {
 }
 
 function renderCustomCategorySelect() {
-  const categories    = state.data.categories || [];
-  const selected      = getSelectedCategory();
-  const selectedTitle = selected ? selected.title : "Select category";
-
-  const items = categories
-    .map(function (category) {
-      const isSelected = category.id === uiState.selectedCategoryId;
-      return `
-      <div class="cs-item" role="menuitem" tabindex="-1" data-value="${escapeAttr(category.id)}">
-        <span class="cs-item-label">${escapeHtml(category.title)}</span>
-        ${isSelected ? icons.checkmark : ""}
-      </div>
-    `;
-    })
-    .join("");
-
-  return `
-    <div class="cs-wrap${uiState.sortingMode ? " sort-disabled-wrap" : ""}" id="custom-category-select">
-      <button class="cs-btn" type="button" aria-haspopup="menu" aria-expanded="false" id="cs-btn-toggle">
-        <span class="cs-btn-label">${escapeHtml(selectedTitle)}</span>
-        ${icons.chevron}
-      </button>
-      <div class="cs-menu" role="menu" id="cs-menu" hidden>
-        ${items}
-      </div>
-    </div>
-  `;
+  const categories = state.data.categories || [];
+  const options    = categories.map(function (cat) {
+    return { value: cat.id, label: cat.title };
+  });
+  return renderCustomSelect(
+    "custom-category-select",
+    "cs-btn-toggle",
+    "cs-menu",
+    options,
+    uiState.selectedCategoryId,
+    "",    // btnExtraClass
+    false, // menuUp
+    uiState.sortingMode ? "sort-disabled-wrap" : "",
+  );
 }
 
 function renderColumnToggleDropdown() {
@@ -386,67 +373,16 @@ function bindDragAndDrop() {
 
 function bindCommandsTabEvents() {
   // --- Custom category select ---
-  const csWrap = document.getElementById("custom-category-select");
-  const csBtn  = document.getElementById("cs-btn-toggle");
-  const csMenu = document.getElementById("cs-menu");
-
-  if (csBtn && csMenu) {
-    // Helper: close the menu and remove listeners
-    function closeMenu() {
-      if (!csMenu.hidden) {
-        csMenu.hidden = true;
-        csBtn.setAttribute("aria-expanded", "false");
-      }
-      document.removeEventListener("pointerdown", onPointerDown, true);
-      window.removeEventListener("blur", onWindowBlur);
-    }
-
-    // Pointer down anywhere outside the wrap → close
-    function onPointerDown(e) {
-      if (csWrap && !csWrap.contains(e.target)) {
-        closeMenu();
-      }
-    }
-
-    // Window loses focus (user clicks outside VS Code / webview) → close
-    function onWindowBlur() {
-      closeMenu();
-    }
-
-    // Toggle open/close
-    csBtn.addEventListener("click", function (e) {
-      e.stopPropagation();
-      const isOpen = !csMenu.hidden;
-
-      if (isOpen) {
-        closeMenu();
-      } else {
-        csMenu.hidden = false;
-        csBtn.setAttribute("aria-expanded", "true");
-        // Register outside-click and blur listeners
-        document.addEventListener("pointerdown", onPointerDown, true);
-        window.addEventListener("blur", onWindowBlur);
-      }
-    });
-
-    // Item click → select + close
-    csMenu.querySelectorAll(".cs-item").forEach(function (item) {
-      item.addEventListener("click", function () {
-        setSelectedCategory(item.dataset.value);
-        uiState.selectedGroupId = "all";
-        closeMenu();
-        render();
-      });
-
-      // Hover: add/remove data-highlighted
-      item.addEventListener("mouseenter", function () {
-        item.setAttribute("data-highlighted", "");
-      });
-      item.addEventListener("mouseleave", function () {
-        item.removeAttribute("data-highlighted");
-      });
-    });
-  }
+  bindCustomSelect(
+    "custom-category-select",
+    "cs-btn-toggle",
+    "cs-menu",
+    function (value) {
+      setSelectedCategory(value);
+      uiState.selectedGroupId = "all";
+      render();
+    },
+  );
 
   document.querySelectorAll(".group-filter-tag").forEach(function (tagButton) {
     tagButton.addEventListener("click", function () {
@@ -947,53 +883,18 @@ function bindCommandActionButtons() {
   const confirmRunVariablesButton = document.getElementById("btn-confirm-run-variables");
 
   // --- Shell selector dropdown ---
-  const shellSelectorWrap = document.getElementById("shell-selector-wrap");
-  const shellSelectorBtn  = document.getElementById("shell-selector-btn");
-  const shellSelectorMenu = document.getElementById("shell-selector-menu");
-
-  if (shellSelectorBtn && shellSelectorMenu) {
-    function closeShellMenu() {
-      if (!shellSelectorMenu.hidden) {
-        shellSelectorMenu.hidden = true;
-        shellSelectorBtn.setAttribute("aria-expanded", "false");
-      }
-      document.removeEventListener("pointerdown", onShellPointerDown, true);
-    }
-
-    function onShellPointerDown(e) {
-      if (shellSelectorWrap && !shellSelectorWrap.contains(e.target)) {
-        closeShellMenu();
-      }
-    }
-
-    shellSelectorBtn.addEventListener("click", function (e) {
-      e.stopPropagation();
-      const isOpen = !shellSelectorMenu.hidden;
-      if (isOpen) {
-        closeShellMenu();
-      } else {
-        shellSelectorMenu.hidden = false;
-        shellSelectorBtn.setAttribute("aria-expanded", "true");
-        document.addEventListener("pointerdown", onShellPointerDown, true);
-      }
-    });
-
-    shellSelectorMenu.querySelectorAll(".cs-item").forEach(function (item) {
-      item.addEventListener("click", function () {
-        runConfirmState.selectedShellName = item.dataset.shellName || null;
-        runConfirmState.selectedShellPath = item.dataset.shellPath || null;
-        closeShellMenu();
-        render();
-      });
-
-      item.addEventListener("mouseenter", function () {
-        item.setAttribute("data-highlighted", "");
-      });
-      item.addEventListener("mouseleave", function () {
-        item.removeAttribute("data-highlighted");
-      });
-    });
-  }
+  bindCustomSelect(
+    "shell-selector-wrap",
+    "shell-selector-btn",
+    "shell-selector-menu",
+    function (shellName) {
+      const profiles = (state.terminalProfiles && state.terminalProfiles.profiles) || [];
+      const profile  = profiles.find(function (p) { return p.name === shellName; });
+      runConfirmState.selectedShellName = shellName || null;
+      runConfirmState.selectedShellPath = profile ? profile.shellPath : null;
+      render();
+    },
+  );
 
   if (confirmRunYesButton) {
     confirmRunYesButton.addEventListener("click", function () {
@@ -1236,8 +1137,9 @@ function bindCommandActionButtons() {
                     if (item.dataset.value === "__custom__") { item.insertAdjacentHTML("beforeend", icons.checkmark); }
                   });
                 }
-                if (customEl) { customEl.classList.remove("hidden"); customEl.value = displayVal; }
-                if (inputEl)  { inputEl.classList.remove("hidden"); inputEl.value = displayVal; }
+                // When newVal is RECIPES_EMPTY_VALUE, Step 5a already set the correct "[EmptyValue]" readonly state — don't overwrite
+                if (customEl) { customEl.classList.remove("hidden"); if (newVal !== RECIPES_EMPTY_VALUE) { customEl.value = displayVal; } }
+                if (inputEl)  { inputEl.classList.remove("hidden");  if (newVal !== RECIPES_EMPTY_VALUE) { inputEl.value = displayVal; } }
               }
             }
           }

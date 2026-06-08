@@ -41,34 +41,20 @@ function renderShellSelector() {
     return "";
   }
 
-  // Use profile name as unique identifier (avoids double-tick when two profiles share same path)
   const selectedShellName = runConfirmState.selectedShellName;
-  const selectedLabel =
-    selectedShellName || state.terminalProfiles.defaultProfile || "Default";
+  const options = profiles.map(function (profile) {
+    return { value: profile.name, label: profile.name };
+  });
 
-  const items = profiles
-    .map(function (profile) {
-      const isSelected = profile.name === selectedShellName;
-      return `
-      <div class="cs-item" role="menuitem" tabindex="-1" data-shell-name="${escapeAttr(profile.name)}" data-shell-path="${escapeAttr(profile.shellPath)}">
-        <span class="cs-item-label">${escapeHtml(profile.name)}</span>
-        ${isSelected ? icons.checkmark : ""}
-      </div>
-    `;
-    })
-    .join("");
-
-  return `
-    <div class="cs-wrap" id="shell-selector-wrap">
-      <button class="cs-btn cs-btn-sm" type="button" aria-haspopup="menu" aria-expanded="false" id="shell-selector-btn">
-        <span class="cs-btn-label">${escapeHtml(selectedLabel)}</span>
-        ${icons.chevron}
-      </button>
-      <div class="cs-menu cs-menu-up" role="menu" id="shell-selector-menu" hidden>
-        ${items}
-      </div>
-    </div>
-  `;
+  return renderCustomSelect(
+    "shell-selector-wrap",
+    "shell-selector-btn",
+    "shell-selector-menu",
+    options,
+    selectedShellName,
+    "cs-btn-sm", // btnExtraClass
+    true,        // menuUp
+  );
 }
 
 function renderRunConfirmModal() {
@@ -158,6 +144,7 @@ function renderVariableInputModal() {
                 });
 
               if (isEnum) {
+                const isEnumEmptyValue = currentValue === RECIPES_EMPTY_VALUE;
                 const enumOptions = enumMeta.enumValues
                   .map(function (ev) {
                     return {
@@ -189,8 +176,9 @@ function renderVariableInputModal() {
                   <input
                     class="input variable-modal-input variable-modal-custom-input${isCustomValue ? "" : " hidden"}"
                     data-variable-name="${escapeAttr(name)}"
-                    value="${escapeAttr(currentValue)}"
+                    value="${isEnumEmptyValue ? "[EmptyValue]" : escapeAttr(currentValue)}"
                     placeholder="Enter custom value..."
+                    ${isEnumEmptyValue ? 'readonly data-is-empty-value="true"' : ""}
                   />
                 </div>
                 ${renderToggleSwitch3(variableInputState.commandId, name, rememberValue, "variable-modal-remember-toggle")}

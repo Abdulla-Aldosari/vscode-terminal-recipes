@@ -866,13 +866,21 @@ function bindCustomSelect(wrapperId, btnId, menuId, onChange) {
     closeMenu();
   }
 
-  btn.addEventListener("click", function (e) {
+    btn.addEventListener("click", function (e) {
     e.stopPropagation();
     if (!menu.hidden) {
       closeMenu();
     } else {
       menu.hidden = false;
       btn.setAttribute("aria-expanded", "true");
+      // Highlight the currently selected item when the menu opens
+      menu.querySelectorAll(".cs-item").forEach(function (el) {
+        el.removeAttribute("data-highlighted");
+      });
+      var checkEl = menu.querySelector(".cs-check");
+      if (checkEl) {
+        checkEl.closest(".cs-item").setAttribute("data-highlighted", "");
+      }
       document.addEventListener("pointerdown", onPointerDown, true);
       window.addEventListener("blur", onWindowBlur);
     }
@@ -895,6 +903,9 @@ function bindCustomSelect(wrapperId, btnId, menuId, onChange) {
       closeMenu();
     });
     item.addEventListener("mouseenter", function () {
+      menu.querySelectorAll(".cs-item").forEach(function (el) {
+        el.removeAttribute("data-highlighted");
+      });
       item.setAttribute("data-highlighted", "");
     });
     item.addEventListener("mouseleave", function () {

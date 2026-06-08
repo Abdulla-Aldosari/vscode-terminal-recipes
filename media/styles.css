@@ -29,12 +29,12 @@
   --recipes-list-hoverBackground: var(--vscode-list-hoverBackground);
   --recipes-list-hoverForeground: var(--vscode-list-hoverForeground);
   --recipes-panel-border: var(--vscode-panel-border);
+
   --recipes-settings-checkboxBackground: var(--vscode-settings-checkboxBackground);
   --recipes-settings-checkboxBorder: var(--vscode-settings-checkboxBorder);
   --recipes-settings-dropdownBackground: var(--vscode-settings-dropdownBackground);
   --recipes-settings-dropdownBorder: var(--vscode-settings-dropdownBorder);
   --recipes-settings-dropdownForeground: var(--vscode-settings-dropdownForeground);
-
   --recipes-settings-textInputForeground: var(--vscode-settings-textInputForeground);
   --recipes-settings-textInputBorder: var(--vscode-settings-textInputBorder, transparent);
   --recipes-settings-textInputBackground: var(--vscode-settings-textInputBackground);
@@ -44,6 +44,10 @@
   --recipes-textPreformat-background: var(--vscode-textPreformat-background);
   --recipes-textPreformat-foreground: var(--vscode-textPreformat-foreground);
   --recipes-widget-shadow: var(--vscode-widget-shadow);
+
+  --recipes-quickInputList-focusBackground: var(--vscode-quickInputList-focusBackground);
+  --recipes-quickInputList-focusForeground: var(--vscode-quickInputList-focusForeground);
+  --recipes-dropdown-listBackground: var(--vscode-dropdown-listBackground);
 }
 
 
@@ -994,7 +998,7 @@ td.actions-cell {
    Always present to prevent button layout shifts when state changes. */
 .scope-value-dot {
   display: inline-block;
-  width:  5px;
+  width: 5px;
   height: 5px;
   border-radius: 50%;
   background: var(--recipes-foreground, currentColor);
@@ -1062,8 +1066,8 @@ code {
   left: 0;
   z-index: 200;
   min-width: max(100%, 160px);
-  background: var(--vscode-dropdown-listBackground, var(--vscode-settings-dropdownBackground));
-  border: 1px solid var(--recipes-panel-border);
+  background: var(--recipes-dropdown-listBackground, var(--recipes-settings-dropdownBackground));
+  border: 1px solid var(--recipes-settings-dropdownBorder, var(--recipes-panel-border));
   border-radius: 4px;
   padding: 4px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
@@ -1078,8 +1082,6 @@ code {
   border-radius: 4px;
   font-size: 0.82rem;
   cursor: pointer;
-  /* color: var(--recipes-editor-foreground); */
-  transition: background 0.1s;
 }
 
 /* 
@@ -1089,8 +1091,8 @@ code {
 } */
 
 .cs-item[data-highlighted] {
-  background: var(--vscode-quickInputList-focusBackground, color-mix(in srgb, var(--recipes-editor-background) 80%, var(--recipes-foreground)));
-  color: var(--vscode-quickInputList-focusForeground, var(--recipes-editor-foreground));
+  background: var(--recipes-quickInputList-focusBackground, color-mix(in srgb, var(--recipes-editor-background) 80%, var(--recipes-foreground)));
+  color: var(--recipes-quickInputList-focusForeground, var(--recipes-editor-foreground));
 }
 
 
@@ -1404,13 +1406,13 @@ code {
   border-radius: 4px;
   font-size: 0.82rem;
   cursor: pointer;
-  color: var(--recipes-editor-foreground);
-  transition: background 0.1s;
   user-select: none;
 }
 
 .col-toggle-item:hover {
   background: var(--recipes-list-hoverBackground, color-mix(in srgb, var(--recipes-editor-background) 80%, var(--recipes-foreground)));
+  /* background: var(--recipes-quickInputList-focusBackground, color-mix(in srgb, var(--recipes-editor-background) 80%, var(--recipes-foreground))); */
+  /* color: var(--recipes-quickInputList-focusForeground, var(--recipes-editor-foreground)); */
 }
 
 /* ===== Custom Checkbox (VS Code style) ===== */
