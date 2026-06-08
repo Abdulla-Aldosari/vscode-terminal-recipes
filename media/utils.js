@@ -187,44 +187,130 @@ function resolveGroupTitle(groupId, groups) {
 
 // ─── Command Draft / Remember ─────────────────────────────────────────────────
 
-function getCommandDraft(commandId) {
-  if (!uiState.commandDrafts[commandId]) {
-    const globalVars =
-      (state.globalCommandVariables &&
-        state.globalCommandVariables.commands &&
-        state.globalCommandVariables.commands[commandId]) ||
-      {};
+/**
+ * Returns (and lazily initializes) the workspace-local scope draft for a command.
+ * This is the source-of-truth for the "Local" scope — independent from global scope.
+ * @param {string} commandId
+ * @returns {object} mutable draft object { [varName]: value }
+ */
+function getCommandLocalDraft(commandId) {
+  if (!uiState.commandLocalDrafts[commandId]) {
     const localVars =
       (state.commandVariables &&
         state.commandVariables.commands &&
         state.commandVariables.commands[commandId]) ||
       {};
-    uiState.commandDrafts[commandId] = { ...globalVars, ...localVars };
+    uiState.commandLocalDrafts[commandId] = Object.assign({}, localVars);
   }
-
-  return uiState.commandDrafts[commandId];
+  return uiState.commandLocalDrafts[commandId];
 }
 
-function getCommandRemember(commandId) {
-  if (!uiState.commandRemember[commandId]) {
-    const remembered = {};
+/**
+ * Returns (and lazily initializes) the global scope draft for a command.
+ * This is the source-of-truth for the "Global" scope — independent from local scope.
+ * @param {string} commandId
+ * @returns {object} mutable draft object { [varName]: value }
+ */
+function getCommandGlobalDraft(commandId) {
+  if (!uiState.commandGlobalDrafts[commandId]) {
     const globalVars =
       (state.globalCommandVariables &&
         state.globalCommandVariables.commands &&
         state.globalCommandVariables.commands[commandId]) ||
       {};
-    const localVars =
+    uiState.commandGlobalDrafts[commandId] = Object.assign({}, globalVars);
+  }
+  return uiState.commandGlobalDrafts[commandId];
+}
+
+/**
+ * Returns (and lazily initializes) the session-only draft for a command.
+ * Session values are NEVER written to disk. They survive only within the current webview session.
+ * Used when the scope toggle is set to "Off".
+ * @param {string} commandId
+ * @returns {object} mutable draft object { [varName]: value }
+ */
+function getCommandSessionDraft(commandId) {
+  if (!uiState.commandSessionDrafts[commandId]) {
+    uiState.commandSessionDrafts[commandId] = {};
+  }
+  return uiState.commandSessionDrafts[commandId];
+}
+
+/**
+ * Returns a computed "resolved" draft object for a command.
+ * Each variable's value is taken from the scope indicated by commandRemember[commandId][varName]:
+ *   "local"  → exact local value (no fallback — empty if local has no value)
+ *   "global" → exact global value (no fallback — empty if global has no value)
+ *   "off"    → session value (or "" if none)
+ * This is read-only (computed) — mutating the returned object has no effect on stored drafts.
+ * To update values, use getCommandLocalDraft / getCommandGlobalDraft / getCommandSessionDraft.
+ * @param {string} commandId
+ * @returns {object} resolved values { [varName]: value }
+ */
+function getCommandDraft(commandId) {
+  var localDraft   = getCommandLocalDraft(commandId);
+  var globalDraft  = getCommandGlobalDraft(commandId);
+  var sessionDraft = getCommandSessionDraft(commandId);
+  var remember     = getCommandRemember(commandId);
+
+  var allKeys = {};
+  Object.keys(localDraft).forEach(function (k) { allKeys[k] = true; });
+  Object.keys(globalDraft).forEach(function (k) { allKeys[k] = true; });
+  Object.keys(sessionDraft).forEach(function (k) { allKeys[k] = true; });
+
+  var resolved = {};
+  Object.keys(allKeys).forEach(function (key) {
+    var pref = remember[key] || "off";
+    if (pref === "local") {
+      var lv = localDraft[key];
+      resolved[key] = (lv !== undefined && lv !== "") ? lv : "";
+    } else if (pref === "global") {
+      var gv = globalDraft[key];
+      resolved[key] = (gv !== undefined && gv !== "") ? gv : "";
+    } else { // off
+      resolved[key] = sessionDraft[key] || "";
+    }
+  });
+
+  return resolved;
+}
+
+/**
+ * Returns (and lazily initializes) the scope preference map for a command.
+ * Keys are variable names; values are "local" | "global" | "off".
+ * Initialization logic: prefer "local" if local has a value, otherwise "global"
+ * if global has a value, otherwise workspace-appropriate default.
+ * @param {string} commandId
+ * @returns {object} mutable remember map { [varName]: "local"|"global"|"off" }
+ */
+function getCommandRemember(commandId) {
+  if (!uiState.commandRemember[commandId]) {
+    var remembered = {};
+    var globalVars =
+      (state.globalCommandVariables &&
+        state.globalCommandVariables.commands &&
+        state.globalCommandVariables.commands[commandId]) ||
+      {};
+    var localVars =
       (state.commandVariables &&
         state.commandVariables.commands &&
         state.commandVariables.commands[commandId]) ||
       {};
 
-    Object.keys(globalVars).forEach(function (key) {
-      remembered[key] = "global";
-    });
+    var allKeys = {};
+    Object.keys(globalVars).forEach(function (k) { allKeys[k] = true; });
+    Object.keys(localVars).forEach(function (k) { allKeys[k] = true; });
 
-    Object.keys(localVars).forEach(function (key) {
-      remembered[key] = "local";
+    Object.keys(allKeys).forEach(function (key) {
+      if (localVars[key]) {
+        remembered[key] = "local";
+      } else if (globalVars[key]) {
+        remembered[key] = "global";
+      } else {
+        // Default: prefer local if workspace is open, otherwise global
+        remembered[key] = state.workspaceFolder ? "local" : "global";
+      }
     });
 
     uiState.commandRemember[commandId] = remembered;
@@ -233,41 +319,89 @@ function getCommandRemember(commandId) {
   return uiState.commandRemember[commandId];
 }
 
+/**
+ * Builds the complete variables payload for persistence.
+ * LOCAL file  = all non-empty values in commandLocalDrafts  (independent of scope preference).
+ * GLOBAL file = all non-empty values in commandGlobalDrafts (independent of scope preference).
+ * Session drafts are NEVER included — they are in-memory only.
+ * Saving one scope never affects the other scope.
+ * @returns {{ local: object, global: object }}
+ */
 function buildCommandVariablesPayload() {
-  const local  = { version: 2, commands: {} };
-  const global = { version: 2, commands: {} };
+  var local  = { version: 2, commands: {} };
+  var global = { version: 2, commands: {} };
 
-  Object.keys(uiState.commandRemember).forEach(function (commandId) {
-    const rememberMap = uiState.commandRemember[commandId] || {};
-    const draft       = getCommandDraft(commandId);
-    const localVars   = {};
-    const globalVars  = {};
+  var allCommandIds = {};
+  Object.keys(uiState.commandLocalDrafts).forEach(function (id) { allCommandIds[id] = true; });
+  Object.keys(uiState.commandGlobalDrafts).forEach(function (id) { allCommandIds[id] = true; });
 
-    Object.keys(rememberMap).forEach(function (variableName) {
-      if (variableName === "workspaceFolder") {
-        return;
+  Object.keys(allCommandIds).forEach(function (commandId) {
+    // Skip the transient new-command context — it gets renamed to a real ID on save
+    if (commandId === "__new__") { return; }
+
+    var localDraft  = uiState.commandLocalDrafts[commandId]  || {};
+    var globalDraft = uiState.commandGlobalDrafts[commandId] || {};
+    var localVars   = {};
+    var globalVars  = {};
+
+    Object.keys(localDraft).forEach(function (varName) {
+      if (varName === "workspaceFolder") { return; }
+      var val = localDraft[varName];
+      if (val !== undefined && val !== null && val !== "") {
+        localVars[varName] = val;
       }
+    });
 
-      const flag = rememberMap[variableName];
-      const val  = draft[variableName];
-
-      if (flag === "local" && val) {
-        localVars[variableName] = val;
-      } else if (flag === "global" && val) {
-        globalVars[variableName] = val;
+    Object.keys(globalDraft).forEach(function (varName) {
+      if (varName === "workspaceFolder") { return; }
+      var val = globalDraft[varName];
+      if (val !== undefined && val !== null && val !== "") {
+        globalVars[varName] = val;
       }
     });
 
     if (Object.keys(localVars).length > 0) {
       local.commands[commandId] = localVars;
     }
-
     if (Object.keys(globalVars).length > 0) {
       global.commands[commandId] = globalVars;
     }
   });
 
   return { local, global };
+}
+
+/**
+ * Updates the scope indicator dots on toggle buttons for a specific variable.
+ * The dot is always present in the DOM (rendered by renderToggleSwitch3).
+ * This function only toggles the 'has-value' CSS class:
+ *   - has-value  → bright color (scope has a stored value)
+ *   - no class   → dim color   (scope has no stored value)
+ * @param {Element} container - The .toggle-switch-3 container element
+ * @param {string} commandId
+ * @param {string} variableName
+ * @param {string} activeScope - The currently active scope (unused, kept for API compat)
+ */
+function updateScopeIndicatorDots(container, commandId, variableName, activeScope) {
+  if (!container) { return; }
+  container.querySelectorAll(".toggle-option-3").forEach(function (scopeBtn) {
+    var scopeVal     = scopeBtn.dataset.value;
+    var dot          = scopeBtn.querySelector(".scope-value-dot");
+    var hasScopeValue = false;
+
+    if (scopeVal === "local") {
+      var lv = getCommandLocalDraft(commandId)[variableName];
+      hasScopeValue = lv !== undefined && lv !== "";
+    } else if (scopeVal === "global") {
+      var gv = getCommandGlobalDraft(commandId)[variableName];
+      hasScopeValue = gv !== undefined && gv !== "";
+    }
+    // "off" scope never has a value indicator (session values are ephemeral)
+
+    if (dot) {
+      dot.classList.toggle("has-value", hasScopeValue);
+    }
+  });
 }
 
 // ─── Category / Group / Command Selection Helpers ─────────────────────────────

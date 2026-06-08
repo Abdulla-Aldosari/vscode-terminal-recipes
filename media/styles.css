@@ -988,6 +988,30 @@ td.actions-cell {
   cursor: not-allowed;
 }
 
+/* Scope indicator dot — always visible on every toggle button.
+   Dim (low opacity) when that scope has no stored value.
+   Bright (has-value class) when the scope has a stored value.
+   Always present to prevent button layout shifts when state changes. */
+.scope-value-dot {
+  display: inline-block;
+  width:  5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--recipes-foreground, currentColor);
+  opacity: 0.18;
+  margin-left: 4px;
+  vertical-align: middle;
+  flex-shrink: 0;
+  position: relative;
+  top: -1px;
+  transition: opacity 0.15s, background 0.15s;
+}
+
+.scope-value-dot.has-value {
+  background: var(--recipes-charts-blue, var(--vscode-charts-blue, #3794ff));
+  opacity: 1;
+}
+
 code {
   font-family: Consolas, monospace;
 }

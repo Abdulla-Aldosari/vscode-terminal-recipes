@@ -43,8 +43,13 @@ const uiState = {
   editingCommandId:       null,
   editSourceTab:          null,
   pendingScrollCommandId: null,
-  commandDrafts:          {},
+  commandDrafts:          {}, // Kept for backward compat references — primary store is scope drafts below
+  commandLocalDrafts:     {}, // { [commandId]: { [varName]: value } } — workspace-local scope
+  commandGlobalDrafts:    {}, // { [commandId]: { [varName]: value } } — global scope
+  commandSessionDrafts:   {}, // { [commandId]: { [varName]: value } } — session-only (never written to disk)
   commandRemember:        {},
+  // Snapshot of scope drafts taken when edit command form opens — restored on Cancel
+  editCommandScopeSnapshot: null,
   editCommandDraft: {
     title:          "",
     template:       "",
@@ -96,12 +101,15 @@ let runConfirmState = {
 };
 
 let variableInputState = {
-  commandId:          null,
-  action:             null,
-  missingVariables:   [],
-  inputValues:        {},
-  rememberFlags:      {},
-  returnToRunConfirm: false,
+  commandId:           null,
+  action:              null,
+  missingVariables:    [],
+  inputValues:         {}, // Current displayed value per variable (from active scope)
+  rememberFlags:       {}, // Active scope preference per variable
+  localScopeBuffer:    {}, // In-memory buffer for "local" scope values (NOT written to disk until Confirm)
+  globalScopeBuffer:   {}, // In-memory buffer for "global" scope values (NOT written to disk until Confirm)
+  sessionScopeBuffer:  {}, // In-memory buffer for "off" scope values
+  returnToRunConfirm:  false,
 };
 
 let deleteConfirmState = {

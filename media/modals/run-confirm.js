@@ -8,17 +8,26 @@
 
 function renderToggleSwitch3(commandId, varName, currentValue, extraClass) {
   const noWorkspace = !state.workspaceFolder;
+
+  // Check which scopes have stored values — used for the indicator dot
+  const localDraft  = getCommandLocalDraft(commandId);
+  const globalDraft = getCommandGlobalDraft(commandId);
+  const hasLocal    = localDraft[varName] !== undefined && localDraft[varName] !== "";
+  const hasGlobal   = globalDraft[varName] !== undefined && globalDraft[varName] !== "";
+
   const opts = [
-    { value: "local",  label: "Local",  disabled: noWorkspace },
-    { value: "off",    label: "Off",    disabled: false },
-    { value: "global", label: "Global", disabled: false },
+    { value: "local",  label: "Local",  disabled: noWorkspace, hasValue: hasLocal  },
+    { value: "off",    label: "Off",    disabled: false,        hasValue: false     },
+    { value: "global", label: "Global", disabled: false,        hasValue: hasGlobal },
   ];
 
   return `
-    <div class="toggle-switch-3 ${escapeAttr(extraClass)}" data-command-id="${escapeAttr(commandId)}" data-variable-name="${escapeAttr(varName)}">
+    <div class="toggle-switch-3 ${escapeAttr(extraClass)}" data-command-id="${escapeAttr(commandId)}" data-variable-name="${escapeAttr(varName)}"
+         data-tooltip-pos="top"
+         data-tooltip="Active scope for this variable<br><strong>Local</strong> = use &amp; edit the workspace-local value<br><strong>Global</strong> = use &amp; edit the global value<br><strong>Off</strong> = session-only value (not saved to disk)">
       ${opts
         .map(function (opt) {
-          return `<button type="button" class="toggle-option-3 ${currentValue === opt.value ? "active" : ""}" data-value="${opt.value}" ${opt.disabled ? "disabled" : ""}>${opt.label}</button>`;
+          return `<button type="button" class="toggle-option-3 ${currentValue === opt.value ? "active" : ""}" data-value="${opt.value}" ${opt.disabled ? "disabled" : ""}>${opt.label}<span class="scope-value-dot${opt.hasValue ? " has-value" : ""}"></span></button>`;
         })
         .join("")}
     </div>
@@ -117,19 +126,20 @@ function renderVariableInputModal() {
           <div class="variable-row">
             <span></span>
             <span></span>
-            <span class="muted vars-store-location">Variables store location</span>
+            <span class="muted vars-store-location" data-tooltip="Active scope for each variable<br><strong>Local</strong> = use workspace-local value<br><strong>Global</strong> = use global value<br><strong>Off</strong> = session-only value (not saved)">Variables store location</span>
           </div>
           ${vars
             .map(function (name) {
-              const currentValue =
-                variableInputState.inputValues[name] !== undefined
-                  ? variableInputState.inputValues[name]
-                  : getCommandDraft(variableInputState.commandId)[name] || "";
               const rememberValue =
                 variableInputState.rememberFlags[name] !== undefined
                   ? variableInputState.rememberFlags[name]
                   : getCommandRemember(variableInputState.commandId)[name] ||
-                    "off";
+                    (state.workspaceFolder ? "local" : "global");
+              // Show the value for the currently selected scope
+              const currentValue =
+                variableInputState.inputValues[name] !== undefined
+                  ? variableInputState.inputValues[name]
+                  : "";
               // Check if this variable has Enum metadata
               const enumMeta =
                 cmdForMeta &&

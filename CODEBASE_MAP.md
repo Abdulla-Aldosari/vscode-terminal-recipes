@@ -88,10 +88,12 @@ Does **not** contain any business logic — delegates everything to `lib/`.
 
 **All webview message handler functions.** Each handler receives `panel` + `payload` (+ `postState` when a re-render is needed after saving).
 
+`handleSaveCommandVariables` accepts `{ local, global }` payload format — saves local and global variable scopes independently to their respective files without one overwriting the other.
+
 | Export                                                       | Message Type                | Description                                                    |
 | ------------------------------------------------------------ | --------------------------- | -------------------------------------------------------------- |
 | `handleSaveData(panel, payload, postState)`                  | `saveData`                  | Normalizes and saves commands; posts `saveResult`              |
-| `handleSaveCommandVariables(panel, payload)`                 | `saveCommandVariables`      | Saves local/global variables; posts `saveVariablesResult`      |
+| `handleSaveCommandVariables(panel, payload)`                 | `saveCommandVariables`      | Saves local/global variables independently; posts `saveVariablesResult` |
 | `handlePerformAction(panel, payload, postState)`             | `performAction`             | Runs copy/run/use action; updates stats; posts `actionResult`  |
 | `handleOpenExternalUrl(payload)`                             | `openExternalUrl`           | Opens URL via `vscode.env.openExternal`                        |
 | `openGlobalCommandsFile()`                                   | `openCommandsFile`          | Ensures + opens `commands.json` in VS Code editor              |
@@ -156,22 +158,87 @@ All files share the **same `window` global scope** — loaded as ordered `<scrip
 
 | Load Order | File                           | Purpose                                                                                       | Key Globals Declared                                                                                                                                                         |
 | ---------- | ------------------------------ | --------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1          | `media/state.js`               | All mutable UI state + app data received from extension                                       | `vscode`, `RECIPES_EMPTY_VALUE`, `uiState`, `appData`                                                                                                                        |
+| 1          | `media/state.js`               | All mutable UI state + app data received from extension                                       | `vscode`, `RECIPES_EMPTY_VALUE`, `uiState`, `state`, `variableInputState`, `runConfirmState`                                                                                |
 | 2          | `media/icons.js`               | All inline SVG icon strings                                                                   | `icons`                                                                                                                                                                      |
-| 3          | `media/utils.js`               | Pure utilities + custom select component system                                               | `escHtml`, `formatRelativeTime`, `extractVariables`, `resolveCommand`, `generateId`, `getSelectedCategoryId`, `getSelectedGroupId`, `renderCustomSelect`, `bindCustomSelect` |
-| 4          | `media/modals/run-confirm.js`  | Run Confirmation modal (pick shell before running)                                            | `renderRunConfirmModal`, `bindRunConfirmModal`                                                                                                                               |
-| 5          | `media/modals/edit-command.js` | Edit Command modal (all fields + variable metadata)                                           | `renderEditCommandModal`, `bindEditCommandModal`                                                                                                                             |
-| 6          | `media/modals/new-command.js`  | New Command modal                                                                             | `renderNewCommandModal`, `bindNewCommandModal`                                                                                                                               |
+| 3          | `media/utils.js`               | Pure utilities + custom select component system + scope draft helpers                         | `escapeHtml`, `escapeAttr`, `collectVariables`, `resolveCommandTemplate`, `getCommandLocalDraft`, `getCommandGlobalDraft`, `getCommandSessionDraft`, `getCommandDraft`, `getCommandRemember`, `buildCommandVariablesPayload`, `updateScopeIndicatorDots`, `renderCustomSelect`, `bindCustomSelect` |
+| 4          | `media/modals/run-confirm.js`  | Run Confirmation modal + Variable Input modal + Delete Confirm modal                          | `renderToggleSwitch3`, `renderRunConfirmModal`, `renderVariableInputModal`, `renderDeleteConfirmModal`                                                                       |
+| 5          | `media/modals/edit-command.js` | Edit Command form (rendered as full tab when editing)                                         | `renderEditTab`, `bindEditTabEvents`, `syncEditCommandDraftFromDom`, `syncEditCommandDraftFromCommand`                                                                       |
+| 6          | `media/modals/new-command.js`  | Add Command form (rendered as "add" tab)                                                      | `renderAddCommandTab`, `bindAddCommandTabEvents`                                                                                                                             |
 | 7          | `media/modals/ai-settings.js`  | AI Settings modal (provider + API key)                                                        | `renderAiSettingsModal`, `bindAiSettingsModal`                                                                                                                               |
 | 8          | `media/modals/ai-generate.js`  | AI Generate results modal                                                                     | `renderAiGenerateModal`, `bindAiGenerateModal`                                                                                                                               |
-| 9          | `media/tabs/recent.js`         | "Recent" tab                                                                                  | `renderRecentTab`, `bindRecentTab`                                                                                                                                           |
-| 10         | `media/tabs/commands.js`       | "Commands" tab (largest — filtering, cards, sort)                                             | `renderCommandsTab`, `renderCommandCard`, `renderVariableInputs`, `bindCommandsTab`, `bindCommandCard`                                                                       |
-| 11         | `media/tabs/favorites.js`      | "Favorites" tab                                                                               | `renderFavoritesTab`, `bindFavoritesTab`                                                                                                                                     |
-| 12         | `media/tabs/variables.js`      | "Variables" tab                                                                               | `renderVariablesTab`, `bindVariablesTab`                                                                                                                                     |
+| 9          | `media/tabs/recent.js`         | "Recent" tab                                                                                  | `renderRecentCommandsTab`, `bindRecentTabEvents`                                                                                                                             |
+| 10         | `media/tabs/commands.js`       | "Commands" tab (largest — filtering, table, sort, all action buttons + modals binding)        | `renderCommandsTab`, `renderCommandsTable`, `bindCommandsTabEvents`, `bindCommandActionButtons`, `performCommandAction`, `dispatchCommandAction`                             |
+| 11         | `media/tabs/favorites.js`      | "Favorites" tab                                                                               | `renderFavoritesTab`, `bindFavoritesTabEvents`                                                                                                                               |
+| 12         | `media/tabs/variables.js`      | "Variables" tab                                                                               | `renderVariablesTab`, `bindVariablesTabEvents`                                                                                                                               |
 | 13         | `media/tabs/ai.js`             | "AI Generate" tab                                                                             | `renderAiTab`, `bindAiTab`                                                                                                                                                   |
-| 14         | `media/render.js`              | Master `render()` orchestrator + tab bar + notice bar                                         | `render`, `renderTabBar`, `renderNotice`, `bindTabBar`, `bindNotice`                                                                                                         |
-| 15         | `media/messages.js`            | `window.addEventListener("message")` handler — processes all messages from the extension host | `handleState`, `handleSaveResult`, `handleActionResult`, `handleAiGenerateResult`, ...                                                                                       |
-| 16         | `media/main.js`                | Entry point: `DOMContentLoaded` init + all `postMessage` senders + tooltip IIFE               | `postReady`, `postSaveData`, `postPerformAction`, `postAiGenerate`, ...                                                                                                      |
+| 14         | `media/render.js`              | Master `render()` orchestrator + state hydration + event binding entry points                 | `render`, `hydrateState`, `ensureSelectionDefaults`, `bindEvents`, `bindTopActions`, `bindTabs`, `bindModalDismiss`                                                         |
+| 15         | `media/messages.js`            | `window.addEventListener("message")` handler — processes all messages from the extension host | `handleState`, `handleSaveResult`, `handleActionResult`, `handleSaveVariablesResult`, ...                                                                                   |
+| 16         | `media/main.js`                | Entry point: `DOMContentLoaded` init + all `postMessage` senders + tooltip IIFE               | `postReady`, `postSaveData`, `postSaveCommandVariables`, `postPerformAction`, `postAiGenerate`, ...                                                                         |
+
+---
+
+## Variable Scope System
+
+Variables support three storage scopes. The `[Local | Off | Global]` toggle on each variable row controls the **active preference** — not where the value is exclusively saved. Each scope stores its value independently.
+
+| Scope     | Storage                                              | Behavior                                                                 |
+| --------- | ---------------------------------------------------- | ------------------------------------------------------------------------ |
+| **Local** | `.vscode/terminal-recipes.variables.json` (workspace) | Value saved per-workspace; shown when that workspace is open             |
+| **Global** | `~/.vscode-terminal-recipes/variables.json`          | Value shared across all workspaces                                       |
+| **Off**   | In-memory only (never written to disk)               | Value available for current session only; cleared on extension reload    |
+
+### Key Design Rules
+- Saving Local does **not** delete Global, and vice versa.
+- The toggle is a **preference** (which scope to display/use), not an exclusive assignment.
+- `getCommandDraft(commandId)` returns the **resolved value** based on the current preference (read-only computed).
+- To read/write scope values directly, use the scope-specific draft getters.
+
+### Scope Draft Functions (in `media/utils.js`)
+
+| Function                                  | Description                                                                    |
+| ----------------------------------------- | ------------------------------------------------------------------------------ |
+| `getCommandLocalDraft(commandId)`         | Returns mutable `{ [varName]: value }` for the workspace-local scope          |
+| `getCommandGlobalDraft(commandId)`        | Returns mutable `{ [varName]: value }` for the global scope                   |
+| `getCommandSessionDraft(commandId)`       | Returns mutable `{ [varName]: value }` for the session-only scope (Off)       |
+| `getCommandDraft(commandId)`              | **Read-only computed** — resolved value per variable based on `commandRemember` |
+| `getCommandRemember(commandId)`           | Returns `{ [varName]: "local"|"global"|"off" }` — the scope preference map    |
+| `buildCommandVariablesPayload()`          | Returns `{ local, global }` — full payload for persistence (session excluded)  |
+| `updateScopeIndicatorDots(container, ...)` | Toggles `.has-value` class on scope buttons to show/hide blue indicator dot   |
+
+### `uiState` Scope-Related Fields
+
+```js
+uiState = {
+  // Primary scope stores — each scope is independent
+  commandLocalDrafts:      {},  // { [commandId]: { [varName]: value } }
+  commandGlobalDrafts:     {},  // { [commandId]: { [varName]: value } }
+  commandSessionDrafts:    {},  // { [commandId]: { [varName]: value } } — never persisted
+
+  // Scope preference per variable
+  commandRemember:         {},  // { [commandId]: { [varName]: "local"|"global"|"off" } }
+
+  // Edit-safe snapshot — taken when edit form opens; restored on Cancel or on tab navigation away
+  editCommandScopeSnapshot: null, // { commandId, local:{}, global:{}, session:{}, commandRemember:{} } | null
+}
+```
+
+### `variableInputState` Buffer Fields
+
+The variable input modal uses **in-memory buffers** so that Cancel never writes to disk:
+
+```js
+variableInputState = {
+  localScopeBuffer:   {},  // Temp buffer for "local" scope edits — written to scope draft only on Confirm
+  globalScopeBuffer:  {},  // Temp buffer for "global" scope edits
+  sessionScopeBuffer: {},  // Temp buffer for "off" scope edits
+}
+```
+
+### Scope Indicator Dot (`.scope-value-dot`)
+
+Each `[Local | Off | Global]` toggle button contains a `<span class="scope-value-dot">` that is **always visible**:
+- Default state (dim): that scope has no stored value
+- `.has-value` class (bright blue): that scope has a stored value
 
 ---
 
@@ -196,15 +263,17 @@ All files share the **same `window` global scope** — loaded as ordered `<scrip
 | `postSaveAutoVariablesSettings(payload)` | `saveAutoVariablesSettings` | `handleSaveAutoVariablesSettings`    |
 | `postSaveFavorites(payload)`             | `saveFavorites`             | `handleSaveFavorites`                |
 
+**`saveCommandVariables` payload format:** `{ local: { version:2, commands:{} }, global: { version:2, commands:{} } }` — both scopes sent together; each written independently to its file.
+
 ### Extension → Webview (`panel.webview.postMessage`)
 
 | `message.type`                    | Handled by (in `media/messages.js`)     | Effect                                         |
 | --------------------------------- | --------------------------------------- | ---------------------------------------------- |
-| `state`                           | `handleState`                           | Updates `appData` + calls `render()`           |
+| `state`                           | `handleState`                           | Updates `state` + calls `render()`             |
 | `saveResult`                      | `handleSaveResult`                      | Shows success/error notice                     |
-| `saveVariablesResult`             | `handleSaveVariablesResult`             | Shows result + updates local vars in `appData` |
+| `saveVariablesResult`             | `handleSaveVariablesResult`             | Shows result + updates local/global vars       |
 | `actionResult`                    | `handleActionResult`                    | Shows notice for copy/run/use                  |
-| `aiSettingsResult`                | `handleAiSettingsResult`                | Populates `aiSettingsState` + re-renders       |
+| `aiSettingsResult`                | `handleAiSettingsResult`                | Populates `aiState` + re-renders               |
 | `aiSaveSettingsResult`            | `handleAiSaveSettingsResult`            | Shows save confirmation                        |
 | `aiGenerateResult`                | `handleAiGenerateResult`                | Updates `aiState.results` + calls `render()`   |
 | `aiInsertResult`                  | `handleAiInsertResult`                  | Shows insert confirmation notice               |
@@ -224,7 +293,7 @@ All dropdowns use `renderCustomSelect()` + `bindCustomSelect()` from `media/util
 | Run Confirm Modal — shell     | `shell-selector-wrap`       | `media/modals/run-confirm.js`                                               |
 | Edit Command Modal — category | `edit-category-select-wrap` | `media/modals/edit-command.js`                                              |
 | AI Settings Modal — provider  | `ai-provider-select-wrap`   | `media/modals/ai-settings.js`                                               |
-| Variable inputs — enum type   | `enum-var-wrap-{varName}`   | `media/tabs/commands.js`, `media/tabs/recent.js`, `media/tabs/favorites.js` |
+| Variable inputs — enum type   | `enum-var-wrap-{varName}`   | `media/modals/run-confirm.js` (variable input modal), `media/modals/edit-command.js`, `media/modals/new-command.js` |
 
 ---
 
@@ -233,3 +302,10 @@ All dropdowns use `renderCustomSelect()` + `bindCustomSelect()` from `media/util
 - **All styles** live in `media/styles.css` — single stylesheet, never inline.
 - **Dynamic values only:** `el.style.setProperty("--custom-prop", value)` is allowed for runtime-computed values (e.g., textarea heights).
 - VS Code CSS variables (e.g., `--vscode-button-background`) are used throughout for theme compatibility.
+
+### Notable CSS Classes Added
+
+| Class                   | Description                                                                              |
+| ----------------------- | ---------------------------------------------------------------------------------------- |
+| `.scope-value-dot`      | Always-visible dot on each `[Local/Off/Global]` button; dim by default                  |
+| `.scope-value-dot.has-value` | Bright blue — applied when that scope has a stored value (toggled via JS, no re-render) |

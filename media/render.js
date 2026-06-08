@@ -77,21 +77,33 @@ function hydrateState(payload) {
   ]);
 
   allCommandIds.forEach(function (commandId) {
-    if (!uiState.commandDrafts[commandId]) {
-      const globalVars = globalCmds[commandId] || {};
-      const localVars  = localCmds[commandId] || {};
-      uiState.commandDrafts[commandId] = { ...globalVars, ...localVars };
+    // Initialize local scope draft from workspace variables file
+    if (!uiState.commandLocalDrafts[commandId]) {
+      uiState.commandLocalDrafts[commandId] = Object.assign({}, localCmds[commandId] || {});
     }
 
+    // Initialize global scope draft from global variables file
+    if (!uiState.commandGlobalDrafts[commandId]) {
+      uiState.commandGlobalDrafts[commandId] = Object.assign({}, globalCmds[commandId] || {});
+    }
+
+    // Initialize scope preference (commandRemember)
     if (!uiState.commandRemember[commandId]) {
       const remembered = {};
       const globalVars = globalCmds[commandId] || {};
-      const localVars  = localCmds[commandId] || {};
-      Object.keys(globalVars).forEach(function (key) {
-        remembered[key] = "global";
-      });
-      Object.keys(localVars).forEach(function (key) {
-        remembered[key] = "local";
+      const localVars  = localCmds[commandId]  || {};
+      const allVarKeys = new Set([
+        ...Object.keys(localVars),
+        ...Object.keys(globalVars),
+      ]);
+      allVarKeys.forEach(function (key) {
+        if (localVars[key]) {
+          remembered[key] = "local";   // prefer local if local has a value
+        } else if (globalVars[key]) {
+          remembered[key] = "global";  // prefer global if only global has a value
+        } else {
+          remembered[key] = state.workspaceFolder ? "local" : "global";
+        }
       });
       uiState.commandRemember[commandId] = remembered;
     }
@@ -285,6 +297,9 @@ const modalDismissHandlers = {
       missingVariables:   [],
       inputValues:        {},
       rememberFlags:      {},
+      localScopeBuffer:   {},
+      globalScopeBuffer:  {},
+      sessionScopeBuffer: {},
       returnToRunConfirm: false,
     };
     render();
@@ -417,8 +432,18 @@ function bindTabs() {
     tabButton.addEventListener("click", function () {
       const nextTab = tabButton.dataset.tab;
 
-      // Switching tabs while editing → discard editing state
+      // Switching tabs while editing → restore snapshot and discard editing state
       if (uiState.editingCommandId && nextTab !== uiState.activeTab) {
+        const snap = uiState.editCommandScopeSnapshot;
+        if (snap) {
+          uiState.commandLocalDrafts[snap.commandId]   = snap.local;
+          uiState.commandGlobalDrafts[snap.commandId]  = snap.global;
+          uiState.commandSessionDrafts[snap.commandId] = snap.session;
+          if (snap.commandRemember) {
+            uiState.commandRemember[snap.commandId] = snap.commandRemember;
+          }
+          uiState.editCommandScopeSnapshot = null;
+        }
         uiState.editingCommandId = null;
         uiState.editCommandDraft = {
           title:       "",

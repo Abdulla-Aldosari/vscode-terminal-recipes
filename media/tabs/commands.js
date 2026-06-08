@@ -570,13 +570,24 @@ function performCommandAction(commandId, action, forceShowVariables) {
 
   // If CTRL is held and the command has variables → force open the variable input modal
   if (forceShowVariables && hasVariables) {
-    const draft      = getCommandDraft(commandId);
-    const rememberMap = getCommandRemember(commandId);
-    const inputValues  = {};
-    const rememberFlags = {};
+    const rememberMap     = getCommandRemember(commandId);
+    const inputValues     = {};
+    const rememberFlags   = {};
+    const localScopeBuffer   = {};
+    const globalScopeBuffer  = {};
+    const sessionScopeBuffer = {};
     allVars.forEach(function (name) {
-      inputValues[name]   = draft[name] || "";
-      rememberFlags[name] = rememberMap[name] || "off";
+      const pref = rememberMap[name] || (state.workspaceFolder ? "local" : "global");
+      var lv = getCommandLocalDraft(commandId)[name];
+      var gv = getCommandGlobalDraft(commandId)[name];
+      var sv = getCommandSessionDraft(commandId)[name];
+      localScopeBuffer[name]   = lv !== undefined ? lv : "";
+      globalScopeBuffer[name]  = gv !== undefined ? gv : "";
+      sessionScopeBuffer[name] = sv !== undefined ? sv : "";
+      rememberFlags[name] = pref;
+      inputValues[name]   = pref === "local" ? localScopeBuffer[name]
+                          : pref === "global" ? globalScopeBuffer[name]
+                          : sessionScopeBuffer[name];
     });
     variableInputState = {
       commandId,
@@ -584,6 +595,9 @@ function performCommandAction(commandId, action, forceShowVariables) {
       missingVariables:   allVars,
       inputValues,
       rememberFlags,
+      localScopeBuffer,
+      globalScopeBuffer,
+      sessionScopeBuffer,
       returnToRunConfirm: false,
     };
     render();
@@ -594,13 +608,24 @@ function performCommandAction(commandId, action, forceShowVariables) {
   const missing = getMissingVariables(command);
 
   if (missing.length > 0) {
-    const draft       = getCommandDraft(commandId);
-    const rememberMap = getCommandRemember(commandId);
-    const inputValues  = {};
-    const rememberFlags = {};
+    const rememberMap     = getCommandRemember(commandId);
+    const inputValues     = {};
+    const rememberFlags   = {};
+    const localScopeBuffer   = {};
+    const globalScopeBuffer  = {};
+    const sessionScopeBuffer = {};
     allVars.forEach(function (name) {
-      inputValues[name]   = draft[name] || "";
-      rememberFlags[name] = rememberMap[name] || "off";
+      const pref = rememberMap[name] || (state.workspaceFolder ? "local" : "global");
+      var lv = getCommandLocalDraft(commandId)[name];
+      var gv = getCommandGlobalDraft(commandId)[name];
+      var sv = getCommandSessionDraft(commandId)[name];
+      localScopeBuffer[name]   = lv !== undefined ? lv : "";
+      globalScopeBuffer[name]  = gv !== undefined ? gv : "";
+      sessionScopeBuffer[name] = sv !== undefined ? sv : "";
+      rememberFlags[name] = pref;
+      inputValues[name]   = pref === "local" ? localScopeBuffer[name]
+                          : pref === "global" ? globalScopeBuffer[name]
+                          : sessionScopeBuffer[name];
     });
     variableInputState = {
       commandId,
@@ -608,6 +633,9 @@ function performCommandAction(commandId, action, forceShowVariables) {
       missingVariables:   allVars,
       inputValues,
       rememberFlags,
+      localScopeBuffer,
+      globalScopeBuffer,
+      sessionScopeBuffer,
       returnToRunConfirm: false,
     };
     render();
@@ -660,17 +688,26 @@ function bindCommandActionButtons() {
       if (missing.length > 0) {
         const autoVarNames  = getEnabledAutoVariableNames();
         const allVars       = collectVariables([command.command]).filter(
-          function (name) {
-            return !autoVarNames.includes(name);
-          },
+          function (name) { return !autoVarNames.includes(name); },
         );
-        const draft       = getCommandDraft(commandId);
-        const rememberMap = getCommandRemember(commandId);
-        const inputValues  = {};
-        const rememberFlags = {};
+        const rememberMap     = getCommandRemember(commandId);
+        const inputValues     = {};
+        const rememberFlags   = {};
+        const localScopeBuffer   = {};
+        const globalScopeBuffer  = {};
+        const sessionScopeBuffer = {};
         allVars.forEach(function (name) {
-          inputValues[name]   = draft[name] || "";
-          rememberFlags[name] = rememberMap[name] || "off";
+          const pref = rememberMap[name] || (state.workspaceFolder ? "local" : "global");
+          var lv = getCommandLocalDraft(commandId)[name];
+          var gv = getCommandGlobalDraft(commandId)[name];
+          var sv = getCommandSessionDraft(commandId)[name];
+          localScopeBuffer[name]   = lv !== undefined ? lv : "";
+          globalScopeBuffer[name]  = gv !== undefined ? gv : "";
+          sessionScopeBuffer[name] = sv !== undefined ? sv : "";
+          rememberFlags[name] = pref;
+          inputValues[name]   = pref === "local" ? localScopeBuffer[name]
+                              : pref === "global" ? globalScopeBuffer[name]
+                              : sessionScopeBuffer[name];
         });
         variableInputState = {
           commandId,
@@ -678,6 +715,9 @@ function bindCommandActionButtons() {
           missingVariables:   allVars,
           inputValues,
           rememberFlags,
+          localScopeBuffer,
+          globalScopeBuffer,
+          sessionScopeBuffer,
           returnToRunConfirm: false,
         };
         render();
@@ -1011,14 +1051,25 @@ function bindCommandActionButtons() {
         },
       );
 
-      const draft       = getCommandDraft(commandId);
-      const rememberMap = getCommandRemember(commandId);
-      const inputValues  = {};
-      const rememberFlags = {};
+      const rememberMap     = getCommandRemember(commandId);
+      const inputValues     = {};
+      const rememberFlags   = {};
+      const localScopeBuffer   = {};
+      const globalScopeBuffer  = {};
+      const sessionScopeBuffer = {};
 
       allVars.forEach(function (name) {
-        inputValues[name]   = draft[name] || "";
-        rememberFlags[name] = rememberMap[name] || "off";
+        const pref = rememberMap[name] || (state.workspaceFolder ? "local" : "global");
+        var lv = getCommandLocalDraft(commandId)[name];
+        var gv = getCommandGlobalDraft(commandId)[name];
+        var sv = getCommandSessionDraft(commandId)[name];
+        localScopeBuffer[name]   = lv !== undefined ? lv : "";
+        globalScopeBuffer[name]  = gv !== undefined ? gv : "";
+        sessionScopeBuffer[name] = sv !== undefined ? sv : "";
+        rememberFlags[name] = pref;
+        inputValues[name]   = pref === "local" ? localScopeBuffer[name]
+                            : pref === "global" ? globalScopeBuffer[name]
+                            : sessionScopeBuffer[name];
       });
 
       variableInputState = {
@@ -1027,6 +1078,9 @@ function bindCommandActionButtons() {
         missingVariables:   allVars,
         inputValues,
         rememberFlags,
+        localScopeBuffer,
+        globalScopeBuffer,
+        sessionScopeBuffer,
         returnToRunConfirm: true,
       };
 
@@ -1088,23 +1142,108 @@ function bindCommandActionButtons() {
       );
     });
 
-  // Bind toggle switches in variable input modal
+  // Bind toggle switches in variable input modal — switches active scope + updates input/dropdown value
   document
     .querySelectorAll(".variable-modal-remember-toggle")
     .forEach(function (container) {
       container.querySelectorAll(".toggle-option-3").forEach(function (btn) {
         btn.addEventListener("click", function () {
-          if (btn.disabled) {
-            return;
+          if (btn.disabled) { return; }
+
+          const varName   = container.dataset.variableName;
+          const commandId = variableInputState.commandId;
+          const newScope  = btn.dataset.value;
+
+          // Find the modal text input and the enum wrap for this variable
+          const inputEl = document.querySelector(".variable-modal-input[data-variable-name=\"" + varName + "\"]");
+          const enumWrap = document.getElementById("enum-var-wrap-" + varName);
+
+          // Determine the current value from the modal (enum dropdown or text input)
+          var currentActiveVal = variableInputState.inputValues[varName] || "";
+          if (inputEl && !inputEl.classList.contains("hidden")) {
+            currentActiveVal = inputEl.dataset.isEmptyValue === "true" ? RECIPES_EMPTY_VALUE : inputEl.value;
           }
 
+          // Step 1: Save current value to current scope BUFFER (not scope draft)
+          const currentActiveBtn = container.querySelector(".toggle-option-3.active");
+          const currentScope     = currentActiveBtn ? currentActiveBtn.dataset.value : "off";
+          if (variableInputState.localScopeBuffer && currentScope === "local") {
+            variableInputState.localScopeBuffer[varName] = currentActiveVal;
+          } else if (variableInputState.globalScopeBuffer && currentScope === "global") {
+            variableInputState.globalScopeBuffer[varName] = currentActiveVal;
+          } else if (variableInputState.sessionScopeBuffer) {
+            variableInputState.sessionScopeBuffer[varName] = currentActiveVal;
+          }
+
+          // Step 2: Update active class
           container.querySelectorAll(".toggle-option-3").forEach(function (b) {
             b.classList.remove("active");
           });
           btn.classList.add("active");
 
-          const varName = container.dataset.variableName;
-          variableInputState.rememberFlags[varName] = btn.dataset.value;
+          // Step 3: Update rememberFlag
+          variableInputState.rememberFlags[varName] = newScope;
+
+          // Step 4: Load new scope's value from BUFFER
+          var newVal = "";
+          if (variableInputState.localScopeBuffer && newScope === "local") {
+            newVal = variableInputState.localScopeBuffer[varName] || "";
+          } else if (variableInputState.globalScopeBuffer && newScope === "global") {
+            newVal = variableInputState.globalScopeBuffer[varName] || "";
+          } else if (variableInputState.sessionScopeBuffer) {
+            newVal = variableInputState.sessionScopeBuffer[varName] || "";
+          }
+          variableInputState.inputValues[varName] = newVal;
+
+          // Step 5a: Update text input (for non-enum or enum custom input)
+          if (inputEl) {
+            const isEmptyValue = newVal === RECIPES_EMPTY_VALUE;
+            inputEl.value    = isEmptyValue ? "[EmptyValue]" : newVal;
+            inputEl.readOnly = isEmptyValue;
+            if (isEmptyValue) { inputEl.setAttribute("data-is-empty-value", "true"); }
+            else { inputEl.removeAttribute("data-is-empty-value"); }
+          }
+
+          // Step 5b: If this is an Enum variable, also update the dropdown selection
+          if (enumWrap && commandId) {
+            const command    = (state.data.commands || []).find(function (c) { return c.id === commandId; });
+            const enumMeta   = command && command.variableMeta && command.variableMeta[varName];
+            const isEnum     = enumMeta && enumMeta.type === "enum" && enumMeta.enumValues && enumMeta.enumValues.length > 0;
+            if (isEnum) {
+              const displayVal = newVal === RECIPES_EMPTY_VALUE ? "" : newVal;
+              const isInEnum   = enumMeta.enumValues.some(function (ev) { return ev.value === displayVal; });
+              const btnEl      = document.getElementById("enum-var-btn-" + varName);
+              const menuEl     = document.getElementById("enum-var-menu-" + varName);
+              const customEl   = enumWrap.querySelector(".variable-modal-custom-input");
+
+              if (isInEnum) {
+                // Show the selected enum option
+                if (btnEl) { var lbl = btnEl.querySelector(".cs-btn-label"); if (lbl) lbl.textContent = displayVal; }
+                if (menuEl) {
+                  menuEl.querySelectorAll(".cs-item").forEach(function (item) {
+                    item.querySelectorAll(".cs-check").forEach(function (el) { el.remove(); });
+                    if (item.dataset.value === displayVal) { item.insertAdjacentHTML("beforeend", icons.checkmark); }
+                  });
+                }
+                if (customEl) { customEl.classList.add("hidden"); }
+                if (inputEl)  { inputEl.classList.add("hidden"); }
+              } else {
+                // Switch to custom input mode
+                if (btnEl) { var lbl2 = btnEl.querySelector(".cs-btn-label"); if (lbl2) lbl2.textContent = "✏️ Custom value..."; }
+                if (menuEl) {
+                  menuEl.querySelectorAll(".cs-item").forEach(function (item) {
+                    item.querySelectorAll(".cs-check").forEach(function (el) { el.remove(); });
+                    if (item.dataset.value === "__custom__") { item.insertAdjacentHTML("beforeend", icons.checkmark); }
+                  });
+                }
+                if (customEl) { customEl.classList.remove("hidden"); customEl.value = displayVal; }
+                if (inputEl)  { inputEl.classList.remove("hidden"); inputEl.value = displayVal; }
+              }
+            }
+          }
+
+          // Step 6: Update scope indicator dots
+          updateScopeIndicatorDots(container, commandId, varName, newScope);
         });
       });
     });
@@ -1134,19 +1273,6 @@ function bindCommandActionButtons() {
         return;
       }
 
-      // Collect current values from the modal DOM
-      // If input has data-is-empty-value="true" → store RECIPES_EMPTY_VALUE, not ""
-      document
-        .querySelectorAll(".variable-modal-input")
-        .forEach(function (input) {
-          const varName = input.dataset.variableName;
-          if (input.dataset.isEmptyValue === "true") {
-            variableInputState.inputValues[varName] = RECIPES_EMPTY_VALUE;
-          } else {
-            variableInputState.inputValues[varName] = input.value;
-          }
-        });
-
       // Collect remember flags from toggle switches in the modal DOM
       document
         .querySelectorAll(".variable-modal-remember-toggle")
@@ -1158,29 +1284,46 @@ function bindCommandActionButtons() {
             : "off";
         });
 
-      // Apply input values to commandDraft
-      const draft = getCommandDraft(commandId);
-      Object.keys(variableInputState.inputValues).forEach(function (varName) {
-        draft[varName] = variableInputState.inputValues[varName];
-      });
-      uiState.commandDrafts[commandId] = draft;
+      // Collect current DOM values → update the active scope's buffer
+      document
+        .querySelectorAll(".variable-modal-input")
+        .forEach(function (input) {
+          const varName = input.dataset.variableName;
+          if (!varName) return;
+          const val = input.dataset.isEmptyValue === "true" ? RECIPES_EMPTY_VALUE : input.value;
+          variableInputState.inputValues[varName] = val;
+          const scope = variableInputState.rememberFlags[varName] || "off";
+          if (scope === "local" && variableInputState.localScopeBuffer) {
+            variableInputState.localScopeBuffer[varName] = val;
+          } else if (scope === "global" && variableInputState.globalScopeBuffer) {
+            variableInputState.globalScopeBuffer[varName] = val;
+          } else if (variableInputState.sessionScopeBuffer) {
+            variableInputState.sessionScopeBuffer[varName] = val;
+          }
+        });
 
-      // Apply remember flags
+      // Write ALL scope buffers to their respective scope drafts (Cancel-safe approach)
+      variableInputState.missingVariables.forEach(function (varName) {
+        if (variableInputState.localScopeBuffer && variableInputState.localScopeBuffer[varName] !== undefined) {
+          getCommandLocalDraft(commandId)[varName] = variableInputState.localScopeBuffer[varName];
+        }
+        if (variableInputState.globalScopeBuffer && variableInputState.globalScopeBuffer[varName] !== undefined) {
+          getCommandGlobalDraft(commandId)[varName] = variableInputState.globalScopeBuffer[varName];
+        }
+        if (variableInputState.sessionScopeBuffer && variableInputState.sessionScopeBuffer[varName] !== undefined) {
+          getCommandSessionDraft(commandId)[varName] = variableInputState.sessionScopeBuffer[varName];
+        }
+      });
+
+      // Apply remember flags → update commandRemember (scope preference)
       const rememberMap = getCommandRemember(commandId);
       Object.keys(variableInputState.rememberFlags).forEach(function (varName) {
         rememberMap[varName] = variableInputState.rememberFlags[varName];
       });
       uiState.commandRemember[commandId] = rememberMap;
 
-      // Persist if any flag is not 'off'
-      const hasToSave = Object.values(variableInputState.rememberFlags).some(
-        function (v) {
-          return v !== "off";
-        },
-      );
-      if (hasToSave) {
-        persistCommandVariables();
-      }
+      // Always persist — buildCommandVariablesPayload writes only non-empty scope values
+      persistCommandVariables();
 
       // Close variable input modal
       variableInputState = {
@@ -1347,6 +1490,9 @@ function executeDeleteConfirm() {
     );
 
     delete uiState.commandDrafts[id];
+    delete uiState.commandLocalDrafts[id];
+    delete uiState.commandGlobalDrafts[id];
+    delete uiState.commandSessionDrafts[id];
     delete uiState.commandRemember[id];
 
     if (

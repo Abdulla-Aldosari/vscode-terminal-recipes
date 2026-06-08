@@ -80,7 +80,6 @@ function renderEditTab() {
   ]).filter(function (n) {
     return !autoVarNames.includes(n);
   });
-  const commandDraft   = getCommandDraft(command.id);
   const commandRemember = getCommandRemember(command.id);
   const isMoved        = targetCategoryId !== command.categoryId;
 
@@ -143,10 +142,21 @@ function renderEditTab() {
             </div>
             ${variables
               .map(function (name) {
-                const rawVal      = commandDraft[name];
+                const pref         = commandRemember[name] || (state.workspaceFolder ? "local" : "global");
+                const localDraftV  = getCommandLocalDraft(command.id);
+                const globalDraftV = getCommandGlobalDraft(command.id);
+                const sessionDraftV = getCommandSessionDraft(command.id);
+                let rawVal;
+                if (pref === "local") {
+                  rawVal = localDraftV[name];
+                } else if (pref === "global") {
+                  rawVal = globalDraftV[name];
+                } else {
+                  rawVal = sessionDraftV[name];
+                }
+                rawVal = rawVal !== undefined ? rawVal : "";
                 const isEmptyVal  = rawVal === RECIPES_EMPTY_VALUE;
-                const displayVal  = isEmptyVal ? "[EmptyValue]" : rawVal || "";
-                const rememberValue = commandRemember[name] || "off";
+                const displayVal  = isEmptyVal ? "[EmptyValue]" : rawVal;
                 const meta        =
                   editDraft.variableMeta && editDraft.variableMeta[name];
                 const isEnum      = meta && meta.type === "enum";
@@ -154,8 +164,8 @@ function renderEditTab() {
                 return `
               <div class="variable-row">
                 <label class="variable-name">\${${escapeHtml(name)}}</label>
-                <input class="input variable-input" data-command-id="${escapeAttr(command.id)}" data-variable-name="${escapeAttr(name)}" value="${escapeAttr(displayVal)}" placeholder="Enter value..."${isEmptyVal ? ' readonly data-is-empty-value="true"' : ""}/>
-                ${renderToggleSwitch3(command.id, name, rememberValue, "variable-remember-toggle")}
+                <input class="input variable-input" data-command-id="${escapeAttr(command.id)}" data-variable-name="${escapeAttr(name)}" data-scope="${escapeAttr(pref)}" value="${escapeAttr(displayVal)}" placeholder="Enter value..."${isEmptyVal ? ' readonly data-is-empty-value="true"' : ""}/>
+                ${renderToggleSwitch3(command.id, name, pref, "variable-remember-toggle")}
                 <button type="button" class="btn small ${isEnum ? "primary" : "secondary"} btn-open-enum-manager" data-var-name="${escapeAttr(name)}" data-command-id="${escapeAttr(command.id)}" data-tooltip="Manage Enum values">${icons.adjustments} ${isEnum ? `Enum (${enumCount})` : "Set Enum"}</button>
               </div>
             `;
@@ -196,6 +206,18 @@ function bindEditTabEvents() {
 
   if (!command || !form) {
     return;
+  }
+
+  // Take a snapshot of the current scope drafts when the edit form first opens.
+  // If the user presses Cancel, the snapshot is restored so no changes persist.
+  if (!uiState.editCommandScopeSnapshot || uiState.editCommandScopeSnapshot.commandId !== command.id) {
+    uiState.editCommandScopeSnapshot = {
+      commandId:       command.id,
+      local:           Object.assign({}, getCommandLocalDraft(command.id)),
+      global:          Object.assign({}, getCommandGlobalDraft(command.id)),
+      session:         Object.assign({}, getCommandSessionDraft(command.id)),
+      commandRemember: Object.assign({}, getCommandRemember(command.id)),
+    };
   }
 
   form.addEventListener("submit", function (event) {
@@ -252,22 +274,23 @@ function bindEditTabEvents() {
       delete command.helpUrl;
     }
 
-    // Read variable values from DOM before re-render
-    // If input has data-is-empty-value="true" → store RECIPES_EMPTY_VALUE
+    // Read variable values from DOM → write to scope-specific drafts
     document.querySelectorAll(".variable-input").forEach(function (varInput) {
       const cid   = varInput.dataset.commandId;
       const vname = varInput.dataset.variableName;
-      if (cid && vname) {
-        const d = getCommandDraft(cid);
-        d[vname] =
-          varInput.dataset.isEmptyValue === "true"
-            ? RECIPES_EMPTY_VALUE
-            : varInput.value;
-        uiState.commandDrafts[cid] = d;
+      if (!cid || !vname) { return; }
+      const scope = varInput.dataset.scope || getCommandRemember(cid)[vname] || "off";
+      const val   = varInput.dataset.isEmptyValue === "true" ? RECIPES_EMPTY_VALUE : varInput.value;
+      if (scope === "local") {
+        getCommandLocalDraft(cid)[vname] = val;
+      } else if (scope === "global") {
+        getCommandGlobalDraft(cid)[vname] = val;
+      } else {
+        getCommandSessionDraft(cid)[vname] = val;
       }
     });
 
-    // Read toggle states from DOM before re-render
+    // Read toggle states from DOM → update commandRemember
     document
       .querySelectorAll(".variable-remember-toggle")
       .forEach(function (container) {
@@ -283,6 +306,7 @@ function bindEditTabEvents() {
 
     const savedCommandId = command.id;
     const returnTab      = uiState.editSourceTab || "commands";
+    uiState.editCommandScopeSnapshot = null; // Discard snapshot — save was intentional
     uiState.editingCommandId = null;
     uiState.editCommandDraft = {
       title:       "",
@@ -302,6 +326,16 @@ function bindEditTabEvents() {
     cancelEditButton.addEventListener("click", function () {
       const savedCommandId = command.id;
       const returnTab      = uiState.editSourceTab || "commands";
+
+      // Restore scope drafts from snapshot — discard all edits made in this session
+      if (uiState.editCommandScopeSnapshot && uiState.editCommandScopeSnapshot.commandId === command.id) {
+        uiState.commandLocalDrafts[command.id]   = uiState.editCommandScopeSnapshot.local;
+        uiState.commandGlobalDrafts[command.id]  = uiState.editCommandScopeSnapshot.global;
+        uiState.commandSessionDrafts[command.id] = uiState.editCommandScopeSnapshot.session;
+        uiState.commandRemember[command.id]      = uiState.editCommandScopeSnapshot.commandRemember;
+        uiState.editCommandScopeSnapshot = null;
+      }
+
       uiState.editingCommandId = null;
       uiState.editCommandDraft = {
         title:       "",
@@ -364,36 +398,47 @@ function bindEditTabEvents() {
     });
 
   document.querySelectorAll(".variable-input").forEach(function (input) {
+    // Write typed value to the correct scope draft based on data-scope attribute
     input.addEventListener("input", function () {
       const commandId    = input.dataset.commandId;
       const variableName = input.dataset.variableName;
-      const draft        = getCommandDraft(commandId);
-      draft[variableName] = input.value;
-      uiState.commandDrafts[commandId] = draft;
-      // No auto-save here — save happens on form submit
+      const scope        = input.dataset.scope || getCommandRemember(commandId)[variableName] || "off";
+      const val          = input.value;
+      if (scope === "local") {
+        getCommandLocalDraft(commandId)[variableName] = val;
+      } else if (scope === "global") {
+        getCommandGlobalDraft(commandId)[variableName] = val;
+      } else {
+        getCommandSessionDraft(commandId)[variableName] = val;
+      }
+      // Update scope indicator dots
+      const toggleContainer = document.querySelector(
+        ".variable-remember-toggle[data-command-id=\"" + commandId + "\"][data-variable-name=\"" + variableName + "\"]"
+      );
+      updateScopeIndicatorDots(toggleContainer, commandId, variableName, scope);
     });
 
-    // Alt+0 to toggle empty value on edit tab inputs
+    // Alt+0 to toggle empty value — writes to the scope-specific draft
     input.addEventListener("keydown", function (e) {
       if (e.altKey && e.key === "0") {
         e.preventDefault();
         const commandId = input.dataset.commandId;
         const varName   = input.dataset.variableName;
-        if (!varName || !commandId) return;
+        const scope     = input.dataset.scope || getCommandRemember(commandId)[varName] || "off";
+        if (!varName || !commandId) { return; }
+        const scopeDraft = scope === "local" ? getCommandLocalDraft(commandId)
+                         : scope === "global" ? getCommandGlobalDraft(commandId)
+                         : getCommandSessionDraft(commandId);
         if (input.dataset.isEmptyValue === "true") {
           input.readOnly = false;
           input.removeAttribute("data-is-empty-value");
           input.value = "";
-          const d = getCommandDraft(commandId);
-          d[varName] = "";
-          uiState.commandDrafts[commandId] = d;
+          scopeDraft[varName] = "";
         } else {
           input.readOnly = true;
           input.setAttribute("data-is-empty-value", "true");
           input.value = "[EmptyValue]";
-          const d = getCommandDraft(commandId);
-          d[varName] = RECIPES_EMPTY_VALUE;
-          uiState.commandDrafts[commandId] = d;
+          scopeDraft[varName] = RECIPES_EMPTY_VALUE;
         }
       }
     });
@@ -467,28 +512,70 @@ function bindEditTabEvents() {
     });
   });
 
-  // Bind toggle switches in edit tab — update state only, no auto-save
+  // Bind toggle switches in edit tab — switches active scope without re-render
   document
     .querySelectorAll(".variable-remember-toggle")
     .forEach(function (container) {
       container.querySelectorAll(".toggle-option-3").forEach(function (btn) {
         btn.addEventListener("click", function () {
-          if (btn.disabled) {
-            return;
+          if (btn.disabled) { return; }
+
+          const commandId    = container.dataset.commandId;
+          const variableName = container.dataset.variableName;
+          const newScope     = btn.dataset.value;
+
+          // Find the corresponding input element
+          const inputEl = document.querySelector(
+            ".variable-input[data-command-id=\"" + commandId + "\"][data-variable-name=\"" + variableName + "\"]"
+          );
+
+          // Step 1: Save current input value to current scope's draft before switching
+          if (inputEl) {
+            const currentActiveBtn = container.querySelector(".toggle-option-3.active");
+            const currentScope     = currentActiveBtn ? currentActiveBtn.dataset.value : "off";
+            const currentVal       = inputEl.dataset.isEmptyValue === "true"
+              ? RECIPES_EMPTY_VALUE
+              : inputEl.value;
+            const currentScopeDraft = currentScope === "local" ? getCommandLocalDraft(commandId)
+                                    : currentScope === "global" ? getCommandGlobalDraft(commandId)
+                                    : getCommandSessionDraft(commandId);
+            currentScopeDraft[variableName] = currentVal;
           }
 
+          // Step 2: Update active class
           container.querySelectorAll(".toggle-option-3").forEach(function (b) {
             b.classList.remove("active");
           });
           btn.classList.add("active");
 
-          const commandId    = container.dataset.commandId;
-          const variableName = container.dataset.variableName;
-          const value        = btn.dataset.value;
-
+          // Step 3: Update commandRemember (scope preference)
           const rememberMap = getCommandRemember(commandId);
-          rememberMap[variableName] = value;
+          rememberMap[variableName] = newScope;
           uiState.commandRemember[commandId] = rememberMap;
+
+          // Step 4: Load new scope's value into the input
+          if (inputEl) {
+            let newVal = "";
+            if (newScope === "local") {
+              newVal = getCommandLocalDraft(commandId)[variableName] || "";
+            } else if (newScope === "global") {
+              newVal = getCommandGlobalDraft(commandId)[variableName] || "";
+            } else {
+              newVal = getCommandSessionDraft(commandId)[variableName] || "";
+            }
+            const isEmptyValue = newVal === RECIPES_EMPTY_VALUE;
+            inputEl.value    = isEmptyValue ? "[EmptyValue]" : newVal;
+            inputEl.readOnly = isEmptyValue;
+            if (isEmptyValue) {
+              inputEl.setAttribute("data-is-empty-value", "true");
+            } else {
+              inputEl.removeAttribute("data-is-empty-value");
+            }
+            inputEl.setAttribute("data-scope", newScope);
+          }
+
+          // Step 5: Update scope indicator dots
+          updateScopeIndicatorDots(container, commandId, variableName, newScope);
           // No auto-save here — save happens on form submit
         });
       });
