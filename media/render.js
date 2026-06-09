@@ -53,8 +53,8 @@ function hydrateState(payload) {
 
   // Initialize selected shell from default profile if not already set
   if (runConfirmState.selectedShellName == null) {
-    const profiles        = state.terminalProfiles.profiles || [];
-    const defaultName     = state.terminalProfiles.defaultProfile || "";
+    const profiles = state.terminalProfiles.profiles || [];
+    const defaultName = state.terminalProfiles.defaultProfile || "";
     const defaultProfileEntry =
       profiles.find(function (p) {
         return p.name === defaultName;
@@ -69,7 +69,7 @@ function hydrateState(payload) {
       : null;
   }
 
-  const localCmds  = state.commandVariables.commands || {};
+  const localCmds = state.commandVariables.commands || {};
   const globalCmds = state.globalCommandVariables.commands || {};
   const allCommandIds = new Set([
     ...Object.keys(localCmds),
@@ -79,28 +79,34 @@ function hydrateState(payload) {
   allCommandIds.forEach(function (commandId) {
     // Initialize local scope draft from workspace variables file
     if (!uiState.commandLocalDrafts[commandId]) {
-      uiState.commandLocalDrafts[commandId] = Object.assign({}, localCmds[commandId] || {});
+      uiState.commandLocalDrafts[commandId] = Object.assign(
+        {},
+        localCmds[commandId] || {},
+      );
     }
 
     // Initialize global scope draft from global variables file
     if (!uiState.commandGlobalDrafts[commandId]) {
-      uiState.commandGlobalDrafts[commandId] = Object.assign({}, globalCmds[commandId] || {});
+      uiState.commandGlobalDrafts[commandId] = Object.assign(
+        {},
+        globalCmds[commandId] || {},
+      );
     }
 
     // Initialize scope preference (commandRemember)
     if (!uiState.commandRemember[commandId]) {
       const remembered = {};
       const globalVars = globalCmds[commandId] || {};
-      const localVars  = localCmds[commandId]  || {};
+      const localVars = localCmds[commandId] || {};
       const allVarKeys = new Set([
         ...Object.keys(localVars),
         ...Object.keys(globalVars),
       ]);
       allVarKeys.forEach(function (key) {
         if (localVars[key]) {
-          remembered[key] = "local";   // prefer local if local has a value
+          remembered[key] = "local"; // prefer local if local has a value
         } else if (globalVars[key]) {
-          remembered[key] = "global";  // prefer global if only global has a value
+          remembered[key] = "global"; // prefer global if only global has a value
         } else {
           remembered[key] = state.workspaceFolder ? "local" : "global";
         }
@@ -119,7 +125,7 @@ function ensureSelectionDefaults() {
 
   if (!categories.length) {
     uiState.selectedCategoryId = "";
-    uiState.selectedGroupId    = "all";
+    uiState.selectedGroupId = "all";
     return;
   }
 
@@ -150,7 +156,7 @@ function ensureSelectionDefaults() {
 function render() {
   ensureSelectionDefaults();
 
-  const app              = document.getElementById("app");
+  const app = document.getElementById("app");
   const selectedCategory = getSelectedCategory();
 
   app.innerHTML = `
@@ -253,38 +259,38 @@ const modalDismissHandlers = {
   },
   "enum-manager-overlay": function () {
     enumManagerState = {
-      visible:         false,
-      commandId:       null,
-      varName:         "",
-      enumValues:      [],
-      editIndex:       null,
-      editTitle:       "",
-      editValue:       "",
+      visible: false,
+      commandId: null,
+      varName: "",
+      enumValues: [],
+      editIndex: null,
+      editTitle: "",
+      editValue: "",
       editDescription: "",
     };
     render();
   },
   "ai-settings-overlay": function () {
-    aiState.view        = null;
+    aiState.view = null;
     aiState.apiKeyInput = "";
     render();
   },
   "ai-prompt-overlay": function () {
-    aiState.view   = null;
-    aiState.error  = "";
+    aiState.view = null;
+    aiState.error = "";
     aiState.prompt = "";
     render();
   },
   "ai-results-overlay": function () {
-    aiState.view   = null;
+    aiState.view = null;
     aiState.result = null;
-    aiState.error  = "";
+    aiState.error = "";
     render();
   },
   "run-confirm-overlay": function () {
     runConfirmState = {
-      commandId:         null,
-      resolvedCommand:   "",
+      commandId: null,
+      resolvedCommand: "",
       selectedShellPath: runConfirmState.selectedShellPath,
       selectedShellName: runConfirmState.selectedShellName,
     };
@@ -292,13 +298,13 @@ const modalDismissHandlers = {
   },
   "variable-input-overlay": function () {
     variableInputState = {
-      commandId:          null,
-      action:             null,
-      missingVariables:   [],
-      inputValues:        {},
-      rememberFlags:      {},
-      localScopeBuffer:   {},
-      globalScopeBuffer:  {},
+      commandId: null,
+      action: null,
+      missingVariables: [],
+      inputValues: {},
+      rememberFlags: {},
+      localScopeBuffer: {},
+      globalScopeBuffer: {},
       sessionScopeBuffer: {},
       returnToRunConfirm: false,
     };
@@ -399,9 +405,10 @@ function bindEvents() {
 }
 
 /**
- * Binds click events on command rows (tr[data-command-id]) in the active tab.
- * Clicking a row or any element inside it (except action buttons, links, and the actions-cell)
- * will select/highlight that row.
+ * Binds click events on command rows (tr[data-command-id]) in the active tab
+ * using capture phase so the row selection fires before any button handlers
+ * on nested elements (buttons, links, actions-cell).
+ * Clicking a row or any element inside it will select/highlight that row.
  */
 function bindRowSelectionEvents() {
   var tab = uiState.activeTab;
@@ -409,14 +416,9 @@ function bindRowSelectionEvents() {
     return;
   }
   document.querySelectorAll("tr[data-command-id]").forEach(function (row) {
-    row.addEventListener("click", function (e) {
-      // Ignore clicks on action buttons, links, or inside .actions-cell
-      var target = e.target;
-      if (target.closest(".actions-cell") || target.closest(".cmd-title-link") || target.closest("button")) {
-        return;
-      }
+    row.addEventListener("click", function () {
       selectCommandRow(row.dataset.commandId);
-    });
+    }, true);
   });
 }
 
@@ -459,8 +461,8 @@ function bindTabs() {
       if (uiState.editingCommandId && nextTab !== uiState.activeTab) {
         const snap = uiState.editCommandScopeSnapshot;
         if (snap) {
-          uiState.commandLocalDrafts[snap.commandId]   = snap.local;
-          uiState.commandGlobalDrafts[snap.commandId]  = snap.global;
+          uiState.commandLocalDrafts[snap.commandId] = snap.local;
+          uiState.commandGlobalDrafts[snap.commandId] = snap.global;
           uiState.commandSessionDrafts[snap.commandId] = snap.session;
           if (snap.commandRemember) {
             uiState.commandRemember[snap.commandId] = snap.commandRemember;
@@ -469,10 +471,10 @@ function bindTabs() {
         }
         uiState.editingCommandId = null;
         uiState.editCommandDraft = {
-          title:       "",
-          template:    "",
+          title: "",
+          template: "",
           description: "",
-          groupId:     "",
+          groupId: "",
         };
       }
 
