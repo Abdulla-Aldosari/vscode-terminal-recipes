@@ -58,7 +58,7 @@ function renderRecentCommandsTab() {
                   ? `<a class="cmd-title-link" data-url="${escapeAttr(command.helpUrl)}" data-tooltip="Open documentation">${escapeHtml(command.title)}</a>`
                   : `<strong>${escapeHtml(command.title)}</strong>`;
                 return `
-                <tr>
+                <tr data-command-id="${escapeAttr(command.id)}"${command.id === uiState.recentSelectedCommandRowId ? ' class="selected-command-row"' : ""}>
                   <td>${titleHtml}</td>
                   <td><pre class="template-cell">${highlightTemplateHtml(command.command)}</pre></td>
                   <td data-tooltip="${escapeAttr(formatDateTime(command.lastRunAt))}">${escapeHtml(timeAgo(command.lastRunAt))}</td>

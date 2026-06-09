@@ -102,7 +102,7 @@ function renderFavoritesTable(commands) {
               ? `${_catTitle} / ${_groupTitle}`
               : _catTitle || (_hasGroup ? _groupTitle : "") || "-";
             return `
-            <tr data-command-id="${escapeAttr(command.id)}">
+            <tr data-command-id="${escapeAttr(command.id)}"${command.id === uiState.favoritesSelectedCommandRowId ? ' class="selected-command-row"' : ""}>
               <td class="main-t-title-column">${titleHtml}<br><span class="muted">${escapeHtml(command.id)}</span></td>
               <td class="main-t-description-column">${escapeHtml(command.description || "-")}</td>
               <td class="main-t-template-column"><pre class="template-cell">${highlightTemplateHtml(command.command)}</pre></td>

@@ -32,7 +32,7 @@ function timeAgo(isoString) {
   if (!isoString) {
     return "–";
   }
-  const diff    = Date.now() - new Date(isoString).getTime();
+  const diff = Date.now() - new Date(isoString).getTime();
   const seconds = Math.floor(diff / 1000);
   if (seconds < 60) {
     return "just now";
@@ -119,8 +119,8 @@ function getEnabledAutoVariableNames() {
 }
 
 function getMissingVariables(command) {
-  const names        = collectVariables([command.command]);
-  const draft        = getCommandDraft(command.id);
+  const names = collectVariables([command.command]);
+  const draft = getCommandDraft(command.id);
   const autoVarNames = getEnabledAutoVariableNames();
 
   return names.filter(function (name) {
@@ -142,9 +142,9 @@ function getMissingVariables(command) {
  * @returns {string}
  */
 function resolveCommandTemplate(command) {
-  const names        = collectVariables([command.command]);
-  let resolved       = command.command;
-  const draft        = getCommandDraft(command.id);
+  const names = collectVariables([command.command]);
+  let resolved = command.command;
+  const draft = getCommandDraft(command.id);
   const autoVarNames = getEnabledAutoVariableNames();
 
   names.forEach(function (name) {
@@ -163,7 +163,7 @@ function resolveCommandTemplate(command) {
     // Regular variables: from user draft
     // RECIPES_EMPTY_VALUE means the user explicitly wants an empty string
     const rawVal = draft[name];
-    const value  = rawVal === RECIPES_EMPTY_VALUE ? "" : rawVal || "";
+    const value = rawVal === RECIPES_EMPTY_VALUE ? "" : rawVal || "";
     if (value === "") {
       // Remove " ${name} " (space on both sides) → single space to avoid extra gaps.
       // Then remove any remaining bare placeholder (no surrounding spaces).
@@ -257,26 +257,33 @@ function getCommandSessionDraft(commandId) {
  * @returns {object} resolved values { [varName]: value }
  */
 function getCommandDraft(commandId) {
-  var localDraft   = getCommandLocalDraft(commandId);
-  var globalDraft  = getCommandGlobalDraft(commandId);
+  var localDraft = getCommandLocalDraft(commandId);
+  var globalDraft = getCommandGlobalDraft(commandId);
   var sessionDraft = getCommandSessionDraft(commandId);
-  var remember     = getCommandRemember(commandId);
+  var remember = getCommandRemember(commandId);
 
   var allKeys = {};
-  Object.keys(localDraft).forEach(function (k) { allKeys[k] = true; });
-  Object.keys(globalDraft).forEach(function (k) { allKeys[k] = true; });
-  Object.keys(sessionDraft).forEach(function (k) { allKeys[k] = true; });
+  Object.keys(localDraft).forEach(function (k) {
+    allKeys[k] = true;
+  });
+  Object.keys(globalDraft).forEach(function (k) {
+    allKeys[k] = true;
+  });
+  Object.keys(sessionDraft).forEach(function (k) {
+    allKeys[k] = true;
+  });
 
   var resolved = {};
   Object.keys(allKeys).forEach(function (key) {
     var pref = remember[key] || "off";
     if (pref === "local") {
       var lv = localDraft[key];
-      resolved[key] = (lv !== undefined && lv !== "") ? lv : "";
+      resolved[key] = lv !== undefined && lv !== "" ? lv : "";
     } else if (pref === "global") {
       var gv = globalDraft[key];
-      resolved[key] = (gv !== undefined && gv !== "") ? gv : "";
-    } else { // off
+      resolved[key] = gv !== undefined && gv !== "" ? gv : "";
+    } else {
+      // off
       resolved[key] = sessionDraft[key] || "";
     }
   });
@@ -307,8 +314,12 @@ function getCommandRemember(commandId) {
       {};
 
     var allKeys = {};
-    Object.keys(globalVars).forEach(function (k) { allKeys[k] = true; });
-    Object.keys(localVars).forEach(function (k) { allKeys[k] = true; });
+    Object.keys(globalVars).forEach(function (k) {
+      allKeys[k] = true;
+    });
+    Object.keys(localVars).forEach(function (k) {
+      allKeys[k] = true;
+    });
 
     Object.keys(allKeys).forEach(function (key) {
       if (localVars[key]) {
@@ -336,24 +347,32 @@ function getCommandRemember(commandId) {
  * @returns {{ local: object, global: object }}
  */
 function buildCommandVariablesPayload() {
-  var local  = { version: 2, commands: {} };
+  var local = { version: 2, commands: {} };
   var global = { version: 2, commands: {} };
 
   var allCommandIds = {};
-  Object.keys(uiState.commandLocalDrafts).forEach(function (id) { allCommandIds[id] = true; });
-  Object.keys(uiState.commandGlobalDrafts).forEach(function (id) { allCommandIds[id] = true; });
+  Object.keys(uiState.commandLocalDrafts).forEach(function (id) {
+    allCommandIds[id] = true;
+  });
+  Object.keys(uiState.commandGlobalDrafts).forEach(function (id) {
+    allCommandIds[id] = true;
+  });
 
   Object.keys(allCommandIds).forEach(function (commandId) {
     // Skip the transient new-command context — it gets renamed to a real ID on save
-    if (commandId === "__new__") { return; }
+    if (commandId === "__new__") {
+      return;
+    }
 
-    var localDraft  = uiState.commandLocalDrafts[commandId]  || {};
+    var localDraft = uiState.commandLocalDrafts[commandId] || {};
     var globalDraft = uiState.commandGlobalDrafts[commandId] || {};
-    var localVars   = {};
-    var globalVars  = {};
+    var localVars = {};
+    var globalVars = {};
 
     Object.keys(localDraft).forEach(function (varName) {
-      if (varName === "workspaceFolder") { return; }
+      if (varName === "workspaceFolder") {
+        return;
+      }
       var val = localDraft[varName];
       if (val !== undefined && val !== null && val !== "") {
         localVars[varName] = val;
@@ -361,7 +380,9 @@ function buildCommandVariablesPayload() {
     });
 
     Object.keys(globalDraft).forEach(function (varName) {
-      if (varName === "workspaceFolder") { return; }
+      if (varName === "workspaceFolder") {
+        return;
+      }
       var val = globalDraft[varName];
       if (val !== undefined && val !== null && val !== "") {
         globalVars[varName] = val;
@@ -390,11 +411,18 @@ function buildCommandVariablesPayload() {
  * @param {string} variableName
  * @param {string} activeScope - The currently active scope (unused, kept for API compat)
  */
-function updateScopeIndicatorDots(container, commandId, variableName, activeScope) {
-  if (!container) { return; }
+function updateScopeIndicatorDots(
+  container,
+  commandId,
+  variableName,
+  activeScope,
+) {
+  if (!container) {
+    return;
+  }
   container.querySelectorAll(".toggle-option-3").forEach(function (scopeBtn) {
-    var scopeVal     = scopeBtn.dataset.value;
-    var dot          = scopeBtn.querySelector(".scope-value-dot");
+    var scopeVal = scopeBtn.dataset.value;
+    var dot = scopeBtn.querySelector(".scope-value-dot");
     var hasScopeValue = false;
 
     if (scopeVal === "local") {
@@ -507,10 +535,10 @@ function highlightTemplateHtml(text) {
  * @returns {string} HTML string safe for innerHTML
  */
 function highlightResolvedHtml(command) {
-  var names        = collectVariables([command.command]);
-  var draft        = getCommandDraft(command.id);
+  var names = collectVariables([command.command]);
+  var draft = getCommandDraft(command.id);
   var autoVarNames = getEnabledAutoVariableNames();
-  var result       = escapeHtml(command.command);
+  var result = escapeHtml(command.command);
 
   names.forEach(function (name) {
     var value;
@@ -559,15 +587,15 @@ function autoResizeTextarea(el) {
   el.classList.remove("ta-overflow");
   el.style.setProperty("--tr-textarea-h", "auto");
   void el.offsetHeight; // Force synchronous reflow before reading scrollHeight
-  var computed      = getComputedStyle(el);
-  var lineHeight    = parseFloat(computed.lineHeight);
+  var computed = getComputedStyle(el);
+  var lineHeight = parseFloat(computed.lineHeight);
   if (!lineHeight || isNaN(lineHeight)) {
     lineHeight = parseFloat(computed.fontSize) * 1.5;
   }
-  var paddingTop    = parseFloat(computed.paddingTop) || 0;
+  var paddingTop = parseFloat(computed.paddingTop) || 0;
   var paddingBottom = parseFloat(computed.paddingBottom) || 0;
-  var maxHeight     = lineHeight * MAX_LINES + paddingTop + paddingBottom;
-  var newHeight     = Math.min(el.scrollHeight, maxHeight);
+  var maxHeight = lineHeight * MAX_LINES + paddingTop + paddingBottom;
+  var newHeight = Math.min(el.scrollHeight, maxHeight);
   el.style.setProperty("--tr-textarea-h", newHeight + "px");
   if (el.scrollHeight > maxHeight) {
     el.classList.add("ta-overflow");
@@ -590,8 +618,8 @@ function updateTemplateHighlight(textarea) {
     return;
   }
   var autoVarNames = getEnabledAutoVariableNames();
-  var allVarNames  = collectVariables([textarea.value]);
-  var hasAuto      = allVarNames.some(function (n) {
+  var allVarNames = collectVariables([textarea.value]);
+  var hasAuto = allVarNames.some(function (n) {
     return autoVarNames.includes(n);
   });
   var hasUser = allVarNames.some(function (n) {
@@ -627,8 +655,8 @@ function updateTemplateHighlight(textarea) {
 
 function showNotice(message, icon, type) {
   uiState.noticeMessage = message;
-  uiState.noticeIcon    = icon !== undefined ? icon : icons.circleExclamation;
-  uiState.noticeType    = type || "info";
+  uiState.noticeIcon = icon !== undefined ? icon : icons.circleExclamation;
+  uiState.noticeType = type || "info";
 
   if (noticeTimer) {
     clearTimeout(noticeTimer);
@@ -636,8 +664,8 @@ function showNotice(message, icon, type) {
 
   noticeTimer = setTimeout(function () {
     uiState.noticeMessage = "";
-    uiState.noticeIcon    = "";
-    uiState.noticeType    = "";
+    uiState.noticeIcon = "";
+    uiState.noticeType = "";
     // Remove the notice element directly — no full re-render needed
     var noticeEl = document.querySelector(".notice");
     if (noticeEl) {
@@ -649,8 +677,8 @@ function showNotice(message, icon, type) {
 
 function showError(message, icon, type) {
   uiState.noticeMessage = message;
-  uiState.noticeIcon    = icon !== undefined ? icon : icons.circleX;
-  uiState.noticeType    = type || "error";
+  uiState.noticeIcon = icon !== undefined ? icon : icons.circleX;
+  uiState.noticeType = type || "error";
 
   if (noticeTimer) {
     clearTimeout(noticeTimer);
@@ -658,8 +686,8 @@ function showError(message, icon, type) {
 
   noticeTimer = setTimeout(function () {
     uiState.noticeMessage = "";
-    uiState.noticeIcon    = "";
-    uiState.noticeType    = "";
+    uiState.noticeIcon = "";
+    uiState.noticeType = "";
     // Remove the notice element directly — no full re-render needed
     var noticeEl = document.querySelector(".notice");
     if (noticeEl) {
@@ -708,10 +736,54 @@ function paintNotice() {
 // ─── Scroll / DOM Helpers ─────────────────────────────────────────────────────
 
 /**
- * Scrolls to a row with the given commandId and temporarily highlights it.
+ * Selects a command row in the active tab: adds the visual highlight class,
+ * updates the tab-specific selectedCommandRowId in uiState, and removes the
+ * selection from any previously selected row.
+ * @param {string} commandId
+ */
+function selectCommandRow(commandId) {
+  if (!commandId) {
+    return;
+  }
+  var tab = uiState.activeTab;
+  // Determine which property to use based on active tab
+  var stateKey;
+  if (tab === "recent") {
+    stateKey = "recentSelectedCommandRowId";
+  } else if (tab === "favorites") {
+    stateKey = "favoritesSelectedCommandRowId";
+  } else if (tab === "commands") {
+    stateKey = "commandsSelectedCommandRowId";
+  } else {
+    return; // Not a table tab
+  }
+
+  // Remove the class from the previously selected row in this tab
+  var prevId = uiState[stateKey];
+  if (prevId) {
+    var prevRow = document.querySelector(
+      'tr[data-command-id="' + prevId + '"]',
+    );
+    if (prevRow) {
+      prevRow.classList.remove("selected-command-row");
+    }
+  }
+
+  // Add the class to the new row
+  var row = document.querySelector('tr[data-command-id="' + commandId + '"]');
+  if (!row) {
+    return;
+  }
+  row.classList.add("selected-command-row");
+  uiState[stateKey] = commandId;
+}
+
+/**
+ * Scrolls to a row with the given commandId, selects it via selectCommandRow(),
+ * and ensures it's centered in view.
  * Works for both the commands table and the recent commands table.
- * The highlight appears only after the smooth scroll animation completes,
- * so the user sees the row highlighted clearly once it's centered in view.
+ * The selection appears only after the smooth scroll animation completes,
+ * so the user sees the row selected clearly once it's centered in view.
  * @param {string} commandId
  */
 function scrollToAndHighlight(commandId) {
@@ -724,11 +796,14 @@ function scrollToAndHighlight(commandId) {
     return;
   }
   row.scrollIntoView({ behavior: "smooth", block: "center" });
-  // Wait for smooth scroll (~400ms) before adding the highlight, so it appears
+  // Wait for smooth scroll (~400ms) before selecting and adding the highlight, so it appears
   // only when the row is centered in view rather than flashing mid-scroll
   setTimeout(function () {
+    selectCommandRow(commandId);
     row.classList.add("row-highlight");
   }, 400);
+
+  // Wait for (2400ms) then remove the highlight class, so the row doesn't stay highlighted permanently after selection
   setTimeout(function () {
     row.classList.remove("row-highlight");
   }, 2400);
@@ -765,7 +840,7 @@ function isInFavorites(commandId) {
  * Returns the scope of the favorite: 'none' | 'local' | 'global' | 'both'
  */
 function getFavoriteScope(commandId) {
-  const inLocal  = state.localFavorites.includes(commandId);
+  const inLocal = state.localFavorites.includes(commandId);
   const inGlobal = state.globalFavorites.includes(commandId);
   if (inLocal && inGlobal) {
     return "both";
@@ -816,18 +891,18 @@ function persistCommandVariables() {
  * @returns {string} HTML string
  */
 function renderActionsCell(command, options) {
-  var showDelete    = !!options.showDelete;
-  var showEdit      = !!options.showEdit;
-  var showGoto      = !!options.showGoto;
+  var showDelete = !!options.showDelete;
+  var showEdit = !!options.showEdit;
+  var showGoto = !!options.showGoto;
   var favoriteStyle = options.favoriteStyle;
 
   // ── Use button ──────────────────────────────────────────────────────────────
   var _useVars = collectVariables([command.command]).filter(function (n) {
     return n !== "workspaceFolder";
   });
-  var _useMissing  = getMissingVariables(command);
+  var _useMissing = getMissingVariables(command);
   var _useCtrlHint = _useVars.length > 0 && _useMissing.length === 0;
-  var _useTitle    = _useCtrlHint
+  var _useTitle = _useCtrlHint
     ? "Insert into terminal (without running)<br>Press CTRL key to edit the variables"
     : "Insert into terminal (without running)";
 
@@ -848,25 +923,27 @@ function renderActionsCell(command, options) {
   // ── Favorite / Unfavorite button ────────────────────────────────────────────
   var favBtn = "";
   if (favoriteStyle === "favorite") {
-    var _fs  = getFavoriteScope(command.id);
-    var _cls = _fs === "none"
-      ? "secondary"
-      : _fs === "local"
-        ? "fav-state-local"
-        : _fs === "global"
-          ? "fav-state-global"
-          : "fav-state-both";
+    var _fs = getFavoriteScope(command.id);
+    var _cls =
+      _fs === "none"
+        ? "secondary"
+        : _fs === "local"
+          ? "fav-state-local"
+          : _fs === "global"
+            ? "fav-state-global"
+            : "fav-state-both";
     var _icon = _fs === "none" ? icons.heartPlus : icons.heartActive;
-    var _tip  = _fs === "none"
-      ? 'Ctrl+Click: Add Global  •  Ctrl+Right-Click: Remove Global<br>Shift+Click: Add Local  •  Shift+Right-Click: Remove Local<br>Ctrl+Shift+Click: Add Both  •  Ctrl+Shift+Right-Click: Remove Both<br><span class="muted-tip">(Click to manage)</span>'
-      : _fs === "local"
-        ? "In Local Favorites<br>(click to manage)"
-        : _fs === "global"
-          ? "In Global Favorites<br>(click to manage)"
-          : "In Local &amp; Global Favorites<br>(click to manage)";
+    var _tip =
+      _fs === "none"
+        ? 'Ctrl+Click: Add Global  •  Ctrl+Right-Click: Remove Global<br>Shift+Click: Add Local  •  Shift+Right-Click: Remove Local<br>Ctrl+Shift+Click: Add Both  •  Ctrl+Shift+Right-Click: Remove Both<br><span class="muted-tip">(Click to manage)</span>'
+        : _fs === "local"
+          ? "In Local Favorites<br>(click to manage)"
+          : _fs === "global"
+            ? "In Global Favorites<br>(click to manage)"
+            : "In Local &amp; Global Favorites<br>(click to manage)";
     favBtn = `<button class="btn icon-btn ${_cls} btn-add-favorite" data-command-id="${escapeAttr(command.id)}" data-tooltip="${escapeAttr(_tip)}" data-tooltip-pos="left">${_icon}</button>`;
   } else if (favoriteStyle === "unfavorite") {
-    var _scope      = uiState.favoritesScope;
+    var _scope = uiState.favoritesScope;
     var _scopeLabel = _scope === "local" ? "Local Workspace" : "Global";
     favBtn = `<button class="btn icon-btn secondary btn-unfavorite" data-command-id="${escapeAttr(command.id)}" data-tooltip="Remove from ${escapeAttr(_scopeLabel)} favorites<br>CTRL+click to open manage panel">${icons.heartMinus}</button>`;
   }
@@ -958,7 +1035,7 @@ function renderCustomSelect(
  */
 function bindCustomSelect(wrapperId, btnId, menuId, onChange) {
   const wrap = document.getElementById(wrapperId);
-  const btn  = document.getElementById(btnId);
+  const btn = document.getElementById(btnId);
   const menu = document.getElementById(menuId);
 
   if (!btn || !menu) {
@@ -984,7 +1061,7 @@ function bindCustomSelect(wrapperId, btnId, menuId, onChange) {
     closeMenu();
   }
 
-    btn.addEventListener("click", function (e) {
+  btn.addEventListener("click", function (e) {
     e.stopPropagation();
     if (!menu.hidden) {
       closeMenu();
@@ -1007,7 +1084,7 @@ function bindCustomSelect(wrapperId, btnId, menuId, onChange) {
   menu.querySelectorAll(".cs-item").forEach(function (item) {
     item.addEventListener("click", function () {
       // Update button label to reflect the newly selected item
-      var labelEl     = btn.querySelector(".cs-btn-label");
+      var labelEl = btn.querySelector(".cs-btn-label");
       var itemLabelEl = item.querySelector(".cs-item-label");
       if (labelEl && itemLabelEl) {
         labelEl.textContent = itemLabelEl.textContent;

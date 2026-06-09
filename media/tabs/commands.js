@@ -135,8 +135,9 @@ function renderCommandsTable(commands, groups) {
               const titleHtml = command.helpUrl
                 ? `<a class="cmd-title-link" data-url="${escapeAttr(command.helpUrl)}" data-tooltip="Open documentation">${escapeHtml(command.title)}</a>`
                 : `<strong>${escapeHtml(command.title)}</strong>`;
+              var _rowClass = command.id === uiState.commandsSelectedCommandRowId ? ' class="selected-command-row"' : "";
               return `
-              <tr data-command-id="${escapeAttr(command.id)}" draggable="${isSorting ? "true" : "false"}">
+              <tr data-command-id="${escapeAttr(command.id)}"${_rowClass} draggable="${isSorting ? "true" : "false"}">
                 ${isSorting ? `<td class="main-t-drag-handle-column drag-handle-cell"><span class="drag-handle" data-tooltip="Drag to reorder">${icons.dragHandle}</span></td>` : ""}
                 <td class="main-t-title-column">${titleHtml}<br><span class="muted">${escapeHtml(command.id)}</span></td>
                 <td class="main-t-description-column">${escapeHtml(command.description || "-")}</td>

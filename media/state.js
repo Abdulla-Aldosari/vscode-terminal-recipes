@@ -88,6 +88,9 @@ const uiState = {
     } catch {}
     return { description: true, groups: true };
   })(),
+  recentSelectedCommandRowId: "",
+  favoritesSelectedCommandRowId: "",
+  commandsSelectedCommandRowId: "",
   // 'local' = workspace favorites, 'global' = global favorites
   favoritesScope: (function () {
     try {

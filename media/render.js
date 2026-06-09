@@ -395,6 +395,29 @@ function bindEvents() {
   }
 
   bindCommandActionButtons();
+  bindRowSelectionEvents();
+}
+
+/**
+ * Binds click events on command rows (tr[data-command-id]) in the active tab.
+ * Clicking a row or any element inside it (except action buttons, links, and the actions-cell)
+ * will select/highlight that row.
+ */
+function bindRowSelectionEvents() {
+  var tab = uiState.activeTab;
+  if (tab !== "recent" && tab !== "favorites" && tab !== "commands") {
+    return;
+  }
+  document.querySelectorAll("tr[data-command-id]").forEach(function (row) {
+    row.addEventListener("click", function (e) {
+      // Ignore clicks on action buttons, links, or inside .actions-cell
+      var target = e.target;
+      if (target.closest(".actions-cell") || target.closest(".cmd-title-link") || target.closest("button")) {
+        return;
+      }
+      selectCommandRow(row.dataset.commandId);
+    });
+  });
 }
 
 function bindTopActions() {

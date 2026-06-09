@@ -12,11 +12,6 @@
   --recipes-charts-blue: var(--vscode-charts-blue);
   --recipes-charts-yellow: var(--vscode-charts-yellow);
   --recipes-checkbox-selectBorder: var(--vscode-checkbox-selectBorder);
-  --recipes-cornerRadius-xSmall: var(--vscode-cornerRadius-xSmall);
-  --recipes-cornerRadius-medium: var(--vscode-cornerRadius-medium);
-  --recipes-cornerRadius-small: var(--vscode-cornerRadius-small);
-  --recipes-cornerRadius-large: var(--vscode-cornerRadius-large);
-  --recipes-cornerRadius-xLarge: var(--vscode-cornerRadius-xLarge);
   --recipes-descriptionForeground: var(--vscode-descriptionForeground);
   --recipes-editor-background: var(--vscode-editor-background);
   --recipes-editor-font-family: var(--vscode-editor-font-family);
@@ -33,6 +28,13 @@
   --recipes-list-hoverBackground: var(--vscode-list-hoverBackground);
   --recipes-list-hoverForeground: var(--vscode-list-hoverForeground);
   --recipes-panel-border: var(--vscode-panel-border);
+  --recipes-quickInputList-focusBackground: var(--vscode-quickInputList-focusBackground);
+  --recipes-quickInputList-focusForeground: var(--vscode-quickInputList-focusForeground);
+  --recipes-dropdown-listBackground: var(--vscode-dropdown-listBackground);
+  --recipes-textLink-foreground: var(--vscode-textLink-foreground);
+  --recipes-textPreformat-background: var(--vscode-textPreformat-background);
+  --recipes-textPreformat-foreground: var(--vscode-textPreformat-foreground);
+  --recipes-widget-shadow: var(--vscode-widget-shadow);
 
   --recipes-settings-checkboxBackground: var(--vscode-settings-checkboxBackground);
   --recipes-settings-checkboxBorder: var(--vscode-settings-checkboxBorder);
@@ -44,14 +46,11 @@
   --recipes-settings-textInputBackground: var(--vscode-settings-textInputBackground);
   --recipes-settings-placeholderForeground: color-mix(in srgb, var(--recipes-settings-textInputForeground) 56%, var(--recipes-settings-textInputBackground));
 
-  --recipes-textLink-foreground: var(--vscode-textLink-foreground);
-  --recipes-textPreformat-background: var(--vscode-textPreformat-background);
-  --recipes-textPreformat-foreground: var(--vscode-textPreformat-foreground);
-  --recipes-widget-shadow: var(--vscode-widget-shadow);
-
-  --recipes-quickInputList-focusBackground: var(--vscode-quickInputList-focusBackground);
-  --recipes-quickInputList-focusForeground: var(--vscode-quickInputList-focusForeground);
-  --recipes-dropdown-listBackground: var(--vscode-dropdown-listBackground);
+  --recipes-cornerRadius-xSmall: var(--vscode-cornerRadius-xSmall);
+  --recipes-cornerRadius-small: var(--vscode-cornerRadius-small);
+  --recipes-cornerRadius-medium: var(--vscode-cornerRadius-medium);
+  --recipes-cornerRadius-large: var(--vscode-cornerRadius-large);
+  --recipes-cornerRadius-xLarge: var(--vscode-cornerRadius-xLarge);
 }
 
 
@@ -1643,6 +1642,14 @@ table.commands-table.ai-results-table td:last-child {
   vertical-align: middle;
 }
 
+
+/*** Row Selection ***/
+
+.selected-command-row {
+  outline: 1px dashed var(--recipes-focusBorder);
+  outline-offset: -4px;
+  border-radius: var(--recipes-cornerRadius-large, 8px);
+}
 
 /* ===== Row Highlight (after Edit/Add, or goto-command) ===== */
 tr.row-highlight td {
