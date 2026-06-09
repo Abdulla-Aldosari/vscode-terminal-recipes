@@ -82,10 +82,10 @@ document.addEventListener("contextmenu", function (e) {
 
 // ===== VS Code-style Tooltip =====
 (function () {
-  let _hoverEl    = null;
-  let _showTimer  = null;
+  let _hoverEl = null;
+  let _showTimer = null;
   const DELAY = 550; // ms — same feel as VS Code
-  const GAP   = 6;   // px — gap between element and tooltip
+  const GAP = 6; // px — gap between element and tooltip
 
   function getOrCreateTooltip() {
     if (!_hoverEl) {
@@ -106,39 +106,39 @@ document.addEventListener("contextmenu", function (e) {
     // Temporarily attach (hidden) to measure dimensions
     tip.style.visibility = "hidden";
     tip.style.left = "0px";
-    tip.style.top  = "0px";
+    tip.style.top = "0px";
     if (!tip.isConnected) document.body.appendChild(tip);
 
     const rect = el.getBoundingClientRect();
-    const tw   = tip.offsetWidth;
-    const th   = tip.offsetHeight;
+    const tw = tip.offsetWidth;
+    const th = tip.offsetHeight;
 
     let left, top;
 
     if (pos === "top") {
       left = rect.left + rect.width / 2 - tw / 2;
-      top  = rect.top - th - GAP;
+      top = rect.top - th - GAP;
     } else if (pos === "right") {
       left = rect.right + GAP;
-      top  = rect.top + rect.height / 2 - th / 2;
+      top = rect.top + rect.height / 2 - th / 2;
     } else if (pos === "left") {
       left = rect.left - tw - GAP;
-      top  = rect.top + rect.height / 2 - th / 2;
+      top = rect.top + rect.height / 2 - th / 2;
     } else {
       // bottom (default)
       left = rect.left + rect.width / 2 - tw / 2;
-      top  = rect.bottom + GAP;
+      top = rect.bottom + GAP;
     }
 
     // Clamp to viewport so it doesn't go off-screen
     const vw = window.innerWidth;
     const vh = window.innerHeight;
     left = Math.max(GAP, Math.min(left, vw - tw - GAP));
-    top  = Math.max(GAP, Math.min(top,  vh - th - GAP));
+    top = Math.max(GAP, Math.min(top, vh - th - GAP));
 
-    tip.style.left     = left + "px";
-    tip.style.top      = top  + "px";
-    tip.dataset.pos    = pos; // used by CSS to show the correct arrow direction
+    tip.style.left = left + "px";
+    tip.style.top = top + "px";
+    tip.dataset.pos = pos; // used by CSS to show the correct arrow direction
     tip.style.visibility = "";
   }
 
@@ -169,7 +169,7 @@ document.addEventListener("contextmenu", function (e) {
 
   document.addEventListener("mouseout", function (e) {
     const fromEl = e.target.closest("[data-tooltip]");
-    const toEl   = e.relatedTarget?.closest("[data-tooltip]");
+    const toEl = e.relatedTarget?.closest("[data-tooltip]");
 
     // Mouse stayed within tooltip-owning elements — do nothing
     if (fromEl && toEl && fromEl === toEl) return;
@@ -185,4 +185,4 @@ document.addEventListener("contextmenu", function (e) {
 
 // ─── Initialization ────────────────────────────────────────────────────────────
 // Signal the extension that the webview is ready to receive state.
-vscode.postMessage({ type: "ready" });
+postReady();
