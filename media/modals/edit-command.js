@@ -430,11 +430,14 @@ function bindEditTabEvents() {
                          : scope === "global" ? getCommandGlobalDraft(commandId)
                          : getCommandSessionDraft(commandId);
         if (input.dataset.isEmptyValue === "true") {
+          const saved = input.dataset.preEmptyValue !== undefined ? input.dataset.preEmptyValue : "";
+          input.removeAttribute("data-pre-empty-value");
           input.readOnly = false;
           input.removeAttribute("data-is-empty-value");
-          input.value = "";
-          scopeDraft[varName] = "";
+          input.value = saved;
+          scopeDraft[varName] = saved;
         } else {
+          input.setAttribute("data-pre-empty-value", input.value);
           input.readOnly = true;
           input.setAttribute("data-is-empty-value", "true");
           input.value = "[EmptyValue]";
@@ -571,6 +574,7 @@ function bindEditTabEvents() {
             } else {
               inputEl.removeAttribute("data-is-empty-value");
             }
+            inputEl.removeAttribute("data-pre-empty-value");
             inputEl.setAttribute("data-scope", newScope);
           }
 

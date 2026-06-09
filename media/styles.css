@@ -13,6 +13,10 @@
   --recipes-charts-yellow: var(--vscode-charts-yellow);
   --recipes-checkbox-selectBorder: var(--vscode-checkbox-selectBorder);
   --recipes-cornerRadius-xSmall: var(--vscode-cornerRadius-xSmall);
+  --recipes-cornerRadius-medium: var(--vscode-cornerRadius-medium);
+  --recipes-cornerRadius-small: var(--vscode-cornerRadius-small);
+  --recipes-cornerRadius-large: var(--vscode-cornerRadius-large);
+  --recipes-cornerRadius-xLarge: var(--vscode-cornerRadius-xLarge);
   --recipes-descriptionForeground: var(--vscode-descriptionForeground);
   --recipes-editor-background: var(--vscode-editor-background);
   --recipes-editor-font-family: var(--vscode-editor-font-family);
@@ -145,7 +149,7 @@ button:focus:not(.toggle-option-3):not(.tag):not(.icon-btn):not(.tab):not(.fav-s
   padding: 12px 20px 10px 11px;
   border: 1px solid;
   border-color: color-mix(in srgb, var(--recipes-editor-background) 70%, #828282);
-  border-radius: 5px;
+  border-radius: var(--recipes-cornerRadius-small, 4px);
   background: color-mix(in srgb, var(--recipes-editor-background) 88%, #828282);
   box-shadow: 0px 0px 5px 2px rgb(0 0 0 / 7%);
   color: var(--recipes-foreground);
@@ -671,7 +675,7 @@ textarea {
 
 .tag {
   border: 1px solid var(--recipes-panel-border);
-  border-radius: 4px;
+  border-radius: var(--recipes-cornerRadius-small, 4px);
   background: transparent;
   color: var(--recipes-editor-foreground);
   padding: 4px 7px;
@@ -726,7 +730,7 @@ td.actions-cell {
   white-space: pre-wrap;
   padding: 6px 8px;
   margin-block: auto;
-  border-radius: 4px;
+  border-radius: var(--recipes-cornerRadius-small, 4px);
   background-color: var(--recipes-textPreformat-background);
   color: var(--recipes-textPreformat-foreground);
 }
@@ -951,7 +955,7 @@ td.actions-cell {
 .toggle-switch-3 {
   display: inline-flex;
   border: 1px solid var(--recipes-input-border);
-  border-radius: 4px;
+  border-radius: var(--recipes-cornerRadius-small, 4px);
   background: var(--recipes-input-background);
   overflow: hidden;
   min-width: 129px;
@@ -1033,7 +1037,7 @@ code {
   gap: 6px;
   padding: 4px 8px;
   border: 1px solid var(--recipes-settings-dropdownBorder);
-  border-radius: 4px;
+  border-radius: var(--recipes-cornerRadius-small, 4px);
   background: var(--recipes-settings-dropdownBackground);
   color: var(--recipes-settings-dropdownForeground);
   font-size: 0.82rem;
@@ -1053,6 +1057,7 @@ code {
 .cs-btn-label {
   flex: 1;
   text-align: left;
+  padding-top: 2px;
 }
 
 .cs-chevron {
@@ -1068,8 +1073,8 @@ code {
   min-width: max(100%, 160px);
   background: var(--recipes-dropdown-listBackground, var(--recipes-settings-dropdownBackground));
   border: 1px solid var(--recipes-settings-dropdownBorder, var(--recipes-panel-border));
-  border-radius: 4px;
-  padding: 4px;
+  border-radius: var(--recipes-cornerRadius-small, 4px);
+  padding: var(--recipes-cornerRadius-small, 4px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
 }
 
@@ -1079,7 +1084,7 @@ code {
   justify-content: space-between;
   gap: 8px;
   padding: 4px 8px;
-  border-radius: 4px;
+  border-radius: var(--recipes-cornerRadius-small, 4px);
   font-size: 0.82rem;
   cursor: pointer;
 }
@@ -1129,7 +1134,7 @@ code {
 
 .cs-btn-sm {
   min-width: unset;
-  padding: 0px 5px;
+  padding: 0px 5px 0px 8px;
   font-size: 0.76rem;
   min-height: 27px;
   max-height: 27px;
@@ -1403,7 +1408,7 @@ code {
   align-items: center;
   gap: 8px;
   padding: 6px 8px;
-  border-radius: 4px;
+  border-radius: var(--recipes-cornerRadius-small, 4px);
   font-size: 0.82rem;
   cursor: pointer;
   user-select: none;
@@ -1530,11 +1535,39 @@ input[type="checkbox"]:checked::after {
 /* AI Prompt modal */
 .ai-prompt-box {
   max-width: 650px !important;
+  gap: 5px !important;
 }
 
 .ai-prompt-box h3 {
   font-size: 0.92rem;
   line-height: 1.5;
+}
+
+/* AI Prompt: label row (Describe what you need + shell selector) */
+.ai-prompt-label-row {
+  display: flex;
+  align-items: center;
+  font-size: 0.82rem;
+  margin-top: 5px;
+}
+
+/* AI Prompt: shell selector wrapper (right side of label row) */
+.ai-shell-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.ai-shell-wrap .cs-btn {
+  min-width: 155px;
+}
+
+.ai-shell-label {
+  font-size: 0.82rem;
+  color: var(--vscode-descriptionForeground);
+  white-space: nowrap;
+  cursor: default;
 }
 
 /* AI Loading overlay */
@@ -1956,7 +1989,7 @@ tr.row-highlight td {
   gap: 12px;
   padding: 12px;
   border: 1px solid var(--recipes-panel-border);
-  border-radius: 6px;
+  border-radius: var(--recipes-cornerRadius-medium, 6px);
   background: var(--recipes-editor-background);
 }
 
@@ -2137,7 +2170,7 @@ tr.row-dragging {
   opacity: 0.8;
   outline: 2px dashed var(--recipes-button-background);
   outline-offset: -4px;
-  border-radius: 8px;
+  border-radius: var(--recipes-cornerRadius-large, 8px);
   pointer-events: none;
   background: transparent !important;
 }
@@ -2189,7 +2222,7 @@ tr.row-dragging td {
 .fav-scope-toggle {
   display: inline-flex;
   border: 1px solid var(--recipes-input-border);
-  border-radius: 4px;
+  border-radius: var(--recipes-cornerRadius-small, 4px);
   background: var(--recipes-input-background);
   overflow: hidden;
   min-height: 32px;
@@ -2372,15 +2405,9 @@ tr.row-dragging td {
 
 /* <kbd> element styling */
 kbd {
-  /* display: inline-block; */
   padding: 2px 8px;
   font-family: var(--recipes-editor-font-family, Consolas, monospace);
-  /* font-size: 0.73rem; */
-  /* line-height: 1.4; */
-  /* border: 1px solid var(--recipes-input-border); */
-  /* border-radius: 3px; */
   background: var(--recipes-input-background);
   color: var(--recipes-foreground);
   box-shadow: 0 1px 0 var(--recipes-input-border);
-  /* vertical-align: middle; */
 }

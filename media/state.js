@@ -176,6 +176,8 @@ let aiState = {
   error:                "",
   // Provider setup metadata received from extension (ai/providers-config.js)
   aiProviderSetup: null,
+  // Target shell for AI command generation — controls the syntax/style of generated commands
+  shellName: "",
 };
 
 // AI Provider Setup modal state

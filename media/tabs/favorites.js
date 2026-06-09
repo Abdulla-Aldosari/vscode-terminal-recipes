@@ -81,7 +81,7 @@ function renderFavoritesTable(commands) {
           <th class="main-t-title-column">Title</th>
           <th class="main-t-description-column">Description</th>
           <th class="main-t-template-column">Template</th>
-          <th class="main-t-groups-column">Groups</th>
+          <th class="main-t-groups-column">Cat/Group</th>
           <th class="main-t-action-column">Actions</th>
         </tr>
       </thead>
@@ -105,20 +105,22 @@ function renderFavoritesTable(commands) {
             const _scope      = uiState.favoritesScope;
             const _scopeLabel =
               _scope === "local" ? "Local Workspace" : "Global";
-            const _cat    = (state.data.categories || []).find(function (c) {
+            const _cat        = (state.data.categories || []).find(function (c) {
               return c.id === command.categoryId;
             });
+            const _catTitle   = _cat ? _cat.title || "" : "";
             const _groups     = _cat ? _cat.groups || [] : [];
-            const _groupTitle = resolveGroupTitle(
-              command.groupId || "",
-              _groups,
-            );
+            const _groupTitle = resolveGroupTitle(command.groupId || "", _groups);
+            const _hasGroup   = !!_groupTitle && _groupTitle !== "-";
+            const _catGroupLabel = _catTitle && _hasGroup
+              ? `${_catTitle} / ${_groupTitle}`
+              : _catTitle || (_hasGroup ? _groupTitle : "") || "-";
             return `
             <tr data-command-id="${escapeAttr(command.id)}">
               <td class="main-t-title-column">${titleHtml}<br><span class="muted">${escapeHtml(command.id)}</span></td>
               <td class="main-t-description-column">${escapeHtml(command.description || "-")}</td>
               <td class="main-t-template-column"><pre class="template-cell">${highlightTemplateHtml(command.command)}</pre></td>
-              <td class="main-t-groups-column">${escapeHtml(_groupTitle)}</td>
+              <td class="main-t-groups-column">${escapeHtml(_catGroupLabel)}</td>
               <td class="main-t-action-column">
                 <div class="actions-cell">
                   <button class="btn icon-btn success btn-run" data-command-id="${escapeAttr(command.id)}" data-tooltip="Run command">${icons.run}</button>

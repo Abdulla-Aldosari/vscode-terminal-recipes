@@ -1003,11 +1003,14 @@ function bindCommandActionButtons() {
         const varName = input.dataset.variableName;
         if (!varName) return;
         if (input.dataset.isEmptyValue === "true") {
+          const saved = input.dataset.preEmptyValue !== undefined ? input.dataset.preEmptyValue : "";
+          input.removeAttribute("data-pre-empty-value");
           input.readOnly = false;
           input.removeAttribute("data-is-empty-value");
-          input.value = "";
-          variableInputState.inputValues[varName] = "";
+          input.value = saved;
+          variableInputState.inputValues[varName] = saved;
         } else {
+          input.setAttribute("data-pre-empty-value", input.value);
           input.readOnly = true;
           input.setAttribute("data-is-empty-value", "true");
           input.value = "[EmptyValue]";
@@ -1109,6 +1112,7 @@ function bindCommandActionButtons() {
             inputEl.readOnly = isEmptyValue;
             if (isEmptyValue) { inputEl.setAttribute("data-is-empty-value", "true"); }
             else { inputEl.removeAttribute("data-is-empty-value"); }
+            inputEl.removeAttribute("data-pre-empty-value");
           }
 
           // Step 5b: If this is an Enum variable, also update the dropdown selection

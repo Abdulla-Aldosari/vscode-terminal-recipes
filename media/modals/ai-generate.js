@@ -17,20 +17,41 @@ function renderAiPromptModal() {
     ? `${icons.sparkles} Create a new category with all its groups and commands`
     : `${icons.sparkles} Add a single command to group: <code>${escapeHtml(selectedGroup ? selectedGroup.title : aiState.groupId)}</code> in <code>${escapeHtml(selectedCategory ? selectedCategory.title : aiState.categoryId)}</code>`;
 
+  // Build shell selector — shown only when terminal profiles are available
+  const profiles       = (state.terminalProfiles && state.terminalProfiles.profiles) || [];
+  const defaultProfile = (state.terminalProfiles && state.terminalProfiles.defaultProfile) || "";
+  const resolvedShell  = aiState.shellName || defaultProfile || (profiles.length > 0 ? profiles[0].name : "");
+  const shellSelectorHtml = profiles.length > 0
+    ? `<div class="ai-shell-wrap ml-auto">
+          <span class="ai-shell-label"
+            data-tooltip="The AI will generate commands using the syntax of the selected shell. This does not affect which terminal runs the command."
+            data-tooltip-pos="top">Generate commands for:</span>
+          ${renderCustomSelect(
+            "ai-shell-select-wrap",
+            "ai-shell-select-btn",
+            "ai-shell-select-menu",
+            profiles.map(function (p) { return { value: p.name, label: p.name }; }),
+            resolvedShell,
+            "cs-btn-sm",
+          )}
+        </div>`
+    : "";
+
   return `
     <div class="modal-overlay" id="ai-prompt-overlay" data-dismiss-on-outside-click="false">
       <div class="modal-box ai-prompt-box">
         <h3>${contextLabel}</h3>
         ${aiState.error ? `<p class="ai-error-msg">❌ ${escapeHtml(aiState.error)}</p>` : ""}
-        <label>
-          Describe what you need
-          <textarea
-            id="ai-prompt-textarea"
-            class="input"
-            rows="4"
-            placeholder="${isFullMode ? "e.g. All commands for CodeIgniter 4 framework" : "e.g. A command to create a new CodeIgniter 4 model"}"
-          >${escapeHtml(aiState.prompt)}</textarea>
-        </label>
+        <div class="ai-prompt-label-row">
+          <span>Describe what you need</span>
+          ${shellSelectorHtml}
+        </div>
+        <textarea
+          id="ai-prompt-textarea"
+          class="input"
+          rows="4"
+          placeholder="${isFullMode ? "e.g. All commands for CodeIgniter 4 framework" : "e.g. A command to create a new CodeIgniter 4 model"}"
+        >${escapeHtml(aiState.prompt)}</textarea>
         <div class="row align-items-flex-end mt-20">
           <a href="#" class="muted ai-model-label" id="ai-model-label-link" data-url="${aiState.aiProviderSetup && aiState.aiProviderSetup[aiState.providerName] ? aiState.aiProviderSetup[aiState.providerName].apiKeyUrl : ""}" data-tooltip="View API model details">${icons.externalLink} ${getAiModelLabel(aiState.providerName)}</a>
           <button class="btn small primary" id="btn-ai-generate">${icons.sparkles} Generate</button>
@@ -299,6 +320,24 @@ function bindAiEvents() {
 
   // --- Prompt modal events ---
   if (aiState.view === "prompt") {
+    // Bind shell selector — sync aiState.shellName when the user picks a different shell
+    const profiles      = (state.terminalProfiles && state.terminalProfiles.profiles) || [];
+    const defaultProfile = (state.terminalProfiles && state.terminalProfiles.defaultProfile) || "";
+    // Initialise shellName from default profile on first open
+    if (!aiState.shellName && (defaultProfile || profiles.length > 0)) {
+      aiState.shellName = defaultProfile || profiles[0].name;
+    }
+    if (profiles.length > 0) {
+      bindCustomSelect(
+        "ai-shell-select-wrap",
+        "ai-shell-select-btn",
+        "ai-shell-select-menu",
+        function (newShell) {
+          aiState.shellName = newShell;
+        },
+      );
+    }
+
     const textarea = document.getElementById("ai-prompt-textarea");
     if (textarea) {
       textarea.addEventListener("input", function () {
@@ -336,6 +375,7 @@ function bindAiEvents() {
             prompt:     promptValue,
             categoryId: aiState.categoryId,
             groupId:    aiState.groupId,
+            shellName:  aiState.shellName,
           },
         });
       });
