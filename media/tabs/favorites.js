@@ -91,20 +91,6 @@ function renderFavoritesTable(commands) {
             const titleHtml = command.helpUrl
               ? `<a class="cmd-title-link" data-url="${escapeAttr(command.helpUrl)}" data-tooltip="Open documentation">${escapeHtml(command.title)}</a>`
               : `<strong>${escapeHtml(command.title)}</strong>`;
-            const _useVars = collectVariables([command.command]).filter(
-              function (n) {
-                return n !== "workspaceFolder";
-              },
-            );
-            const _useMissing  = getMissingVariables(command);
-            const _useCtrlHint =
-              _useVars.length > 0 && _useMissing.length === 0;
-            const _useTitle = _useCtrlHint
-              ? "Insert into terminal (without running)<br>Press CTRL key to edit the variables"
-              : "Insert into terminal (without running)";
-            const _scope      = uiState.favoritesScope;
-            const _scopeLabel =
-              _scope === "local" ? "Local Workspace" : "Global";
             const _cat        = (state.data.categories || []).find(function (c) {
               return c.id === command.categoryId;
             });
@@ -122,14 +108,7 @@ function renderFavoritesTable(commands) {
               <td class="main-t-template-column"><pre class="template-cell">${highlightTemplateHtml(command.command)}</pre></td>
               <td class="main-t-groups-column">${escapeHtml(_catGroupLabel)}</td>
               <td class="main-t-action-column">
-                <div class="actions-cell">
-                  <button class="btn icon-btn success btn-run" data-command-id="${escapeAttr(command.id)}" data-tooltip="Run command">${icons.run}</button>
-                  ${command.command.includes("\n") ? `<button class="btn icon-btn secondary" disabled data-tooltip="Use is not available for multi-line commands">${icons.use}</button>` : `<button class="btn icon-btn secondary btn-use action" data-command-id="${escapeAttr(command.id)}" data-tooltip="${escapeAttr(_useTitle)}">${icons.use}</button>`}
-                  <button class="btn icon-btn secondary btn-copy action" data-command-id="${escapeAttr(command.id)}" data-tooltip="Copy to clipboard">${icons.copy}</button>
-                  <button class="btn icon-btn secondary btn-edit action" data-command-id="${escapeAttr(command.id)}" data-tooltip="Edit command">${icons.edit}</button>
-                  <button class="btn icon-btn danger btn-delete-command" data-command-id="${escapeAttr(command.id)}" data-tooltip="Delete command">${icons.delete}</button>
-                  <button class="btn icon-btn secondary btn-unfavorite" data-command-id="${escapeAttr(command.id)}" data-tooltip="Remove from ${escapeAttr(_scopeLabel)} favorites<br>CTRL+click to open manage panel">${icons.heartMinus}</button>
-                </div>
+                ${renderActionsCell(command, { showDelete: false, showEdit: false, showGoto: true, favoriteStyle: "unfavorite" })}
               </td>
             </tr>
           `;

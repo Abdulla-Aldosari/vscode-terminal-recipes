@@ -164,10 +164,18 @@ function resolveCommandTemplate(command) {
     // RECIPES_EMPTY_VALUE means the user explicitly wants an empty string
     const rawVal = draft[name];
     const value  = rawVal === RECIPES_EMPTY_VALUE ? "" : rawVal || "";
-    resolved = resolved.replace(
-      new RegExp("\\$\\{" + escapeRegExp(name) + "\\}", "g"),
-      value,
-    );
+    if (value === "") {
+      // Remove " ${name} " (space on both sides) → single space to avoid extra gaps.
+      // Then remove any remaining bare placeholder (no surrounding spaces).
+      resolved = resolved
+        .replace(new RegExp(" \\$\\{" + escapeRegExp(name) + "\\} ", "g"), " ")
+        .replace(new RegExp("\\$\\{" + escapeRegExp(name) + "\\}", "g"), "");
+    } else {
+      resolved = resolved.replace(
+        new RegExp("\\$\\{" + escapeRegExp(name) + "\\}", "g"),
+        value,
+      );
+    }
   });
 
   return resolved;
@@ -520,10 +528,18 @@ function highlightResolvedHtml(command) {
       value = rawVal === RECIPES_EMPTY_VALUE ? "" : rawVal || "";
     }
 
-    result = result.replace(
-      new RegExp("\\$\\{" + escapeRegExp(name) + "\\}", "g"),
-      '<span class="' + cls + '">' + escapeHtml(value) + "</span>",
-    );
+    if (value === "") {
+      // Remove " ${name} " (space on both sides) → single space to avoid extra gaps.
+      // Then remove any remaining bare placeholder (no surrounding spaces).
+      result = result
+        .replace(new RegExp(" \\$\\{" + escapeRegExp(name) + "\\} ", "g"), " ")
+        .replace(new RegExp("\\$\\{" + escapeRegExp(name) + "\\}", "g"), "");
+    } else {
+      result = result.replace(
+        new RegExp("\\$\\{" + escapeRegExp(name) + "\\}", "g"),
+        '<span class="' + cls + '">' + escapeHtml(value) + "</span>",
+      );
+    }
   });
 
   return result;
@@ -779,6 +795,94 @@ function persistDataThenRender(successMessage) {
 function persistCommandVariables() {
   const payload = buildCommandVariablesPayload();
   vscode.postMessage({ type: "saveCommandVariables", payload });
+}
+
+// ─── Actions Cell Renderer ────────────────────────────────────────────────────
+
+/**
+ * Renders the `<div class="actions-cell">` HTML for a command row.
+ *
+ * @param {object} command  - the command object
+ * @param {object} options
+ * @param {boolean} options.showDelete    - show the Delete button (Commands tab only)
+ * @param {boolean} options.showEdit      - show the Edit button (Commands tab only)
+ * @param {boolean} options.showGoto      - show the "Go to command" button (Recent + Favorites)
+ * @param {'favorite'|'unfavorite'|false} options.favoriteStyle
+ *   'favorite'   → btn-add-favorite with detailed keyboard-shortcut tooltip
+ *   'unfavorite' → btn-unfavorite (Favorites tab)
+ *   false        → no favorite button
+ * @returns {string} HTML string
+ */
+function renderActionsCell(command, options) {
+  var showDelete    = !!options.showDelete;
+  var showEdit      = !!options.showEdit;
+  var showGoto      = !!options.showGoto;
+  var favoriteStyle = options.favoriteStyle;
+
+  // ── Use button ──────────────────────────────────────────────────────────────
+  var _useVars = collectVariables([command.command]).filter(function (n) {
+    return n !== "workspaceFolder";
+  });
+  var _useMissing  = getMissingVariables(command);
+  var _useCtrlHint = _useVars.length > 0 && _useMissing.length === 0;
+  var _useTitle    = _useCtrlHint
+    ? "Insert into terminal (without running)<br>Press CTRL key to edit the variables"
+    : "Insert into terminal (without running)";
+
+  var useBtn = command.command.includes("\n")
+    ? `<button class="btn icon-btn secondary" disabled data-tooltip="Use is not available for multi-line commands">${icons.use}</button>`
+    : `<button class="btn icon-btn secondary btn-use action" data-command-id="${escapeAttr(command.id)}" data-tooltip="${escapeAttr(_useTitle)}">${icons.use}</button>`;
+
+  // ── Edit button ─────────────────────────────────────────────────────────────
+  var editBtn = showEdit
+    ? `<button class="btn icon-btn secondary btn-edit action" data-command-id="${escapeAttr(command.id)}" data-tooltip="Edit command">${icons.edit}</button>`
+    : "";
+
+  // ── Delete button ───────────────────────────────────────────────────────────
+  var deleteBtn = showDelete
+    ? `<button class="btn icon-btn danger btn-delete-command" data-command-id="${escapeAttr(command.id)}" data-tooltip="Delete command">${icons.delete}</button>`
+    : "";
+
+  // ── Favorite / Unfavorite button ────────────────────────────────────────────
+  var favBtn = "";
+  if (favoriteStyle === "favorite") {
+    var _fs  = getFavoriteScope(command.id);
+    var _cls = _fs === "none"
+      ? "secondary"
+      : _fs === "local"
+        ? "fav-state-local"
+        : _fs === "global"
+          ? "fav-state-global"
+          : "fav-state-both";
+    var _icon = _fs === "none" ? icons.heartPlus : icons.heartActive;
+    var _tip  = _fs === "none"
+      ? 'Ctrl+Click: Add Global  •  Ctrl+Right-Click: Remove Global<br>Shift+Click: Add Local  •  Shift+Right-Click: Remove Local<br>Ctrl+Shift+Click: Add Both  •  Ctrl+Shift+Right-Click: Remove Both<br><span class="muted-tip">(Click to manage)</span>'
+      : _fs === "local"
+        ? "In Local Favorites<br>(click to manage)"
+        : _fs === "global"
+          ? "In Global Favorites<br>(click to manage)"
+          : "In Local &amp; Global Favorites<br>(click to manage)";
+    favBtn = `<button class="btn icon-btn ${_cls} btn-add-favorite" data-command-id="${escapeAttr(command.id)}" data-tooltip="${escapeAttr(_tip)}" data-tooltip-pos="left">${_icon}</button>`;
+  } else if (favoriteStyle === "unfavorite") {
+    var _scope      = uiState.favoritesScope;
+    var _scopeLabel = _scope === "local" ? "Local Workspace" : "Global";
+    favBtn = `<button class="btn icon-btn secondary btn-unfavorite" data-command-id="${escapeAttr(command.id)}" data-tooltip="Remove from ${escapeAttr(_scopeLabel)} favorites<br>CTRL+click to open manage panel">${icons.heartMinus}</button>`;
+  }
+
+  // ── Goto button ─────────────────────────────────────────────────────────────
+  var gotoBtn = showGoto
+    ? `<button class="btn icon-btn secondary btn-goto-command" data-command-id="${escapeAttr(command.id)}" data-tooltip="Go to command in Commands tab">${icons.externalLink}</button>`
+    : "";
+
+  return `<div class="actions-cell">
+      <button class="btn icon-btn success btn-run" data-command-id="${escapeAttr(command.id)}" data-tooltip="Run command">${icons.run}</button>
+      ${useBtn}
+      <button class="btn icon-btn secondary btn-copy action" data-command-id="${escapeAttr(command.id)}" data-tooltip="Copy to clipboard">${icons.copy}</button>
+      ${editBtn}
+      ${deleteBtn}
+      ${favBtn}
+      ${gotoBtn}
+    </div>`;
 }
 
 // ─── Custom Select Component ──────────────────────────────────────────────────

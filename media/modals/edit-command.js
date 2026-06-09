@@ -192,7 +192,7 @@ function renderEditTab() {
             : ""
         }
         <div class="row full-width justify-content-flex-end mt-20">
-          <button type="submit" class="btn small primary">Save Changes</button>
+          <button type="submit" class="btn small primary" id="btn-save-edit-command">Save Changes</button>
           <button type="button" id="btn-cancel-edit-command" class="btn small secondary action">Cancel</button>
         </div>
       </form>

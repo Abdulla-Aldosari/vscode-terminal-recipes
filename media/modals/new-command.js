@@ -108,7 +108,7 @@ function renderAddCommandTab(selectedCategory) {
             : ""
         }
         <div class="row full-width justify-content-flex-end mt-20">
-          <button type="submit" class="btn small primary">Add Command</button>
+          <button type="submit" class="btn small primary" id="btn-submit-add-command">Add Command</button>
           <button type="button" id="btn-cancel-add-command" class="btn small secondary action">Cancel</button>
         </div>
       </form>

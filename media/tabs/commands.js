@@ -135,17 +135,6 @@ function renderCommandsTable(commands, groups) {
               const titleHtml = command.helpUrl
                 ? `<a class="cmd-title-link" data-url="${escapeAttr(command.helpUrl)}" data-tooltip="Open documentation">${escapeHtml(command.title)}</a>`
                 : `<strong>${escapeHtml(command.title)}</strong>`;
-              const _useVars = collectVariables([command.command]).filter(
-                function (n) {
-                  return n !== "workspaceFolder";
-                },
-              );
-              const _useMissing  = getMissingVariables(command);
-              const _useCtrlHint =
-                _useVars.length > 0 && _useMissing.length === 0;
-              const _useTitle = _useCtrlHint
-                ? "Insert into terminal (without running)<br>Press CTRL key to edit the variables"
-                : "Insert into terminal (without running)";
               return `
               <tr data-command-id="${escapeAttr(command.id)}" draggable="${isSorting ? "true" : "false"}">
                 ${isSorting ? `<td class="main-t-drag-handle-column drag-handle-cell"><span class="drag-handle" data-tooltip="Drag to reorder">${icons.dragHandle}</span></td>` : ""}
@@ -156,35 +145,7 @@ function renderCommandsTable(commands, groups) {
                 ${
                   !isSorting
                     ? `<td class="main-t-action-column">
-                <div class="actions-cell">
-                  <button class="btn icon-btn success btn-run" data-command-id="${escapeAttr(command.id)}" data-tooltip="Run command">${icons.run}</button>
-                  ${command.command.includes("\n") ? `<button class="btn icon-btn secondary" disabled data-tooltip="Use is not available for multi-line commands">${icons.use}</button>` : `<button class="btn icon-btn secondary btn-use action" data-command-id="${escapeAttr(command.id)}" data-tooltip="${escapeAttr(_useTitle)}">${icons.use}</button>`}
-                  <button class="btn icon-btn secondary btn-copy action" data-command-id="${escapeAttr(command.id)}" data-tooltip="Copy to clipboard">${icons.copy}</button>
-                  <button class="btn icon-btn secondary btn-edit action" data-command-id="${escapeAttr(command.id)}" data-tooltip="Edit command">${icons.edit}</button>
-                  <button class="btn icon-btn danger btn-delete-command" data-command-id="${escapeAttr(command.id)}" data-tooltip="Delete command">${icons.delete}</button>
-                  ${(function () {
-                    const _fs  = getFavoriteScope(command.id);
-                    const _cls =
-                      _fs === "none"
-                        ? "secondary"
-                        : _fs === "local"
-                          ? "fav-state-local"
-                          : _fs === "global"
-                            ? "fav-state-global"
-                            : "fav-state-both";
-                    const _icon =
-                      _fs === "none" ? icons.heartPlus : icons.heartActive;
-                    const _tip =
-                      _fs === "none"
-                        ? 'Ctrl+Click: Add Global  •  Ctrl+Right-Click: Remove Global<br>Shift+Click: Add Local  •  Shift+Right-Click: Remove Local<br>Ctrl+Shift+Click: Add Both  •  Ctrl+Shift+Right-Click: Remove Both<br><span class="muted-tip">(Click to manage)</span>'
-                        : _fs === "local"
-                          ? "In Local Favorites<br>(click to manage)"
-                          : _fs === "global"
-                            ? "In Global Favorites<br>(click to manage)"
-                            : "In Local &amp; Global Favorites<br>(click to manage)";
-                    return `<button class="btn icon-btn ${_cls} btn-add-favorite" data-command-id="${escapeAttr(command.id)}" data-tooltip="${escapeAttr(_tip)}" data-tooltip-pos="left">${_icon}</button>`;
-                  })()}
-                </div>
+                ${renderActionsCell(command, { showDelete: true, showEdit: true, showGoto: false, favoriteStyle: "favorite" })}
                 </td>`
                     : ""
                 }
@@ -738,6 +699,33 @@ function bindCommandActionButtons() {
     });
   });
 
+  // --- Go to command in Commands tab (from Recent and Favorites tabs) ---
+  document.querySelectorAll(".btn-goto-command").forEach(function (button) {
+    button.addEventListener("click", function () {
+      const commandId = button.dataset.commandId;
+      const command   = (state.data.commands || []).find(function (item) {
+        return item.id === commandId;
+      });
+      if (!command) {
+        return;
+      }
+      if (command.categoryId) {
+        uiState.selectedCategoryId = command.categoryId;
+        try {
+          localStorage.setItem("selectedCategoryId", command.categoryId);
+        } catch {}
+      }
+      uiState.selectedGroupId        = "all";
+      uiState.activeTab              = "commands";
+      uiState.pendingScrollCommandId = commandId;
+      try {
+        localStorage.setItem("selectedTab", "commands");
+        localStorage.setItem("selectedGroupId", "all");
+      } catch {}
+      render();
+    });
+  });
+
   // --- Add to Favorites buttons (in Commands and Recent tabs) ---
   document.querySelectorAll(".btn-add-favorite").forEach(function (button) {
     // ── Left-click ────────────────────────────────────────────────────────────
@@ -1045,6 +1033,8 @@ function bindCommandActionButtons() {
             if (customInput) {
               customInput.classList.add("hidden");
               customInput.value = selectedValue;
+              customInput.removeAttribute("data-is-empty-value");
+              customInput.readOnly = false;
             }
             variableInputState.inputValues[varName] = selectedValue;
           }

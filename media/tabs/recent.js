@@ -57,52 +57,14 @@ function renderRecentCommandsTab() {
                 const titleHtml = command.helpUrl
                   ? `<a class="cmd-title-link" data-url="${escapeAttr(command.helpUrl)}" data-tooltip="Open documentation">${escapeHtml(command.title)}</a>`
                   : `<strong>${escapeHtml(command.title)}</strong>`;
-                const _useVars = collectVariables([command.command]).filter(
-                  function (n) {
-                    return n !== "workspaceFolder";
-                  },
-                );
-                const _useMissing  = getMissingVariables(command);
-                const _useCtrlHint =
-                  _useVars.length > 0 && _useMissing.length === 0;
-                const _useTitle = _useCtrlHint
-                  ? "Insert into terminal (without running)<br>Press CTRL key to edit the variables"
-                  : "Insert into terminal (without running)";
                 return `
                 <tr>
                   <td>${titleHtml}</td>
                   <td><pre class="template-cell">${highlightTemplateHtml(command.command)}</pre></td>
                   <td data-tooltip="${escapeAttr(formatDateTime(command.lastRunAt))}">${escapeHtml(timeAgo(command.lastRunAt))}</td>
                   <td><strong>×${command.runCount || 0}</strong></td>
-                    <td>
-                    <div class="actions-cell">
-                      <button class="btn icon-btn success btn-run" data-command-id="${escapeAttr(command.id)}" data-tooltip="Run command">${icons.run}</button>
-                      ${command.command.includes("\n") ? `<button class="btn icon-btn secondary" disabled data-tooltip="Use is not available for multi-line commands">${icons.use}</button>` : `<button class="btn icon-btn secondary btn-use action" data-command-id="${escapeAttr(command.id)}" data-tooltip="${escapeAttr(_useTitle)}">${icons.use}</button>`}
-                      <button class="btn icon-btn secondary btn-copy action" data-command-id="${escapeAttr(command.id)}" data-tooltip="Copy to clipboard">${icons.copy}</button>
-                      <button class="btn icon-btn secondary btn-edit action" data-command-id="${escapeAttr(command.id)}" data-tooltip="Edit command">${icons.edit}</button>
-                      ${(function () {
-                        const _fs  = getFavoriteScope(command.id);
-                        const _cls =
-                          _fs === "none"
-                            ? "secondary"
-                            : _fs === "local"
-                              ? "fav-state-local"
-                              : _fs === "global"
-                                ? "fav-state-global"
-                                : "fav-state-both";
-                        const _icon =
-                          _fs === "none" ? icons.heartPlus : icons.heartActive;
-                        const _tip =
-                          _fs === "none"
-                            ? "Add to favorites"
-                            : _fs === "local"
-                              ? "In Local Favorites (click to manage)"
-                              : _fs === "global"
-                                ? "In Global Favorites (click to manage)"
-                                : "In Local &amp; Global Favorites (click to manage)";
-                        return `<button class="btn icon-btn ${_cls} btn-add-favorite" data-command-id="${escapeAttr(command.id)}" data-tooltip="${escapeAttr(_tip)}" data-tooltip-pos="left">${_icon}</button>`;
-                      })()}
-                    </div>
+                  <td>
+                    ${renderActionsCell(command, { showDelete: false, showEdit: false, showGoto: true, favoriteStyle: "favorite" })}
                   </td>
                 </tr>
               `;

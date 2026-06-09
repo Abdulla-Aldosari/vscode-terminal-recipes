@@ -791,6 +791,10 @@ td.actions-cell {
   min-width: 250px;
 }
 
+#variable-input-overlay .modal-box {
+  min-width: 850px !important;
+}
+
 .modal-box h3 {
   margin: 0;
   font-size: 0.95rem;
@@ -1657,7 +1661,7 @@ tr.row-highlight td {
 
 .enum-input-wrap {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 6px;
   min-width: 180px;
 }
