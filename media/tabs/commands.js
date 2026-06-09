@@ -136,7 +136,7 @@ function renderCommandsTable(commands, groups) {
                 ? `<a class="cmd-title-link" data-url="${escapeAttr(command.helpUrl)}" data-tooltip="Open documentation">${escapeHtml(command.title)}</a>`
                 : `<strong>${escapeHtml(command.title)}</strong>`;
               var _rowClass =
-                command.id === uiState.commandsSelectedCommandRowId
+                !uiState.sortingMode && command.id === uiState.commandsSelectedCommandRowId
                   ? ' class="selected-command-row"'
                   : "";
               return `
