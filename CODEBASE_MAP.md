@@ -101,7 +101,7 @@ Does **not** contain any business logic — delegates everything to `lib/`.
 | `openLocalVariablesFile()`                                   | `openLocalVariablesFile`    | Opens workspace variables file (prompts to create if missing)  |
 | `handleAiGetSettings(panel, context)`                        | `aiGetSettings`             | Reads AI secrets + provider config; posts `aiSettingsResult`   |
 | `handleAiSaveSettings(panel, context, payload)`              | `aiSaveSettings`            | Saves API key to `SecretStorage`; posts `aiSaveSettingsResult` |
-| `handleAiGenerate(panel, context, payload, aiOutputChannel)` | `aiGenerate`                | Runs AI generation; streams progress; posts `aiGenerateResult` |
+| `handleAiGenerate(panel, context, payload, aiOutputChannel)` | `aiGenerate`                | Reads `shellName` from payload; passes it to `generateWithAI` to inject shell context; posts `aiGenerateResult` |
 | `handleAiInsert(panel, payload, postState)`                  | `aiInsert`                  | Merges AI-generated commands; posts `aiInsertResult`           |
 | `handleSaveAutoVariablesSettings(panel, payload, postState)` | `saveAutoVariablesSettings` | Saves auto-variables settings; posts result                    |
 | `handleSaveFavorites(panel, payload)`                        | `saveFavorites`             | Saves global/workspace favorites; posts `saveFavoritesResult`  |
@@ -126,7 +126,7 @@ Does **not** contain any business logic — delegates everything to `lib/`.
 | File                            | Purpose                                                                                                                                 |
 | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
 | `lib/ai/providers-config.js`    | **SINGLE SOURCE OF TRUTH** — metadata for all AI providers (name, model, URL, setup steps). Edit this first when adding a new provider. |
-| `lib/ai/factory.js`             | `createProvider(name, key)` — instantiates the correct provider class. Edit to register new providers.                                  |
+| `lib/ai/factory.js`             | `generateWithAI(options)` — main entry point; accepts `shellName?` to inject a shell-context section into the system instruction via `buildShellContext(shellName)`. `createProvider(name, key)` — instantiates the correct provider class. Edit to register new providers. |
 | `lib/ai/schemas.js`             | JSON schema for the expected AI response structure                                                                                      |
 | `lib/ai/systemInstruction.js`   | System prompt / instruction sent to the AI model                                                                                        |
 | `lib/ai/debugLogger.js`         | Debug logging utility for AI requests/responses                                                                                         |
@@ -293,6 +293,7 @@ All dropdowns use `renderCustomSelect()` + `bindCustomSelect()` from `media/util
 | Run Confirm Modal — shell     | `shell-selector-wrap`       | `media/modals/run-confirm.js`                                               |
 | Edit Command Modal — category | `edit-category-select-wrap` | `media/modals/edit-command.js`                                              |
 | AI Settings Modal — provider  | `ai-provider-select-wrap`   | `media/modals/ai-settings.js`                                               |
+| AI Generate Modal — target shell | `ai-shell-select-wrap`    | `media/modals/ai-generate.js`                                               |
 | Variable inputs — enum type   | `enum-var-wrap-{varName}`   | `media/modals/run-confirm.js` (variable input modal), `media/modals/edit-command.js`, `media/modals/new-command.js` |
 
 ---
