@@ -1644,10 +1644,10 @@ table.commands-table.ai-results-table td:last-child {
 }
 
 
-/* ===== Row Highlight (after Edit/Add) ===== */
+/* ===== Row Highlight (after Edit/Add, or goto-command) ===== */
 tr.row-highlight td {
   background-color: color-mix(in srgb, #0096f4 30%, var(--recipes-editor-background)) !important;
-  transition: none;
+  transition: background-color 0.3s ease;
 }
 
 /* Unchecked row styling */

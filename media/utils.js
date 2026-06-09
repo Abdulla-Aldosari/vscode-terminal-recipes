@@ -710,26 +710,28 @@ function paintNotice() {
 /**
  * Scrolls to a row with the given commandId and temporarily highlights it.
  * Works for both the commands table and the recent commands table.
+ * The highlight appears only after the smooth scroll animation completes,
+ * so the user sees the row highlighted clearly once it's centered in view.
  * @param {string} commandId
  */
 function scrollToAndHighlight(commandId) {
   if (!commandId) {
     return;
   }
-  // Find a button inside the row that carries the commandId
-  var btn = document.querySelector('[data-command-id="' + commandId + '"]');
-  if (!btn) {
-    return;
-  }
-  var row = btn.closest("tr");
+  // Target the <tr> directly — all relevant tables set data-command-id on the row
+  var row = document.querySelector('tr[data-command-id="' + commandId + '"]');
   if (!row) {
     return;
   }
-  row.classList.add("row-highlight");
   row.scrollIntoView({ behavior: "smooth", block: "center" });
+  // Wait for smooth scroll (~400ms) before adding the highlight, so it appears
+  // only when the row is centered in view rather than flashing mid-scroll
+  setTimeout(function () {
+    row.classList.add("row-highlight");
+  }, 400);
   setTimeout(function () {
     row.classList.remove("row-highlight");
-  }, 2000);
+  }, 2400);
 }
 
 /**
