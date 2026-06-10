@@ -2008,6 +2008,10 @@ tr.row-highlight td {
   opacity: 0.5;
 }
 
+.auto-var-row.auto-var-disabled .auto-var-name-code {
+  cursor: default;
+}
+
 .auto-var-toggle {
   padding-top: 2px;
   flex-shrink: 0;

@@ -26,10 +26,7 @@ const H = require("./lib/handlers");
  */
 function activate(context) {
   let panel = null;
-  const aiOutputChannel = vscode.window.createOutputChannel(
-    "Terminal Recipes",
-    "json",
-  );
+  const aiOutputChannel = vscode.window.createOutputChannel("Terminal Recipes", "json");
   context.subscriptions.push(aiOutputChannel);
 
   const openPanelCommand = vscode.commands.registerCommand(
@@ -48,14 +45,10 @@ function activate(context) {
         {
           enableScripts: true,
           retainContextWhenHidden: true,
-        },
+        }
       );
 
-      panel.iconPath = vscode.Uri.joinPath(
-        context.extensionUri,
-        "media",
-        "icon.png",
-      );
+      panel.iconPath = vscode.Uri.joinPath(context.extensionUri, "media", "icon.png");
 
       panel.webview.html = getWebviewHtml(panel.webview, context.extensionUri);
 
@@ -64,7 +57,6 @@ function activate(context) {
           if (!message || typeof message.type !== "string") {
             return;
           }
-
           if (message.type === "ready" || message.type === "requestState") {
             await postState(panel);
             return;
@@ -106,12 +98,7 @@ function activate(context) {
             return;
           }
           if (message.type === "aiGenerate") {
-            await H.handleAiGenerate(
-              panel,
-              context,
-              message.payload,
-              aiOutputChannel,
-            );
+            await H.handleAiGenerate(panel, context, message.payload, aiOutputChannel);
             return;
           }
           if (message.type === "aiInsert") {
@@ -119,11 +106,7 @@ function activate(context) {
             return;
           }
           if (message.type === "saveAutoVariablesSettings") {
-            await H.handleSaveAutoVariablesSettings(
-              panel,
-              message.payload,
-              postState,
-            );
+            await H.handleSaveAutoVariablesSettings(panel, message.payload, postState);
             return;
           }
           if (message.type === "saveFavorites") {
@@ -132,7 +115,7 @@ function activate(context) {
           }
         },
         null,
-        context.subscriptions,
+        context.subscriptions
       );
 
       panel.onDidDispose(function () {
@@ -140,15 +123,12 @@ function activate(context) {
       });
 
       await postState(panel);
-    },
+    }
   );
 
   context.subscriptions.push(openPanelCommand);
 
-  const statusBarItem = vscode.window.createStatusBarItem(
-    vscode.StatusBarAlignment.Right,
-    100,
-  );
+  const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
   statusBarItem.text = "$(terminal) Recipes";
   statusBarItem.tooltip = "Open Terminal Recipes";
   statusBarItem.command = "terminalRecipes.openPanel";
@@ -174,10 +154,7 @@ async function postState(panel) {
   const globalCommandVariables = await readGlobalVariables();
   const terminalProfiles = getTerminalProfiles();
   const autoVariablesSettings = await readAutoVariablesSettings();
-  const autoVariables = buildAutoVariablesPayload(
-    { workspaceFolder },
-    autoVariablesSettings,
-  );
+  const autoVariables = buildAutoVariablesPayload({ workspaceFolder }, autoVariablesSettings);
   const globalFavorites = await readGlobalFavorites();
   const localFavorites = await readWorkspaceFavorites();
 
@@ -206,69 +183,57 @@ async function postState(panel) {
  * @returns {string} The HTML string to set on webview.html
  */
 function getWebviewHtml(webview, extensionUri) {
-  const styleUri = webview.asWebviewUri(
-    vscode.Uri.joinPath(extensionUri, "media", "styles.css"),
-  );
+  const styleUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, "media", "styles.css"));
 
   // 1. Foundation
-  const stateUri = webview.asWebviewUri(
-    vscode.Uri.joinPath(extensionUri, "media", "state.js"),
-  );
-  const iconsUri = webview.asWebviewUri(
-    vscode.Uri.joinPath(extensionUri, "media", "icons.js"),
-  );
-  const utilsUri = webview.asWebviewUri(
-    vscode.Uri.joinPath(extensionUri, "media", "utils.js"),
-  );
+  const stateUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, "media", "state.js"));
+  const iconsUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, "media", "icons.js"));
+  const utilsUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, "media", "utils.js"));
 
   // 2. Modals
   const modalsRunConfirmUri = webview.asWebviewUri(
-    vscode.Uri.joinPath(extensionUri, "media", "modals", "run-confirm.js"),
+    vscode.Uri.joinPath(extensionUri, "media", "modals", "run-confirm.js")
   );
   const modalsEditCommandUri = webview.asWebviewUri(
-    vscode.Uri.joinPath(extensionUri, "media", "modals", "edit-command.js"),
+    vscode.Uri.joinPath(extensionUri, "media", "modals", "edit-command.js")
   );
   const modalsNewCommandUri = webview.asWebviewUri(
-    vscode.Uri.joinPath(extensionUri, "media", "modals", "new-command.js"),
+    vscode.Uri.joinPath(extensionUri, "media", "modals", "new-command.js")
   );
   const modalsAiSettingsUri = webview.asWebviewUri(
-    vscode.Uri.joinPath(extensionUri, "media", "modals", "ai-settings.js"),
+    vscode.Uri.joinPath(extensionUri, "media", "modals", "ai-settings.js")
   );
   const modalsAiGenerateUri = webview.asWebviewUri(
-    vscode.Uri.joinPath(extensionUri, "media", "modals", "ai-generate.js"),
+    vscode.Uri.joinPath(extensionUri, "media", "modals", "ai-generate.js")
   );
 
   // 3. Tabs
   const tabsRecentUri = webview.asWebviewUri(
-    vscode.Uri.joinPath(extensionUri, "media", "tabs", "recent.js"),
+    vscode.Uri.joinPath(extensionUri, "media", "tabs", "recent.js")
   );
   const tabsCommandsUri = webview.asWebviewUri(
-    vscode.Uri.joinPath(extensionUri, "media", "tabs", "commands.js"),
+    vscode.Uri.joinPath(extensionUri, "media", "tabs", "commands.js")
   );
   const tabsFavoritesUri = webview.asWebviewUri(
-    vscode.Uri.joinPath(extensionUri, "media", "tabs", "favorites.js"),
+    vscode.Uri.joinPath(extensionUri, "media", "tabs", "favorites.js")
   );
   const tabsVariablesUri = webview.asWebviewUri(
-    vscode.Uri.joinPath(extensionUri, "media", "tabs", "variables.js"),
+    vscode.Uri.joinPath(extensionUri, "media", "tabs", "variables.js")
   );
   const tabsAiUri = webview.asWebviewUri(
-    vscode.Uri.joinPath(extensionUri, "media", "tabs", "ai.js"),
+    vscode.Uri.joinPath(extensionUri, "media", "tabs", "ai.js")
   );
 
   // 4. Render orchestrator
-  const renderUri = webview.asWebviewUri(
-    vscode.Uri.joinPath(extensionUri, "media", "render.js"),
-  );
+  const renderUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, "media", "render.js"));
 
   // 5. Message handler
   const messagesUri = webview.asWebviewUri(
-    vscode.Uri.joinPath(extensionUri, "media", "messages.js"),
+    vscode.Uri.joinPath(extensionUri, "media", "messages.js")
   );
 
   // 6. Entry point
-  const mainUri = webview.asWebviewUri(
-    vscode.Uri.joinPath(extensionUri, "media", "main.js"),
-  );
+  const mainUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, "media", "main.js"));
 
   const nonce = crypto.randomBytes(16).toString("base64");
 

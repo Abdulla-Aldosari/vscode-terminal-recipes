@@ -35,7 +35,7 @@ function renderVariablesTab() {
             </div>
             <div class="auto-var-info">
               <div class="auto-var-name">
-                <code class="auto-var-name-code" data-copy-value="${escapeAttr("${" + varDef.name + "}")}" data-tooltip="Copy variable">\${${escapeHtml(varDef.name)}}</code>
+                <code class="auto-var-name-code" data-copy-value="${escapeAttr("${" + varDef.name + "}")}" data-tooltip="${varDef.enabled ? "Copy variable" : "Variable disabled"}">\${${escapeHtml(varDef.name)}}</code>
                 <span>${escapeHtml(varDef.label)}</span>
               </div>
               <div class="auto-var-description">${escapeHtml(varDef.description)}</div>
@@ -66,11 +66,7 @@ function renderVariablesTab() {
 }
 
 function renderAutoVarConfig(varDef) {
-  if (
-    varDef.name === "date" &&
-    varDef.configOptions &&
-    varDef.configOptions.length > 0
-  ) {
+  if (varDef.name === "date" && varDef.configOptions && varDef.configOptions.length > 0) {
     return renderCustomSelect(
       "auto-var-date-format-wrap",
       "auto-var-date-format-btn",
@@ -78,12 +74,10 @@ function renderAutoVarConfig(varDef) {
       varDef.configOptions.map(function (f) {
         return { value: f, label: f };
       }),
-      varDef.config && varDef.config.format
-        ? varDef.config.format
-        : "YYYY-MM-DD",
+      varDef.config && varDef.config.format ? varDef.config.format : "YYYY-MM-DD",
       "cs-btn-sm",
       false,
-      "",
+      ""
     );
   }
   return "";
@@ -93,17 +87,15 @@ function bindVariablesTabEvents() {
   // Checkbox to enable/disable a variable
   document.querySelectorAll(".auto-var-checkbox").forEach(function (checkbox) {
     checkbox.addEventListener("change", function () {
-      const varName    = checkbox.dataset.varName;
-      const newSettings = JSON.parse(
-        JSON.stringify(state.autoVariablesSettings || {}),
-      );
+      const varName = checkbox.dataset.varName;
+      const newSettings = JSON.parse(JSON.stringify(state.autoVariablesSettings || {}));
       if (!newSettings[varName]) {
         newSettings[varName] = {};
       }
       newSettings[varName].enabled = checkbox.checked;
-      state.autoVariablesSettings  = newSettings;
+      state.autoVariablesSettings = newSettings;
       vscode.postMessage({
-        type:    "saveAutoVariablesSettings",
+        type: "saveAutoVariablesSettings",
         payload: newSettings,
       });
     });
@@ -112,6 +104,10 @@ function bindVariablesTabEvents() {
   // Copy variable name when clicking on a code element
   document.querySelectorAll(".auto-var-name-code").forEach(function (el) {
     el.addEventListener("click", function () {
+      // prevent copy if the variable is disabled
+      if (el.closest(".auto-var-row")?.classList.contains("auto-var-disabled")) {
+        return;
+      }
       const value = el.dataset.copyValue;
       if (value) {
         navigator.clipboard.writeText(value).then(function () {
@@ -123,7 +119,7 @@ function bindVariablesTabEvents() {
             function () {
               el.classList.remove("auto-var-copy-success");
             },
-            { once: true },
+            { once: true }
           );
         });
       }
@@ -136,9 +132,7 @@ function bindVariablesTabEvents() {
     "auto-var-date-format-btn",
     "auto-var-date-format-menu",
     function (selectedFormat) {
-      const newSettings = JSON.parse(
-        JSON.stringify(state.autoVariablesSettings || {}),
-      );
+      const newSettings = JSON.parse(JSON.stringify(state.autoVariablesSettings || {}));
       if (!newSettings["date"]) {
         newSettings["date"] = { enabled: true };
       }
@@ -146,11 +140,11 @@ function bindVariablesTabEvents() {
         newSettings["date"].config = {};
       }
       newSettings["date"].config.format = selectedFormat;
-      state.autoVariablesSettings       = newSettings;
+      state.autoVariablesSettings = newSettings;
       vscode.postMessage({
-        type:    "saveAutoVariablesSettings",
+        type: "saveAutoVariablesSettings",
         payload: newSettings,
       });
-    },
+    }
   );
 }
