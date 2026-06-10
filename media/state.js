@@ -45,6 +45,7 @@ const uiState = {
       return "all";
     }
   })(),
+  devToolsOpen:           false,
   sortingMode:            false,
   editingCommandId:       null,
   editSourceTab:          null,

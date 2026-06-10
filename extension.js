@@ -4,6 +4,8 @@
 
 const vscode = require("vscode");
 const crypto = require("crypto");
+const fs = require("fs");
+const path = require("path");
 const {
   readGlobalCommandsData,
   readWorkspaceVariables,
@@ -50,7 +52,41 @@ function activate(context) {
 
       panel.iconPath = vscode.Uri.joinPath(context.extensionUri, "media", "icon.png");
 
-      panel.webview.html = getWebviewHtml(panel.webview, context.extensionUri);
+      const isDevelopmentMode = context.extensionMode === vscode.ExtensionMode.Development;
+      const hasDevTools = fs.existsSync(
+        path.join(context.extensionPath, "media", "dev", "index.js")
+      );
+      const isDev = isDevelopmentMode && hasDevTools;
+
+      // ─── Dev Tools Modules (Developer Only) ──────────────────────────────────────
+      // This section is exclusively for development and testing purposes.
+      // It dynamically loads developer UI panels (tools) from media/dev/modules/.
+      // Each tool file self-registers into window.devToolsModules[] and appears
+      // automatically as a tab inside the Dev Tools overlay — no manual changes needed here.
+      // These files are never shipped in production (.vscodeignore excludes media/dev/**).
+      let devModuleFiles = [];
+      if (isDev) {
+        const modulesDir = path.join(context.extensionPath, "media", "dev", "modules");
+        if (fs.existsSync(modulesDir)) {
+          devModuleFiles = fs
+            .readdirSync(modulesDir)
+            .filter(function (f) {
+              return f.endsWith(".js");
+            })
+            .sort()
+            .map(function (f) {
+              return ["media", "dev", "modules", f];
+            });
+        }
+      }
+      // ─────────────────────────────────────────────────────────────────────────────
+
+      panel.webview.html = getWebviewHtml(
+        panel.webview,
+        context.extensionUri,
+        isDev,
+        devModuleFiles
+      );
 
       panel.webview.onDidReceiveMessage(
         async function (message) {
@@ -180,9 +216,11 @@ async function postState(panel) {
  * Injects a CSP nonce for script security and loads all media scripts in dependency order.
  * @param {import('vscode').Webview} webview
  * @param {import('vscode').Uri} extensionUri
+ * @param {boolean} [isDev=false] - Whether to inject dev tools scripts
+ * @param {string[][]} [devModuleFiles=[]] - Path segments for each module file in media/dev/modules/
  * @returns {string} The HTML string to set on webview.html
  */
-function getWebviewHtml(webview, extensionUri) {
+function getWebviewHtml(webview, extensionUri, isDev = false, devModuleFiles = []) {
   const styleUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, "media", "styles.css"));
 
   // 1. Foundation
@@ -244,6 +282,7 @@ function getWebviewHtml(webview, extensionUri) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';">
   <link rel="stylesheet" href="${styleUri}">
+  ${isDev ? `<link rel="stylesheet" href="${webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, "media", "dev", "dev-styles.css"))}">` : ""}
   <title>Terminal Recipes</title>
 </head>
 <body>
@@ -276,6 +315,18 @@ function getWebviewHtml(webview, extensionUri) {
 
   <!-- 6. Entry point: DOMContentLoaded + postMessage senders + tooltip IIFE -->
   <script nonce="${nonce}" src="${mainUri}"></script>
+
+  ${
+    isDev
+      ? `<!-- 7. Dev Tools (development mode only — zero impact if folder is missing) -->
+  ${devModuleFiles
+    .map(function (segs) {
+      return `<script nonce="${nonce}" src="${webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, ...segs))}"></script>`;
+    })
+    .join("\n  ")}
+  <script nonce="${nonce}" src="${webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, "media", "dev", "index.js"))}"></script>`
+      : ""
+  }
 </body>
 </html>`;
 }

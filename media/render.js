@@ -157,6 +157,16 @@ function render() {
   ensureSelectionDefaults();
 
   const app = document.getElementById("app");
+
+  // Dev Tools overlay — full-screen, replaces normal content entirely
+  if (uiState.devToolsOpen && typeof renderDevToolsOverlay === "function") {
+    app.innerHTML = renderDevToolsOverlay();
+    if (typeof bindDevToolsEvents === "function") {
+      bindDevToolsEvents();
+    }
+    return;
+  }
+
   const selectedCategory = getSelectedCategory();
 
   app.innerHTML = `
@@ -164,6 +174,7 @@ function render() {
       <header class="header">
         <h1>Terminal Recipes</h1>
         <div class="header-actions">
+          ${typeof renderDevToolsOverlay === "function" ? `<button id="btn-open-dev-tools" class="btn small secondary" data-tooltip="Open Dev Tools">Dev Tools</button>` : ""}
           <button id="btn-open-local-variables-file" class="btn small secondary" ${state.workspaceFolder ? "" : "disabled"} data-tooltip="${state.workspaceFolder ? "Open local variables JSON file" : "No workspace open"}">Open Local Variables JSON</button>
           <button id="btn-open-global-variables-file" class="btn small secondary" data-tooltip="Open global variables JSON file">Open Global Variables JSON</button>
           <button id="btn-open-commands-file" class="btn small secondary" data-tooltip="Open global commands JSON file">Open Global JSON</button>
@@ -423,6 +434,14 @@ function bindRowSelectionEvents() {
 }
 
 function bindTopActions() {
+  const openDevToolsButton = document.getElementById("btn-open-dev-tools");
+  if (openDevToolsButton) {
+    openDevToolsButton.addEventListener("click", function () {
+      uiState.devToolsOpen = true;
+      render();
+    });
+  }
+
   const openCommandsFileButton = document.getElementById(
     "btn-open-commands-file",
   );
