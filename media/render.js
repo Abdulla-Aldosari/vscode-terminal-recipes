@@ -18,9 +18,7 @@ function hydrateState(payload) {
     payload && payload.globalCommandsFile ? payload.globalCommandsFile : "";
   state.workspaceFolder = payload ? payload.workspaceFolder : null;
   state.commandVariables =
-    payload && payload.commandVariables
-      ? payload.commandVariables
-      : { version: 2, commands: {} };
+    payload && payload.commandVariables ? payload.commandVariables : { version: 2, commands: {} };
   state.globalCommandVariables =
     payload && payload.globalCommandVariables
       ? payload.globalCommandVariables
@@ -30,21 +28,13 @@ function hydrateState(payload) {
       ? payload.terminalProfiles
       : { defaultProfile: "", profiles: [] };
   state.autoVariables =
-    payload && Array.isArray(payload.autoVariables)
-      ? payload.autoVariables
-      : [];
+    payload && Array.isArray(payload.autoVariables) ? payload.autoVariables : [];
   state.autoVariablesSettings =
-    payload && payload.autoVariablesSettings
-      ? payload.autoVariablesSettings
-      : {};
+    payload && payload.autoVariablesSettings ? payload.autoVariablesSettings : {};
   state.globalFavorites =
-    payload && Array.isArray(payload.globalFavorites)
-      ? payload.globalFavorites
-      : [];
+    payload && Array.isArray(payload.globalFavorites) ? payload.globalFavorites : [];
   state.localFavorites =
-    payload && Array.isArray(payload.localFavorites)
-      ? payload.localFavorites
-      : [];
+    payload && Array.isArray(payload.localFavorites) ? payload.localFavorites : [];
 
   // If no workspace, force scope to 'global'
   if (!state.workspaceFolder && uiState.favoritesScope === "local") {
@@ -61,36 +51,23 @@ function hydrateState(payload) {
       }) ||
       profiles[0] ||
       null;
-    runConfirmState.selectedShellName = defaultProfileEntry
-      ? defaultProfileEntry.name
-      : null;
-    runConfirmState.selectedShellPath = defaultProfileEntry
-      ? defaultProfileEntry.shellPath
-      : null;
+    runConfirmState.selectedShellName = defaultProfileEntry ? defaultProfileEntry.name : null;
+    runConfirmState.selectedShellPath = defaultProfileEntry ? defaultProfileEntry.shellPath : null;
   }
 
   const localCmds = state.commandVariables.commands || {};
   const globalCmds = state.globalCommandVariables.commands || {};
-  const allCommandIds = new Set([
-    ...Object.keys(localCmds),
-    ...Object.keys(globalCmds),
-  ]);
+  const allCommandIds = new Set([...Object.keys(localCmds), ...Object.keys(globalCmds)]);
 
   allCommandIds.forEach(function (commandId) {
     // Initialize local scope draft from workspace variables file
     if (!uiState.commandLocalDrafts[commandId]) {
-      uiState.commandLocalDrafts[commandId] = Object.assign(
-        {},
-        localCmds[commandId] || {},
-      );
+      uiState.commandLocalDrafts[commandId] = Object.assign({}, localCmds[commandId] || {});
     }
 
     // Initialize global scope draft from global variables file
     if (!uiState.commandGlobalDrafts[commandId]) {
-      uiState.commandGlobalDrafts[commandId] = Object.assign(
-        {},
-        globalCmds[commandId] || {},
-      );
+      uiState.commandGlobalDrafts[commandId] = Object.assign({}, globalCmds[commandId] || {});
     }
 
     // Initialize scope preference (commandRemember)
@@ -98,10 +75,7 @@ function hydrateState(payload) {
       const remembered = {};
       const globalVars = globalCmds[commandId] || {};
       const localVars = localCmds[commandId] || {};
-      const allVarKeys = new Set([
-        ...Object.keys(localVars),
-        ...Object.keys(globalVars),
-      ]);
+      const allVarKeys = new Set([...Object.keys(localVars), ...Object.keys(globalVars)]);
       allVarKeys.forEach(function (key) {
         if (localVars[key]) {
           remembered[key] = "local"; // prefer local if local has a value
@@ -158,7 +132,10 @@ function render() {
 
   const app = document.getElementById("app");
 
-  // Dev Tools overlay — full-screen, replaces normal content entirely
+  // ─── Dev Tools Overlay (Development Mode Only) ───────────────────────────────
+  // When uiState.devToolsOpen is true, delegate rendering entirely to the Dev Tools
+  // system (media/dev/index.js) instead of the normal app UI. The typeof guards
+  // ensure zero-impact in production where renderDevToolsOverlay is never defined.
   if (uiState.devToolsOpen && typeof renderDevToolsOverlay === "function") {
     app.innerHTML = renderDevToolsOverlay();
     if (typeof bindDevToolsEvents === "function") {
@@ -166,6 +143,8 @@ function render() {
     }
     return;
   }
+
+  // ─── Normal App UI Rendering ────────────────────────────────────────────────
 
   const selectedCategory = getSelectedCategory();
 
@@ -365,7 +344,7 @@ function bindModalDismiss() {
               function () {
                 box.classList.remove("modal-box-flash");
               },
-              { once: true },
+              { once: true }
             );
           }
         }
@@ -427,9 +406,13 @@ function bindRowSelectionEvents() {
     return;
   }
   document.querySelectorAll("tr[data-command-id]").forEach(function (row) {
-    row.addEventListener("click", function () {
-      selectCommandRow(row.dataset.commandId);
-    }, true);
+    row.addEventListener(
+      "click",
+      function () {
+        selectCommandRow(row.dataset.commandId);
+      },
+      true
+    );
   });
 }
 
@@ -442,15 +425,9 @@ function bindTopActions() {
     });
   }
 
-  const openCommandsFileButton = document.getElementById(
-    "btn-open-commands-file",
-  );
-  const openGlobalVariablesFileButton = document.getElementById(
-    "btn-open-global-variables-file",
-  );
-  const openLocalVariablesFileButton = document.getElementById(
-    "btn-open-local-variables-file",
-  );
+  const openCommandsFileButton = document.getElementById("btn-open-commands-file");
+  const openGlobalVariablesFileButton = document.getElementById("btn-open-global-variables-file");
+  const openLocalVariablesFileButton = document.getElementById("btn-open-local-variables-file");
 
   if (openCommandsFileButton) {
     openCommandsFileButton.addEventListener("click", function () {
@@ -504,13 +481,7 @@ function bindTabs() {
 
       uiState.activeTab = nextTab;
       // Persist only the main saveable tabs (not 'add' which is a transient form state)
-      const SAVED_TABS = [
-        "recent",
-        "favorites",
-        "manage",
-        "commands",
-        "variables",
-      ];
+      const SAVED_TABS = ["recent", "favorites", "manage", "commands", "variables"];
       if (SAVED_TABS.includes(nextTab)) {
         try {
           localStorage.setItem("selectedTab", nextTab);
