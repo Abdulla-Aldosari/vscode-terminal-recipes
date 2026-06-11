@@ -50,7 +50,7 @@ function renderAiPromptModal() {
           ${shellSelectorHtml}
         </div>
         <textarea id="ai-prompt-textarea" class="input" rows="4"
-          placeholder="${isFullMode ? "e.g. All commands for CodeIgniter 4 framework" : "e.g. A command to create a new CodeIgniter 4 model"}"
+          placeholder="${isFullMode ? "e.g. All essential Git commands" : "e.g. A command to find and kill a process on port 8080"}"
         >${escapeHtml(aiState.prompt)}</textarea>
         <div class="row align-items-flex-end mt-20">
           <a href="#" class="muted ai-model-label" id="ai-model-label-link" data-url="${aiState.aiProviderSetup && aiState.aiProviderSetup[aiState.providerName] ? aiState.aiProviderSetup[aiState.providerName].apiKeyUrl : ""}" data-tooltip="View API model details">${icons.externalLink} ${getAiModelLabel(aiState.providerName)}</a>
