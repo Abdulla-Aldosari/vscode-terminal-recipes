@@ -7,24 +7,71 @@
 // Loads after new-command.js.
 
 /**
- * Returns a display label for the AI provider and its associated model.
- * Uses dynamic data from aiState.aiProviderSetup (from providers-config.js) when available.
- * Falls back to hardcoded labels if setup data hasn't been loaded yet.
+ * Returns a display label for the active AI provider + model.
+ * Used in the AI prompt modal footer link.
  * @param {string} providerName
  * @returns {string}
  */
 function getAiModelLabel(providerName) {
   if (aiState.aiProviderSetup && aiState.aiProviderSetup[providerName]) {
     const cfg = aiState.aiProviderSetup[providerName];
-    return `${cfg.serviceName} · ${cfg.modelLabel}`;
+    const modelId = aiState.settingsModelId || cfg.defaultModelId;
+    const modelCfg = (cfg.models || []).find(function (m) { return m.modelId === modelId; });
+    const modelLabel = modelCfg ? modelCfg.modelLabel : modelId;
+    return `${cfg.serviceName} · ${modelLabel}`;
   }
   // Fallback labels (used before aiProviderSetup is loaded)
   const fallback = {
-    gemini:    "Gemini · gemini-flash-latest",
-    openai:    "OpenAI · gpt-4.1",
-    anthropic: "Anthropic · claude-sonnet-4-5",
+    gemini:         "Gemini · Gemini 2.0 Flash",
+    openai:         "OpenAI · GPT-4.1 Mini",
+    anthropic:      "Anthropic · Claude Haiku 4.5",
+    deepseek:       "DeepSeek · DeepSeek V3 Chat",
+    groq:           "Groq · Llama 3.3 70B",
+    mistral:        "Mistral · Mistral Small",
+    cohere:         "Cohere · Command R7B",
+    bytedancesseed: "ByteDance Seed · Seed 1.6 Flash",
+    stepfun:        "StepFun · Step 3.5 Flash",
   };
   return fallback[providerName] || providerName;
+}
+
+/**
+ * Builds the model dropdown options for the given provider.
+ * Free models get a "(Free)" suffix in the label.
+ * @param {string} providerName
+ * @returns {{ value: string, label: string }[]}
+ */
+function buildModelOptions(providerName) {
+  if (!aiState.aiProviderSetup || !aiState.aiProviderSetup[providerName]) {
+    return [];
+  }
+  const models = aiState.aiProviderSetup[providerName].models || [];
+  return models.map(function (m) {
+    return {
+      value: m.modelId,
+      label: m.free ? m.modelLabel + " (Free)" : m.modelLabel,
+    };
+  });
+}
+
+/**
+ * Returns the resolved model ID for the given provider.
+ * Falls back to the provider's defaultModelId if settingsModelId is not set
+ * or does not belong to the selected provider's model list.
+ * @param {string} providerName
+ * @returns {string}
+ */
+function resolveSettingsModelId(providerName) {
+  if (!aiState.aiProviderSetup || !aiState.aiProviderSetup[providerName]) {
+    return aiState.settingsModelId || "";
+  }
+  const cfg = aiState.aiProviderSetup[providerName];
+  const models = cfg.models || [];
+  const savedId = aiState.settingsModelId;
+  if (savedId && models.some(function (m) { return m.modelId === savedId; })) {
+    return savedId;
+  }
+  return cfg.defaultModelId || (models.length > 0 ? models[0].modelId : "");
 }
 
 function renderAiSettingsModal() {
@@ -34,13 +81,39 @@ function renderAiSettingsModal() {
         return { value: cfg.name, label: cfg.displayLabel };
       })
     : [
-        { value: "gemini",    label: "Google Gemini (gemini-flash-latest)" },
-        { value: "openai",    label: "OpenAI ChatGPT (gpt-4.1)" },
-        { value: "anthropic", label: "Anthropic Claude (claude-sonnet-4-5)" },
+        { value: "gemini",         label: "Google Gemini" },
+        { value: "openai",         label: "OpenAI ChatGPT" },
+        { value: "anthropic",      label: "Anthropic Claude" },
+        { value: "deepseek",       label: "DeepSeek" },
+        { value: "groq",           label: "Groq" },
+        { value: "mistral",        label: "Mistral AI" },
+        { value: "cohere",         label: "Cohere" },
+        { value: "bytedancesseed", label: "ByteDance Seed" },
+        { value: "stepfun",        label: "StepFun" },
       ];
 
   const selectedProvider = aiState.settingsProviderName;
   const hasKey           = aiState.keyStatus[selectedProvider];
+
+  // Model dropdown
+  const modelOptions    = buildModelOptions(selectedProvider);
+  const selectedModelId = resolveSettingsModelId(selectedProvider);
+  const modelDropdownHtml = modelOptions.length > 0
+    ? `
+        <div class="d-grid gap-6 mt-10">
+          <span>Model</span>
+          ${renderCustomSelect(
+            "ai-model-select-wrap",
+            "ai-model-select-btn",
+            "ai-model-select-menu",
+            modelOptions,
+            selectedModelId,
+            "cs-btn-ai-provider",
+            false,
+            "cs-wrap-full",
+          )}
+        </div>`
+    : "";
 
   // Resolve provider setup info for links (if available)
   const providerSetup =
@@ -85,6 +158,7 @@ function renderAiSettingsModal() {
             "cs-wrap-full",
           )}
         </div>
+        ${modelDropdownHtml}
         <label>
           <div>
             API Key for <strong>${escapeHtml(selectedProvider)}</strong>

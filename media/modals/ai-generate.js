@@ -227,8 +227,19 @@ function bindAiEvents() {
       "ai-provider-select-menu",
       function (newProvider) {
         aiState.settingsProviderName = newProvider;
+        aiState.settingsModelId = ""; // reset so resolveSettingsModelId picks the new provider's default
         aiState.apiKeyInput = "";
         render();
+      }
+    );
+
+    // Bind model custom select (if rendered)
+    bindCustomSelect(
+      "ai-model-select-wrap",
+      "ai-model-select-btn",
+      "ai-model-select-menu",
+      function (newModelId) {
+        aiState.settingsModelId = newModelId;
       }
     );
 
@@ -267,13 +278,18 @@ function bindAiEvents() {
     const saveBtn = document.getElementById("btn-ai-settings-save");
     if (saveBtn) {
       saveBtn.addEventListener("click", function () {
+        const resolvedModelId = resolveSettingsModelId(aiState.settingsProviderName);
         vscode.postMessage({
           type: "aiSaveSettings",
           payload: {
             providerName: aiState.settingsProviderName,
+            modelId: resolvedModelId,
             apiKey: aiState.apiKeyInput,
           },
         });
+        // Update active providerName + modelId immediately so prompt modal reflects the new selection
+        aiState.providerName    = aiState.settingsProviderName;
+        aiState.settingsModelId = resolvedModelId;
         aiState.view = null;
         aiState.apiKeyInput = "";
       });

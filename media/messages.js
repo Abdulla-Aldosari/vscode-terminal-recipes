@@ -100,6 +100,10 @@ window.addEventListener("message", function (event) {
       ) {
         aiState.aiProviderSetup = message.payload.aiProviderSetup;
       }
+      // Restore saved model selection — fall back to provider's default
+      if (typeof message.payload.modelId === "string") {
+        aiState.settingsModelId = message.payload.modelId;
+      }
     }
     render();
     return;

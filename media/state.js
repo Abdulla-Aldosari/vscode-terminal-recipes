@@ -176,6 +176,7 @@ let aiState = {
   providerName: "gemini", // Initial configuration fallback value, actual providerName will be set from 'extension.js' on aiSettingsResult postMessage
   keyStatus:         {},
   settingsProviderName: "gemini", // Initial configuration fallback value
+  settingsModelId:      "", // Selected model for current settings provider — empty = use provider's default
   apiKeyInput:          "",
   error:                "",
   // Provider setup metadata received from extension (ai/providers-config.js)

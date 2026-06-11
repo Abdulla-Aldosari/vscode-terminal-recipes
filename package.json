@@ -58,15 +58,32 @@
           "enum": [
             "gemini",
             "openai",
-            "anthropic"
+            "anthropic",
+            "deepseek",
+            "groq",
+            "mistral",
+            "cohere",
+            "bytedancesseed",
+            "stepfun"
           ],
           "enumDescriptions": [
-            "Google Gemini (gemini-flash-latest)",
-            "OpenAI ChatGPT (gpt-4.1)",
-            "Anthropic Claude (claude-sonnet-4-6)"
+            "Google Gemini — free models available",
+            "OpenAI ChatGPT",
+            "Anthropic Claude",
+            "DeepSeek — very low cost, free tier available",
+            "Groq — free tier with fast inference",
+            "Mistral AI — free models available",
+            "Cohere — free trial available",
+            "ByteDance Seed — free model available",
+            "StepFun — free model available"
           ],
           "default": "gemini",
           "description": "The AI provider to use for generating terminal commands."
+        },
+        "terminalRecipes.aiModel": {
+          "type": "string",
+          "default": "",
+          "description": "The model ID to use for the selected AI provider. Leave empty to use the provider's default model. This is set automatically when you select a model in AI Settings."
         },
         "terminalRecipes.customSystemInstructions": {
           "type": "string",
@@ -98,6 +115,9 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.52.0",
     "@google/generative-ai": "^0.24.1",
+    "@mistralai/mistralai": "^2.2.5",
+    "cohere-ai": "^8.0.0",
+    "groq-sdk": "^1.2.1",
     "openai": "^4.103.0"
   },
   "devDependencies": {
