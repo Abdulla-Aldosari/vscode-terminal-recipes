@@ -7,10 +7,10 @@
 // Loads after ai-settings.js.
 
 function renderAiPromptModal() {
-  const isFullMode       = aiState.mode === "full";
+  const isFullMode = aiState.mode === "full";
   const selectedCategory = getSelectedCategory();
-  const groups           = getSelectedCategoryGroups();
-  const selectedGroup    = groups.find(function (g) {
+  const groups = getSelectedCategoryGroups();
+  const selectedGroup = groups.find(function (g) {
     return g.id === aiState.groupId;
   });
   const contextLabel = isFullMode
@@ -18,11 +18,12 @@ function renderAiPromptModal() {
     : `${icons.sparkles} Add a single command to group: <code>${escapeHtml(selectedGroup ? selectedGroup.title : aiState.groupId)}</code> in <code>${escapeHtml(selectedCategory ? selectedCategory.title : aiState.categoryId)}</code>`;
 
   // Build shell selector — shown only when terminal profiles are available
-  const profiles       = (state.terminalProfiles && state.terminalProfiles.profiles) || [];
+  const profiles = (state.terminalProfiles && state.terminalProfiles.profiles) || [];
   const defaultProfile = (state.terminalProfiles && state.terminalProfiles.defaultProfile) || "";
-  const resolvedShell  = aiState.shellName || defaultProfile || (profiles.length > 0 ? profiles[0].name : "");
-  const shellSelectorHtml = profiles.length > 0
-    ? `<div class="ai-shell-wrap ml-auto">
+  const resolvedShell = aiState.shellName || defaultProfile || (profiles.length > 0 ? profiles[0].name : "");
+  const shellSelectorHtml =
+    profiles.length > 0
+      ? `<div class="ai-shell-wrap ml-auto">
           <span class="ai-shell-label"
             data-tooltip="The AI will generate commands using the syntax of the selected shell. This does not affect which terminal runs the command."
             data-tooltip-pos="top">Generate commands for:</span>
@@ -30,12 +31,14 @@ function renderAiPromptModal() {
             "ai-shell-select-wrap",
             "ai-shell-select-btn",
             "ai-shell-select-menu",
-            profiles.map(function (p) { return { value: p.name, label: p.name }; }),
+            profiles.map(function (p) {
+              return { value: p.name, label: p.name };
+            }),
             resolvedShell,
-            "cs-btn-sm",
+            "cs-btn-sm"
           )}
         </div>`
-    : "";
+      : "";
 
   return `
     <div class="modal-overlay" id="ai-prompt-overlay" data-dismiss-on-outside-click="false">
@@ -46,10 +49,7 @@ function renderAiPromptModal() {
           <span>Describe what you need</span>
           ${shellSelectorHtml}
         </div>
-        <textarea
-          id="ai-prompt-textarea"
-          class="input"
-          rows="4"
+        <textarea id="ai-prompt-textarea" class="input" rows="4"
           placeholder="${isFullMode ? "e.g. All commands for CodeIgniter 4 framework" : "e.g. A command to create a new CodeIgniter 4 model"}"
         >${escapeHtml(aiState.prompt)}</textarea>
         <div class="row align-items-flex-end mt-20">
@@ -78,12 +78,10 @@ function renderAiResultsModal() {
     return "";
   }
 
-  const isFullMode    = aiState.mode === "full";
-  const allCommands   = isFullMode
-    ? aiState.result.commands || []
-    : [aiState.result];
-  const category      = isFullMode ? aiState.result.category : null;
-  const groups        = isFullMode
+  const isFullMode = aiState.mode === "full";
+  const allCommands = isFullMode ? aiState.result.commands || [] : [aiState.result];
+  const category = isFullMode ? aiState.result.category : null;
+  const groups = isFullMode
     ? aiState.result.category
       ? aiState.result.category.groups || []
       : []
@@ -97,9 +95,7 @@ function renderAiResultsModal() {
           return cmd.groupId === aiState.filterGroupId;
         });
 
-  const selectedCount = Object.values(aiState.checkedIds).filter(
-    Boolean,
-  ).length;
+  const selectedCount = Object.values(aiState.checkedIds).filter(Boolean).length;
 
   // Build group tabs for filtering
   const groupTabs =
@@ -183,7 +179,7 @@ function bindAiEvents() {
   const aiSettingsBtn = document.getElementById("btn-ai-settings");
   if (aiSettingsBtn) {
     aiSettingsBtn.addEventListener("click", function () {
-      aiState.view       = "settings";
+      aiState.view = "settings";
       aiState.apiKeyInput = "";
       // Fetch current settings from extension
       vscode.postMessage({ type: "aiGetSettings" });
@@ -194,10 +190,10 @@ function bindAiEvents() {
   const createWithAiBtn = document.getElementById("btn-create-with-ai");
   if (createWithAiBtn) {
     createWithAiBtn.addEventListener("click", function () {
-      aiState.mode   = "full";
-      aiState.view   = "prompt";
+      aiState.mode = "full";
+      aiState.view = "prompt";
       aiState.prompt = "";
-      aiState.error  = "";
+      aiState.error = "";
       // Fetch current settings so providerName is always up-to-date before rendering
       vscode.postMessage({ type: "aiGetSettings" });
     });
@@ -211,13 +207,12 @@ function bindAiEvents() {
       if (!selectedCategory) {
         return;
       }
-      aiState.mode       = "single";
+      aiState.mode = "single";
       aiState.categoryId = selectedCategory.id;
-      aiState.groupId    =
-        uiState.selectedGroupId !== "all" ? uiState.selectedGroupId : "";
-      aiState.view   = "prompt";
+      aiState.groupId = uiState.selectedGroupId !== "all" ? uiState.selectedGroupId : "";
+      aiState.view = "prompt";
       aiState.prompt = "";
-      aiState.error  = "";
+      aiState.error = "";
       // Fetch current settings so providerName is always up-to-date before rendering
       vscode.postMessage({ type: "aiGetSettings" });
     });
@@ -232,9 +227,9 @@ function bindAiEvents() {
       "ai-provider-select-menu",
       function (newProvider) {
         aiState.settingsProviderName = newProvider;
-        aiState.apiKeyInput          = "";
+        aiState.apiKeyInput = "";
         render();
-      },
+      }
     );
 
     const apiKeyInput = document.getElementById("ai-api-key-input");
@@ -262,7 +257,7 @@ function bindAiEvents() {
       showHelpLink.addEventListener("click", function (e) {
         e.preventDefault();
         aiProviderSetupModalState = {
-          visible:      true,
+          visible: true,
           providerName: aiState.settingsProviderName,
         };
         render();
@@ -276,10 +271,10 @@ function bindAiEvents() {
           type: "aiSaveSettings",
           payload: {
             providerName: aiState.settingsProviderName,
-            apiKey:       aiState.apiKeyInput,
+            apiKey: aiState.apiKeyInput,
           },
         });
-        aiState.view        = null;
+        aiState.view = null;
         aiState.apiKeyInput = "";
       });
     }
@@ -287,7 +282,7 @@ function bindAiEvents() {
     const cancelBtn = document.getElementById("btn-ai-settings-cancel");
     if (cancelBtn) {
       cancelBtn.addEventListener("click", function () {
-        aiState.view        = null;
+        aiState.view = null;
         aiState.apiKeyInput = "";
         render();
       });
@@ -321,21 +316,16 @@ function bindAiEvents() {
   // --- Prompt modal events ---
   if (aiState.view === "prompt") {
     // Bind shell selector — sync aiState.shellName when the user picks a different shell
-    const profiles      = (state.terminalProfiles && state.terminalProfiles.profiles) || [];
+    const profiles = (state.terminalProfiles && state.terminalProfiles.profiles) || [];
     const defaultProfile = (state.terminalProfiles && state.terminalProfiles.defaultProfile) || "";
     // Initialise shellName from default profile on first open
     if (!aiState.shellName && (defaultProfile || profiles.length > 0)) {
       aiState.shellName = defaultProfile || profiles[0].name;
     }
     if (profiles.length > 0) {
-      bindCustomSelect(
-        "ai-shell-select-wrap",
-        "ai-shell-select-btn",
-        "ai-shell-select-menu",
-        function (newShell) {
-          aiState.shellName = newShell;
-        },
-      );
+      bindCustomSelect("ai-shell-select-wrap", "ai-shell-select-btn", "ai-shell-select-menu", function (newShell) {
+        aiState.shellName = newShell;
+      });
     }
 
     const textarea = document.getElementById("ai-prompt-textarea");
@@ -354,28 +344,26 @@ function bindAiEvents() {
     const generateBtn = document.getElementById("btn-ai-generate");
     if (generateBtn) {
       generateBtn.addEventListener("click", function () {
-        const prompt      = document.getElementById("ai-prompt-textarea");
-        const promptValue = prompt
-          ? prompt.value.trim()
-          : aiState.prompt.trim();
+        const prompt = document.getElementById("ai-prompt-textarea");
+        const promptValue = prompt ? prompt.value.trim() : aiState.prompt.trim();
         if (!promptValue) {
           aiState.error = "Please enter a prompt.";
           render();
           return;
         }
         aiState.prompt = promptValue;
-        aiState.error  = "";
-        aiState.view   = "loading";
+        aiState.error = "";
+        aiState.view = "loading";
         render();
 
         vscode.postMessage({
           type: "aiGenerate",
           payload: {
-            mode:       aiState.mode,
-            prompt:     promptValue,
+            mode: aiState.mode,
+            prompt: promptValue,
             categoryId: aiState.categoryId,
-            groupId:    aiState.groupId,
-            shellName:  aiState.shellName,
+            groupId: aiState.groupId,
+            shellName: aiState.shellName,
           },
         });
       });
@@ -384,8 +372,8 @@ function bindAiEvents() {
     const cancelBtn = document.getElementById("btn-ai-prompt-cancel");
     if (cancelBtn) {
       cancelBtn.addEventListener("click", function () {
-        aiState.view   = null;
-        aiState.error  = "";
+        aiState.view = null;
+        aiState.error = "";
         aiState.prompt = "";
         render();
       });
@@ -408,10 +396,7 @@ function bindAiEvents() {
     const checkAll = document.getElementById("ai-check-all");
     if (checkAll) {
       checkAll.addEventListener("change", function () {
-        const allCommands =
-          aiState.mode === "full"
-            ? aiState.result.commands || []
-            : [aiState.result];
+        const allCommands = aiState.mode === "full" ? aiState.result.commands || [] : [aiState.result];
         const newChecked = {};
         allCommands.forEach(function (cmd) {
           newChecked[cmd.id] = checkAll.checked;
@@ -425,13 +410,8 @@ function bindAiEvents() {
       checkbox.addEventListener("change", function () {
         aiState.checkedIds[checkbox.dataset.cmdId] = checkbox.checked;
         // Update UI without full re-render to preserve scroll position
-        const allCommands =
-          aiState.mode === "full"
-            ? aiState.result.commands || []
-            : [aiState.result];
-        const selectedCount = Object.values(aiState.checkedIds).filter(
-          Boolean,
-        ).length;
+        const allCommands = aiState.mode === "full" ? aiState.result.commands || [] : [aiState.result];
+        const selectedCount = Object.values(aiState.checkedIds).filter(Boolean).length;
         // Toggle row dimming class
         const row = checkbox.closest("tr");
         if (row) {
@@ -444,13 +424,12 @@ function bindAiEvents() {
         // Update count text
         const countEl = document.querySelector(".ai-results-count");
         if (countEl) {
-          countEl.textContent =
-            selectedCount + " of " + allCommands.length + " selected";
+          countEl.textContent = selectedCount + " of " + allCommands.length + " selected";
         }
         // Update insert button
         const insertBtn = document.getElementById("btn-ai-insert");
         if (insertBtn) {
-          insertBtn.disabled    = selectedCount === 0;
+          insertBtn.disabled = selectedCount === 0;
           insertBtn.textContent = "Insert Selected (" + selectedCount + ")";
         }
         // Update check-all checkbox
@@ -471,10 +450,7 @@ function bindAiEvents() {
     const insertBtn = document.getElementById("btn-ai-insert");
     if (insertBtn) {
       insertBtn.addEventListener("click", function () {
-        const allCommands =
-          aiState.mode === "full"
-            ? aiState.result.commands || []
-            : [aiState.result];
+        const allCommands = aiState.mode === "full" ? aiState.result.commands || [] : [aiState.result];
         const selectedCommands = allCommands.filter(function (cmd) {
           return aiState.checkedIds[cmd.id] !== false;
         });
@@ -486,9 +462,8 @@ function bindAiEvents() {
         vscode.postMessage({
           type: "aiInsert",
           payload: {
-            mode:     aiState.mode,
-            category:
-              aiState.mode === "full" ? aiState.result.category || null : null,
+            mode: aiState.mode,
+            category: aiState.mode === "full" ? aiState.result.category || null : null,
             commands: selectedCommands,
           },
         });
@@ -498,9 +473,9 @@ function bindAiEvents() {
     const cancelBtn = document.getElementById("btn-ai-results-cancel");
     if (cancelBtn) {
       cancelBtn.addEventListener("click", function () {
-        aiState.view   = null;
+        aiState.view = null;
         aiState.result = null;
-        aiState.error  = "";
+        aiState.error = "";
         render();
       });
     }
