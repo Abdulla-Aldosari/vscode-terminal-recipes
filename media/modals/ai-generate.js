@@ -6,6 +6,29 @@
 // AI Generate prompt, loading overlay, results modal, and all AI bind events.
 // Loads after ai-settings.js.
 
+// ─── Prompt History Helpers ───────────────────────────────────────────────────
+
+function getPromptHistory() {
+  try {
+    const raw = localStorage.getItem("aiPromptHistory");
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function savePromptToHistory(prompt) {
+  try {
+    const history = getPromptHistory().filter(function (p) {
+      return p !== prompt;
+    });
+    history.unshift(prompt);
+    localStorage.setItem("aiPromptHistory", JSON.stringify(history.slice(0, 10)));
+  } catch {}
+}
+
+// ─── Render ───────────────────────────────────────────────────────────────────
+
 function renderAiPromptModal() {
   const isFullMode = aiState.mode === "full";
   const selectedCategory = getSelectedCategory();
@@ -49,10 +72,34 @@ function renderAiPromptModal() {
           <span>Describe what you need</span>
           ${shellSelectorHtml}
         </div>
-        <textarea id="ai-prompt-textarea" class="input" rows="4"
-          placeholder="${isFullMode ? "e.g. All essential Git commands" : "e.g. A command to find and kill a process on port 8080"}"
-        >${escapeHtml(aiState.prompt)}</textarea>
-        <div class="row align-items-flex-end mt-20">
+        <div class="ai-prompt-textarea-wrap">
+          <textarea id="ai-prompt-textarea" class="input" rows="4"
+            placeholder="${isFullMode ? "e.g. All essential Git commands" : "e.g. A command to find and kill a process on port 8080"}"
+          >${escapeHtml(aiState.prompt)}</textarea>
+          ${(function () {
+            const history = getPromptHistory();
+            if (!history.length) {
+              return "";
+            }
+            const listItems = history
+              .map(function (p, i) {
+                return `<li><button class="ai-history-item" data-index="${i}" type="button"><span class="ai-history-num">${i + 1}</span>${escapeHtml(p)}</button></li>`;
+              })
+              .join("");
+            return `
+            <div class="ai-history-anchor">
+              <a href="#" class="ai-history-toggle muted" id="btn-ai-history-toggle">🕐 Recent prompts (${history.length})</a>
+              <div class="ai-history-popover${aiState.promptHistoryOpen ? " open" : ""}" id="ai-history-popover">
+                <div class="ai-history-header">
+                  <span>Recent prompts</span>
+                  <button class="ai-history-close" id="btn-ai-history-close" type="button" aria-label="Close">×</button>
+                </div>
+                <ul class="ai-history-list">${listItems}</ul>
+              </div>
+            </div>`;
+          })()}
+        </div>
+        <div class="row align-items-flex-end">
           <a href="#" class="muted ai-model-label" id="ai-model-label-link" data-url="${aiState.aiProviderSetup && aiState.aiProviderSetup[aiState.providerName] ? aiState.aiProviderSetup[aiState.providerName].apiKeyUrl : ""}" data-tooltip="View API model details">${icons.externalLink} ${getAiModelLabel(aiState.providerName)}</a>
           <button class="btn small primary" id="btn-ai-generate">${icons.sparkles} Generate</button>
           <button class="btn small secondary action min-w65" id="btn-ai-prompt-cancel">Cancel</button>
@@ -234,14 +281,9 @@ function bindAiEvents() {
     );
 
     // Bind model custom select (if rendered)
-    bindCustomSelect(
-      "ai-model-select-wrap",
-      "ai-model-select-btn",
-      "ai-model-select-menu",
-      function (newModelId) {
-        aiState.settingsModelId = newModelId;
-      }
-    );
+    bindCustomSelect("ai-model-select-wrap", "ai-model-select-btn", "ai-model-select-menu", function (newModelId) {
+      aiState.settingsModelId = newModelId;
+    });
 
     const apiKeyInput = document.getElementById("ai-api-key-input");
     if (apiKeyInput) {
@@ -288,7 +330,7 @@ function bindAiEvents() {
           },
         });
         // Update active providerName + modelId immediately so prompt modal reflects the new selection
-        aiState.providerName    = aiState.settingsProviderName;
+        aiState.providerName = aiState.settingsProviderName;
         aiState.settingsModelId = resolvedModelId;
         aiState.view = null;
         aiState.apiKeyInput = "";
@@ -367,8 +409,10 @@ function bindAiEvents() {
           render();
           return;
         }
+        savePromptToHistory(promptValue);
         aiState.prompt = promptValue;
         aiState.error = "";
+        aiState.promptHistoryOpen = false;
         aiState.view = "loading";
         render();
 
@@ -405,6 +449,68 @@ function bindAiEvents() {
         }
       });
     }
+
+    // 🕐 Prompt history popover
+    const historyToggle = document.getElementById("btn-ai-history-toggle");
+    if (historyToggle) {
+      historyToggle.addEventListener("click", function (e) {
+        e.preventDefault();
+        aiState.promptHistoryOpen = !aiState.promptHistoryOpen;
+        const popover = document.getElementById("ai-history-popover");
+        if (popover) {
+          popover.classList.toggle("open", aiState.promptHistoryOpen);
+        }
+      });
+    }
+
+    const historyClose = document.getElementById("btn-ai-history-close");
+    if (historyClose) {
+      historyClose.addEventListener("click", function () {
+        aiState.promptHistoryOpen = false;
+        const popover = document.getElementById("ai-history-popover");
+        if (popover) {
+          popover.classList.remove("open");
+        }
+      });
+    }
+
+    document.querySelectorAll(".ai-history-item").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        const history = getPromptHistory();
+        const idx = parseInt(btn.dataset.index, 10);
+        const selected = history[idx];
+        if (selected === undefined) {
+          return;
+        }
+        const ta = document.getElementById("ai-prompt-textarea");
+        if (ta) {
+          ta.value = selected;
+          aiState.prompt = selected;
+          ta.focus();
+        }
+        aiState.promptHistoryOpen = false;
+        const popover = document.getElementById("ai-history-popover");
+        if (popover) {
+          popover.classList.remove("open");
+        }
+      });
+    });
+
+    // Close popover when clicking outside of it
+    document.addEventListener("click", function onDocClickHistory(e) {
+      const anchor = document.querySelector(".ai-history-anchor");
+      if (!anchor) {
+        document.removeEventListener("click", onDocClickHistory);
+        return;
+      }
+      if (!anchor.contains(e.target)) {
+        aiState.promptHistoryOpen = false;
+        const popover = document.getElementById("ai-history-popover");
+        if (popover) {
+          popover.classList.remove("open");
+        }
+      }
+    });
   }
 
   // --- Results modal events ---

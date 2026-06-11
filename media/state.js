@@ -183,6 +183,8 @@ let aiState = {
   aiProviderSetup: null,
   // Target shell for AI command generation — controls the syntax/style of generated commands
   shellName: "",
+  // Whether the prompt history popover is currently open
+  promptHistoryOpen: false,
 };
 
 // AI Provider Setup modal state
