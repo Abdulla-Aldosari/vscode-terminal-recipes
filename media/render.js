@@ -14,27 +14,18 @@
  */
 function hydrateState(payload) {
   state.data = payload && payload.data ? payload.data : state.data;
-  state.globalCommandsFile =
-    payload && payload.globalCommandsFile ? payload.globalCommandsFile : "";
+  state.globalCommandsFile = payload && payload.globalCommandsFile ? payload.globalCommandsFile : "";
   state.workspaceFolder = payload ? payload.workspaceFolder : null;
   state.commandVariables =
     payload && payload.commandVariables ? payload.commandVariables : { version: 2, commands: {} };
   state.globalCommandVariables =
-    payload && payload.globalCommandVariables
-      ? payload.globalCommandVariables
-      : { version: 2, commands: {} };
+    payload && payload.globalCommandVariables ? payload.globalCommandVariables : { version: 2, commands: {} };
   state.terminalProfiles =
-    payload && payload.terminalProfiles
-      ? payload.terminalProfiles
-      : { defaultProfile: "", profiles: [] };
-  state.autoVariables =
-    payload && Array.isArray(payload.autoVariables) ? payload.autoVariables : [];
-  state.autoVariablesSettings =
-    payload && payload.autoVariablesSettings ? payload.autoVariablesSettings : {};
-  state.globalFavorites =
-    payload && Array.isArray(payload.globalFavorites) ? payload.globalFavorites : [];
-  state.localFavorites =
-    payload && Array.isArray(payload.localFavorites) ? payload.localFavorites : [];
+    payload && payload.terminalProfiles ? payload.terminalProfiles : { defaultProfile: "", profiles: [] };
+  state.autoVariables = payload && Array.isArray(payload.autoVariables) ? payload.autoVariables : [];
+  state.autoVariablesSettings = payload && payload.autoVariablesSettings ? payload.autoVariablesSettings : {};
+  state.globalFavorites = payload && Array.isArray(payload.globalFavorites) ? payload.globalFavorites : [];
+  state.localFavorites = payload && Array.isArray(payload.localFavorites) ? payload.localFavorites : [];
 
   // If no workspace, force scope to 'global'
   if (!state.workspaceFolder && uiState.favoritesScope === "local") {
@@ -162,8 +153,11 @@ function render() {
       </header>
       <p class="workspace-label">Workspace: <code>${escapeHtml(state.workspaceFolder || "No workspace open")}</code></p>
 
-
-      ${uiState.noticeMessage ? `<div class="notice${uiState.noticeType ? " notice-" + uiState.noticeType : ""}"><div class="notice-icon">${uiState.noticeIcon}</div><div class="notice-message">${uiState.noticeMessage}</div></div>` : ""}
+      ${
+        uiState.noticeMessage
+          ? `<div class="notice${uiState.noticeType ? " notice-" + uiState.noticeType : ""}"><div class="notice-icon">${uiState.noticeIcon}</div><div class="notice-message">${uiState.noticeMessage}</div></div>`
+          : ""
+      }
 
       <section class="card tabs-section">
         <div class="tabs">
@@ -315,41 +309,37 @@ const modalDismissHandlers = {
 
 function bindModalDismiss() {
   // --- Overlays that dismiss on outside click (true) ---
-  document
-    .querySelectorAll('.modal-overlay[data-dismiss-on-outside-click="true"]')
-    .forEach(function (overlay) {
-      var handler = modalDismissHandlers[overlay.id];
-      if (handler) {
-        overlay.addEventListener("pointerdown", function (e) {
-          if (e.target === overlay) {
-            handler();
-          }
-        });
-      }
-    });
-
-  // --- Overlays that do NOT dismiss (false) — flash the border instead ---
-  document
-    .querySelectorAll('.modal-overlay[data-dismiss-on-outside-click="false"]')
-    .forEach(function (overlay) {
+  document.querySelectorAll('.modal-overlay[data-dismiss-on-outside-click="true"]').forEach(function (overlay) {
+    var handler = modalDismissHandlers[overlay.id];
+    if (handler) {
       overlay.addEventListener("pointerdown", function (e) {
         if (e.target === overlay) {
-          var box = overlay.querySelector(".modal-box");
-          if (box) {
-            box.classList.remove("modal-box-flash");
-            void box.offsetWidth; // force reflow to restart animation
-            box.classList.add("modal-box-flash");
-            box.addEventListener(
-              "animationend",
-              function () {
-                box.classList.remove("modal-box-flash");
-              },
-              { once: true }
-            );
-          }
+          handler();
         }
       });
+    }
+  });
+
+  // --- Overlays that do NOT dismiss (false) — flash the border instead ---
+  document.querySelectorAll('.modal-overlay[data-dismiss-on-outside-click="false"]').forEach(function (overlay) {
+    overlay.addEventListener("pointerdown", function (e) {
+      if (e.target === overlay) {
+        var box = overlay.querySelector(".modal-box");
+        if (box) {
+          box.classList.remove("modal-box-flash");
+          void box.offsetWidth; // force reflow to restart animation
+          box.classList.add("modal-box-flash");
+          box.addEventListener(
+            "animationend",
+            function () {
+              box.classList.remove("modal-box-flash");
+            },
+            { once: true }
+          );
+        }
+      }
     });
+  });
 }
 
 // ─── Master Event Binder ──────────────────────────────────────────────────────
