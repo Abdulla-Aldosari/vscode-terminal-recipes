@@ -74,6 +74,12 @@ function postSaveFavorites(payload) {
 
 // Disable right-click context menu unless text is selected
 document.addEventListener("contextmenu", function (e) {
+  // Allow native context menu on text input elements (paste/cut/copy)
+  const tag = e.target.tagName.toLowerCase();
+  if (tag === "input" || tag === "textarea" || e.target.isContentEditable) {
+    return;
+  }
+
   const selection = window.getSelection();
   if (!selection || selection.toString().trim() === "") {
     e.preventDefault();
