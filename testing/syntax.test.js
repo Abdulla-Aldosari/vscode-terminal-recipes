@@ -54,7 +54,7 @@ const FILES = [
   p("media", "tabs", "commands.js"),
   p("media", "tabs", "favorites.js"),
   p("media", "tabs", "variables.js"),
-  p("media", "tabs", "ai.js"),
+  p("media", "tabs", "categories.js"),
 
   // media/modals/
   p("media", "modals", "run-confirm.js"),
@@ -62,6 +62,7 @@ const FILES = [
   p("media", "modals", "new-command.js"),
   p("media", "modals", "ai-settings.js"),
   p("media", "modals", "ai-generate.js"),
+  p("media", "modals", "enum-manager.js"),
 ];
 
 // ---------------------------------------------------------------------------

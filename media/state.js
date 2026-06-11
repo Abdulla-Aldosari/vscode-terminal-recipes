@@ -18,7 +18,7 @@ const uiState = {
       const SAVED_TABS = [
         "recent",
         "favorites",
-        "manage",
+        "categories",
         "commands",
         "variables",
       ];
@@ -129,7 +129,7 @@ let deleteConfirmState = {
   template: "",
 };
 
-let manageModalState = {
+let categoriesModalState = {
   visible: false,
   mode:    null, // 'add-category' | 'rename-category' | 'add-group' | 'rename-group'
   value:   "",

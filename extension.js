@@ -244,6 +244,9 @@ function getWebviewHtml(webview, extensionUri, isDev = false, devModuleFiles = [
   const modalsAiGenerateUri = webview.asWebviewUri(
     vscode.Uri.joinPath(extensionUri, "media", "modals", "ai-generate.js")
   );
+  const modalsEnumManagerUri = webview.asWebviewUri(
+    vscode.Uri.joinPath(extensionUri, "media", "modals", "enum-manager.js")
+  );
 
   // 3. Tabs
   const tabsRecentUri = webview.asWebviewUri(
@@ -258,8 +261,8 @@ function getWebviewHtml(webview, extensionUri, isDev = false, devModuleFiles = [
   const tabsVariablesUri = webview.asWebviewUri(
     vscode.Uri.joinPath(extensionUri, "media", "tabs", "variables.js")
   );
-  const tabsAiUri = webview.asWebviewUri(
-    vscode.Uri.joinPath(extensionUri, "media", "tabs", "ai.js")
+  const tabsCategoriesUri = webview.asWebviewUri(
+    vscode.Uri.joinPath(extensionUri, "media", "tabs", "categories.js")
   );
 
   // 4. Render orchestrator
@@ -299,13 +302,14 @@ function getWebviewHtml(webview, extensionUri, isDev = false, devModuleFiles = [
   <script nonce="${nonce}" src="${modalsNewCommandUri}"></script>
   <script nonce="${nonce}" src="${modalsAiSettingsUri}"></script>
   <script nonce="${nonce}" src="${modalsAiGenerateUri}"></script>
+  <script nonce="${nonce}" src="${modalsEnumManagerUri}"></script>
 
   <!-- 3. Tabs -->
   <script nonce="${nonce}" src="${tabsRecentUri}"></script>
   <script nonce="${nonce}" src="${tabsCommandsUri}"></script>
   <script nonce="${nonce}" src="${tabsFavoritesUri}"></script>
   <script nonce="${nonce}" src="${tabsVariablesUri}"></script>
-  <script nonce="${nonce}" src="${tabsAiUri}"></script>
+  <script nonce="${nonce}" src="${tabsCategoriesUri}"></script>
 
   <!-- 4. Render orchestrator (calls tab/modal renderers — must come after them) -->
   <script nonce="${nonce}" src="${renderUri}"></script>

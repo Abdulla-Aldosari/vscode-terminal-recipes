@@ -163,7 +163,7 @@ function render() {
         <div class="tabs">
           <button class="tab ${!uiState.editingCommandId && uiState.activeTab === "recent" ? "active" : ""}" data-tab="recent">${icons.recent} Recent Commands</button>
           <button class="tab ${!uiState.editingCommandId && uiState.activeTab === "favorites" ? "active" : ""}" data-tab="favorites">${icons.heart} Favorites</button>
-          <button class="tab ${!uiState.editingCommandId && uiState.activeTab === "manage" ? "active" : ""}" data-tab="manage">${icons.group} Categories & Groups</button>
+          <button class="tab ${!uiState.editingCommandId && uiState.activeTab === "categories" ? "active" : ""}" data-tab="categories">${icons.group} Categories & Groups</button>
           <button class="tab ${!uiState.editingCommandId && uiState.activeTab === "commands" ? "active" : ""}" data-tab="commands">${icons.command} Commands</button>
           <button class="tab tab-push-right ${!uiState.editingCommandId && uiState.activeTab === "add" ? "active" : ""}" data-tab="add" ${selectedCategory ? "" : "disabled"}>${icons.add} Add New Command</button>
           <button class="tab ${!uiState.editingCommandId && uiState.activeTab === "variables" ? "active" : ""}" data-tab="variables">${icons.variables} Variables</button>
@@ -177,8 +177,8 @@ function render() {
             ? renderRecentCommandsTab()
             : uiState.activeTab === "favorites"
               ? renderFavoritesTab()
-              : uiState.activeTab === "manage"
-                ? renderManageTab()
+              : uiState.activeTab === "categories"
+                ? renderCategoriesTab()
                 : uiState.activeTab === "commands"
                   ? renderCommandsTab(selectedCategory)
                   : uiState.activeTab === "add"
@@ -237,8 +237,8 @@ function render() {
  * Handlers are defined in modalDismissHandlers keyed by overlay id.
  */
 const modalDismissHandlers = {
-  "manage-modal-overlay": function () {
-    manageModalState = { visible: false, mode: null, value: "" };
+  "categories-modal-overlay": function () {
+    categoriesModalState = { visible: false, mode: null, value: "" };
     render();
   },
   "enum-manager-overlay": function () {
@@ -360,8 +360,8 @@ function bindEvents() {
     bindRecentTabEvents();
   }
 
-  if (uiState.activeTab === "manage") {
-    bindManageTabEvents();
+  if (uiState.activeTab === "categories") {
+    bindCategoriesTabEvents();
   }
 
   if (uiState.activeTab === "commands") {
@@ -471,7 +471,7 @@ function bindTabs() {
 
       uiState.activeTab = nextTab;
       // Persist only the main saveable tabs (not 'add' which is a transient form state)
-      const SAVED_TABS = ["recent", "favorites", "manage", "commands", "variables"];
+      const SAVED_TABS = ["recent", "favorites", "categories", "commands", "variables"];
       if (SAVED_TABS.includes(nextTab)) {
         try {
           localStorage.setItem("selectedTab", nextTab);
