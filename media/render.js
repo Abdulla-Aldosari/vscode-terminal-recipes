@@ -257,6 +257,7 @@ const modalDismissHandlers = {
   "ai-settings-overlay": function () {
     aiState.view = null;
     aiState.apiKeyInput = "";
+    aiState.modelsLoading = false;
     render();
   },
   "ai-prompt-overlay": function () {

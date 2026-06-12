@@ -149,6 +149,10 @@ function activate(context) {
             await H.handleSaveFavorites(panel, message.payload);
             return;
           }
+          if (message.type === "aiListModels") {
+            await H.handleAiListModels(panel, context, message.payload);
+            return;
+          }
         },
         null,
         context.subscriptions

@@ -90,8 +90,9 @@ window.addEventListener("message", function (event) {
 
   if (message.type === "aiSettingsResult") {
     if (message.payload) {
-      aiState.providerName         = message.payload.providerName || "gemini";
-      aiState.settingsProviderName = message.payload.providerName || "gemini";
+      const providerName           = message.payload.providerName || "gemini";
+      aiState.providerName         = providerName;
+      aiState.settingsProviderName = providerName;
       aiState.keyStatus            = message.payload.keyStatus || {};
       // Store provider setup data from providers-config.js (sent by extension)
       if (
@@ -103,6 +104,13 @@ window.addEventListener("message", function (event) {
       // Restore saved model selection — fall back to provider's default
       if (typeof message.payload.modelId === "string") {
         aiState.settingsModelId = message.payload.modelId;
+      }
+      // Trigger dynamic model list fetch if the provider has a saved key
+      if (aiState.keyStatus[providerName]) {
+        aiState.modelsLoading = true;
+        postAiListModels(providerName);
+      } else {
+        aiState.modelsLoading = false;
       }
     }
     render();
@@ -194,6 +202,22 @@ window.addEventListener("message", function (event) {
     }
     // Page is already rendered — just insert the notice element directly
     paintNotice();
+    return;
+  }
+
+  if (message.type === "aiListModelsResult") {
+    aiState.modelsLoading = false;
+    if (
+      message.payload &&
+      message.payload.success &&
+      Array.isArray(message.payload.models) &&
+      message.payload.models.length > 0 &&
+      aiState.aiProviderSetup &&
+      aiState.aiProviderSetup[message.payload.providerName]
+    ) {
+      aiState.aiProviderSetup[message.payload.providerName].models = message.payload.models;
+    }
+    render();
     return;
   }
 

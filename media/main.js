@@ -70,6 +70,10 @@ function postSaveFavorites(payload) {
   vscode.postMessage({ type: "saveFavorites", payload });
 }
 
+function postAiListModels(providerName) {
+  vscode.postMessage({ type: "aiListModels", payload: { providerName } });
+}
+
 // ─── Global Helpers ────────────────────────────────────────────────────────────
 
 // Disable right-click context menu unless text is selected

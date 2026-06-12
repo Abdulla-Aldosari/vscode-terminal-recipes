@@ -1701,6 +1701,19 @@ input[type="checkbox"]:checked::after {
   }
 }
 
+/* Inline loading spinner for the model select button (same size as text) */
+.ai-models-loading-spinner {
+  display: inline-block;
+  width: 0.8em;
+  height: 0.8em;
+  border: 1.5px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: ai-spin 0.7s linear infinite;
+  vertical-align: -0.1em;
+  flex-shrink: 0;
+}
+
 /* AI Results modal */
 .ai-results-box {
   width: min(1300px, 96vw) !important;

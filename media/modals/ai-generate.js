@@ -276,6 +276,13 @@ function bindAiEvents() {
         aiState.settingsProviderName = newProvider;
         aiState.settingsModelId = ""; // reset so resolveSettingsModelId picks the new provider's default
         aiState.apiKeyInput = "";
+        // Fetch dynamic model list if this provider has a saved key
+        if (aiState.keyStatus[newProvider]) {
+          aiState.modelsLoading = true;
+          postAiListModels(newProvider);
+        } else {
+          aiState.modelsLoading = false;
+        }
         render();
       }
     );

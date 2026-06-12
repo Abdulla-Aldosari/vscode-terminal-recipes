@@ -95,11 +95,19 @@ function renderAiSettingsModal() {
   const selectedProvider = aiState.settingsProviderName;
   const hasKey           = aiState.keyStatus[selectedProvider];
 
-  // Model dropdown
+  // Model dropdown — shows loading spinner while dynamic models are being fetched
   const modelOptions    = buildModelOptions(selectedProvider);
   const selectedModelId = resolveSettingsModelId(selectedProvider);
-  const modelDropdownHtml = modelOptions.length > 0
+  const modelDropdownHtml = aiState.modelsLoading
     ? `
+        <div class="d-grid gap-6 mt-10">
+          <span>Model</span>
+          <button class="cs-btn cs-btn-ai-provider cs-wrap-full" type="button" disabled>
+            <span class="cs-btn-label"><span class="ai-models-loading-spinner"></span> Loading models...</span>
+          </button>
+        </div>`
+    : modelOptions.length > 0
+      ? `
         <div class="d-grid gap-6 mt-10">
           <span>Model</span>
           ${renderCustomSelect(
@@ -113,7 +121,7 @@ function renderAiSettingsModal() {
             "cs-wrap-full",
           )}
         </div>`
-    : "";
+      : "";
 
   // Resolve provider setup info for links (if available)
   const providerSetup =
