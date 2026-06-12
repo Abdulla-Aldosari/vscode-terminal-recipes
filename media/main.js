@@ -74,6 +74,10 @@ function postAiListModels(providerName) {
   vscode.postMessage({ type: "aiListModels", payload: { providerName } });
 }
 
+function postAiRefreshAllModels() {
+  vscode.postMessage({ type: "aiRefreshAllModels" });
+}
+
 // ─── Global Helpers ────────────────────────────────────────────────────────────
 
 // Disable right-click context menu unless text is selected

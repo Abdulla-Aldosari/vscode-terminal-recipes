@@ -276,10 +276,16 @@ function bindAiEvents() {
         aiState.settingsProviderName = newProvider;
         aiState.settingsModelId = ""; // reset so resolveSettingsModelId picks the new provider's default
         aiState.apiKeyInput = "";
-        // Fetch dynamic model list if this provider has a saved key
+        // Use cache if fresh; otherwise fetch from API
         if (aiState.keyStatus[newProvider]) {
-          aiState.modelsLoading = true;
-          postAiListModels(newProvider);
+          const cached = getCachedModels(newProvider);
+          if (cached && aiState.aiProviderSetup && aiState.aiProviderSetup[newProvider]) {
+            aiState.aiProviderSetup[newProvider].models = cached;
+            aiState.modelsLoading = false;
+          } else {
+            aiState.modelsLoading = true;
+            postAiListModels(newProvider);
+          }
         } else {
           aiState.modelsLoading = false;
         }
@@ -341,6 +347,16 @@ function bindAiEvents() {
         aiState.settingsModelId = resolvedModelId;
         aiState.view = null;
         aiState.apiKeyInput = "";
+      });
+    }
+
+    // ↻ "Refresh" button — refreshes all providers that have an API key
+    const refreshModelsBtn = document.getElementById("btn-ai-refresh-models");
+    if (refreshModelsBtn) {
+      refreshModelsBtn.addEventListener("click", function () {
+        aiState.modelsLoading = true;
+        postAiRefreshAllModels();
+        render();
       });
     }
 

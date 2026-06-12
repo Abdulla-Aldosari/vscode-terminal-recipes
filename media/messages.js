@@ -105,10 +105,16 @@ window.addEventListener("message", function (event) {
       if (typeof message.payload.modelId === "string") {
         aiState.settingsModelId = message.payload.modelId;
       }
-      // Trigger dynamic model list fetch if the provider has a saved key
+      // Apply cached model list if fresh; otherwise fetch from API
       if (aiState.keyStatus[providerName]) {
-        aiState.modelsLoading = true;
-        postAiListModels(providerName);
+        const cached = getCachedModels(providerName);
+        if (cached && aiState.aiProviderSetup && aiState.aiProviderSetup[providerName]) {
+          aiState.aiProviderSetup[providerName].models = cached;
+          aiState.modelsLoading = false;
+        } else {
+          aiState.modelsLoading = true;
+          postAiListModels(providerName);
+        }
       } else {
         aiState.modelsLoading = false;
       }
@@ -206,18 +212,24 @@ window.addEventListener("message", function (event) {
   }
 
   if (message.type === "aiListModelsResult") {
-    aiState.modelsLoading = false;
+    const resultProvider = message.payload && message.payload.providerName;
+    // Persist to cache and apply to aiState on success
     if (
       message.payload &&
       message.payload.success &&
       Array.isArray(message.payload.models) &&
-      message.payload.models.length > 0 &&
-      aiState.aiProviderSetup &&
-      aiState.aiProviderSetup[message.payload.providerName]
+      message.payload.models.length > 0
     ) {
-      aiState.aiProviderSetup[message.payload.providerName].models = message.payload.models;
+      setModelsCache(resultProvider, message.payload.models);
+      if (aiState.aiProviderSetup && aiState.aiProviderSetup[resultProvider]) {
+        aiState.aiProviderSetup[resultProvider].models = message.payload.models;
+      }
     }
-    render();
+    // Only clear loading state and re-render for the currently displayed provider
+    if (resultProvider === aiState.settingsProviderName) {
+      aiState.modelsLoading = false;
+      render();
+    }
     return;
   }
 

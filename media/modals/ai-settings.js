@@ -6,6 +6,84 @@
 // AI Settings modal and AI Provider Setup Help modal.
 // Loads after new-command.js.
 
+// ─── AI Models Cache Helpers ──────────────────────────────────────────────────
+// Stores model lists per-provider in localStorage with a 7-day TTL.
+// Falls back to providers-config.js static list when cache is absent or expired.
+
+const AI_MODELS_CACHE_KEY    = "tr_ai_models_cache";
+const AI_MODELS_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+
+/**
+ * Returns cached models for a provider if the cache entry exists and is fresh.
+ * @param {string} providerName
+ * @returns {{ modelId: string, modelLabel: string }[]|null}
+ */
+function getCachedModels(providerName) {
+  try {
+    const raw = localStorage.getItem(AI_MODELS_CACHE_KEY);
+    if (!raw) { return null; }
+    const cache = JSON.parse(raw);
+    const entry = cache[providerName];
+    if (!entry || !entry.fetchedAt || !Array.isArray(entry.models) || !entry.models.length) {
+      return null;
+    }
+    if (Date.now() - entry.fetchedAt > AI_MODELS_CACHE_TTL_MS) {
+      return null; // expired
+    }
+    return entry.models;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Saves fetched models into the cache with the current timestamp.
+ * @param {string} providerName
+ * @param {{ modelId: string, modelLabel: string }[]} models
+ */
+function setModelsCache(providerName, models) {
+  try {
+    const raw   = localStorage.getItem(AI_MODELS_CACHE_KEY);
+    const cache = raw ? JSON.parse(raw) : {};
+    cache[providerName] = { models, fetchedAt: Date.now() };
+    localStorage.setItem(AI_MODELS_CACHE_KEY, JSON.stringify(cache));
+  } catch {}
+}
+
+/**
+ * Returns the timestamp (ms) when the provider's model list was last cached, or null.
+ * @param {string} providerName
+ * @returns {number|null}
+ */
+function getModelsCacheFetchedAt(providerName) {
+  try {
+    const raw = localStorage.getItem(AI_MODELS_CACHE_KEY);
+    if (!raw) { return null; }
+    const cache = JSON.parse(raw);
+    return cache[providerName] ? cache[providerName].fetchedAt : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Formats a past timestamp as a human-readable "time ago" string.
+ * @param {number} timestamp - ms since epoch
+ * @returns {string}
+ */
+function formatTimeAgo(timestamp) {
+  const diffMs    = Date.now() - timestamp;
+  const diffMins  = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays  = Math.floor(diffMs / 86400000);
+  if (diffMins < 1)   { return "just now"; }
+  if (diffMins < 60)  { return `${diffMins}m ago`; }
+  if (diffHours < 24) { return `${diffHours}h ago`; }
+  return `${diffDays}d ago`;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 /**
  * Returns a display label for the active AI provider + model.
  * Used in the AI prompt modal footer link.
@@ -98,10 +176,21 @@ function renderAiSettingsModal() {
   // Model dropdown — shows loading spinner while dynamic models are being fetched
   const modelOptions    = buildModelOptions(selectedProvider);
   const selectedModelId = resolveSettingsModelId(selectedProvider);
+  const fetchedAt       = getModelsCacheFetchedAt(selectedProvider);
+  const lastUpdatedHtml = fetchedAt
+    ? `<span class="muted ai-models-last-updated" data-tooltip="Model list is cached for 7 days">Updated ${formatTimeAgo(fetchedAt)}</span>`
+    : "";
+  const refreshBtnHtml  = `<button class="btn small secondary ai-models-refresh-btn" id="btn-ai-refresh-models" type="button" data-tooltip="Fetch latest models for all providers that have an API key">↻ Refresh</button>`;
+  const modelLabelRowHtml = `
+      <div class="row between">
+        <span>Model</span>
+        ${lastUpdatedHtml}
+        ${refreshBtnHtml}
+      </div>`;
   const modelDropdownHtml = aiState.modelsLoading
     ? `
         <div class="d-grid gap-6 mt-10">
-          <span>Model</span>
+          ${modelLabelRowHtml}
           <button class="cs-btn cs-btn-ai-provider cs-wrap-full" type="button" disabled>
             <span class="cs-btn-label"><span class="ai-models-loading-spinner"></span> Loading models...</span>
           </button>
@@ -109,7 +198,7 @@ function renderAiSettingsModal() {
     : modelOptions.length > 0
       ? `
         <div class="d-grid gap-6 mt-10">
-          <span>Model</span>
+          ${modelLabelRowHtml}
           ${renderCustomSelect(
             "ai-model-select-wrap",
             "ai-model-select-btn",
@@ -121,7 +210,10 @@ function renderAiSettingsModal() {
             "cs-wrap-full",
           )}
         </div>`
-      : "";
+      : `
+        <div class="d-grid gap-6 mt-10">
+          ${modelLabelRowHtml}
+        </div>`;
 
   // Resolve provider setup info for links (if available)
   const providerSetup =

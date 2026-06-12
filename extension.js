@@ -153,6 +153,10 @@ function activate(context) {
             await H.handleAiListModels(panel, context, message.payload);
             return;
           }
+          if (message.type === "aiRefreshAllModels") {
+            await H.handleAiRefreshAllModels(panel, context);
+            return;
+          }
         },
         null,
         context.subscriptions
