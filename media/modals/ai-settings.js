@@ -285,35 +285,31 @@ function renderAiSettingsModal() {
           )}
         </div>
         ${modelDropdownHtml}
-        <label>
-          <div>
+        <div class="ai-provider-api-key-wrapper d-grid gap-6">
+          <div class="d-flex gap-6">
             API Key for <strong>${escapeHtml(selectedProvider)}</strong>
-          </div>          
-        ${
-          hasKey
-            ? `
-          <div class="ai-provider-key-status-item ai-key-ok">
-            ${icons.checkboxOk}
-            <span class="ai-key-status ai-key-ok">Key saved</span>
+            ${
+              hasKey
+                ? `
+            <div class="ai-provider-key-status-item ai-key-ok">
+              ${icons.checkboxOk}
+              <span class="ai-key-status ai-key-ok">Key saved</span>
+            </div>`
+                : `
+            <div class="ai-provider-key-status-item ai-key-missing">
+              ${icons.exclamationTriangle}
+              <span class="ai-key-status ai-key-missing">No key saved</span>
+            </div>`
+            }
+          </div>       
+          <div class="d-flex gap-6">
+            <input id="ai-api-key-input" class="input" type="password" placeholder="${hasKey ? "Enter new key to update..." : "Enter your API key..."}" value="${escapeAttr(aiState.apiKeyInput)}" autocomplete="off" />
+            <button class="btn small secondary action" id="btn-ai-settings-save-api-key">Update KEY</button>
           </div>
-          `
-            : `
-          <div class="ai-provider-key-status-item ai-key-missing">
-            ${icons.exclamationTriangle}
-            <span class="ai-key-status ai-key-missing">No key saved</span>
-          </div>
-        `
-        }
-          <input id="ai-api-key-input" class="input" type="password" placeholder="${hasKey ? "Enter new key to update..." : "Enter your API key..."}" value="${escapeAttr(aiState.apiKeyInput)}" autocomplete="off" />
-
           <div class="ai-SecretStorage-note">
             Using VS Code's native <code>SecretStorage</code>, your API key is securely encrypted and stored within your operating system's native credential manager (e.g., Windows Credential Manager, macOS Keychain, or Linux Secret Service). It is never saved as plain text in your local settings or workspace files.
           </div>
-
-
-
-
-        </label>
+        </div>
         ${providerLinksHtml}
         <div class="row between mt-20">
           <button class="btn small secondary ai-models-refresh-btn" id="btn-ai-refresh-models" type="button"${!hasKey ? " disabled" : ""} data-tooltip="${escapeAttr(refreshTooltip)}">↻ Refresh models</button>
