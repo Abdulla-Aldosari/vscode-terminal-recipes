@@ -354,6 +354,7 @@ function bindAiEvents() {
     const refreshModelsBtn = document.getElementById("btn-ai-refresh-models");
     if (refreshModelsBtn) {
       refreshModelsBtn.addEventListener("click", function () {
+        if (!aiState.keyStatus[aiState.settingsProviderName]) { return; }
         aiState.modelsLoading = true;
         postAiRefreshAllModels();
         render();

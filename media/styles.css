@@ -1702,6 +1702,16 @@ input[type="checkbox"]:checked::after {
 }
 
 /* Inline loading spinner for the model select button (same size as text) */
+.ai-model-row {
+  display: flex;
+  gap: 5px;
+}
+
+.ai-model-row .cs-btn {
+  flex: 1;
+  min-width: 0;
+}
+
 .ai-models-loading-spinner {
   display: inline-block;
   width: 0.8em;

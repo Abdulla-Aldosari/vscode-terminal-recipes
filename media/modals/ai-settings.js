@@ -10,7 +10,7 @@
 // Stores model lists per-provider in localStorage with a 7-day TTL.
 // Falls back to providers-config.js static list when cache is absent or expired.
 
-const AI_MODELS_CACHE_KEY    = "tr_ai_models_cache";
+const AI_MODELS_CACHE_KEY = "tr_ai_models_cache";
 const AI_MODELS_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 /**
@@ -21,7 +21,9 @@ const AI_MODELS_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 function getCachedModels(providerName) {
   try {
     const raw = localStorage.getItem(AI_MODELS_CACHE_KEY);
-    if (!raw) { return null; }
+    if (!raw) {
+      return null;
+    }
     const cache = JSON.parse(raw);
     const entry = cache[providerName];
     if (!entry || !entry.fetchedAt || !Array.isArray(entry.models) || !entry.models.length) {
@@ -43,7 +45,7 @@ function getCachedModels(providerName) {
  */
 function setModelsCache(providerName, models) {
   try {
-    const raw   = localStorage.getItem(AI_MODELS_CACHE_KEY);
+    const raw = localStorage.getItem(AI_MODELS_CACHE_KEY);
     const cache = raw ? JSON.parse(raw) : {};
     cache[providerName] = { models, fetchedAt: Date.now() };
     localStorage.setItem(AI_MODELS_CACHE_KEY, JSON.stringify(cache));
@@ -58,7 +60,9 @@ function setModelsCache(providerName, models) {
 function getModelsCacheFetchedAt(providerName) {
   try {
     const raw = localStorage.getItem(AI_MODELS_CACHE_KEY);
-    if (!raw) { return null; }
+    if (!raw) {
+      return null;
+    }
     const cache = JSON.parse(raw);
     return cache[providerName] ? cache[providerName].fetchedAt : null;
   } catch {
@@ -72,13 +76,19 @@ function getModelsCacheFetchedAt(providerName) {
  * @returns {string}
  */
 function formatTimeAgo(timestamp) {
-  const diffMs    = Date.now() - timestamp;
-  const diffMins  = Math.floor(diffMs / 60000);
+  const diffMs = Date.now() - timestamp;
+  const diffMins = Math.floor(diffMs / 60000);
   const diffHours = Math.floor(diffMs / 3600000);
-  const diffDays  = Math.floor(diffMs / 86400000);
-  if (diffMins < 1)   { return "just now"; }
-  if (diffMins < 60)  { return `${diffMins}m ago`; }
-  if (diffHours < 24) { return `${diffHours}h ago`; }
+  const diffDays = Math.floor(diffMs / 86400000);
+  if (diffMins < 1) {
+    return "just now";
+  }
+  if (diffMins < 60) {
+    return `${diffMins}m ago`;
+  }
+  if (diffHours < 24) {
+    return `${diffHours}h ago`;
+  }
   return `${diffDays}d ago`;
 }
 
@@ -94,21 +104,23 @@ function getAiModelLabel(providerName) {
   if (aiState.aiProviderSetup && aiState.aiProviderSetup[providerName]) {
     const cfg = aiState.aiProviderSetup[providerName];
     const modelId = aiState.settingsModelId || cfg.defaultModelId;
-    const modelCfg = (cfg.models || []).find(function (m) { return m.modelId === modelId; });
+    const modelCfg = (cfg.models || []).find(function (m) {
+      return m.modelId === modelId;
+    });
     const modelLabel = modelCfg ? modelCfg.modelLabel : modelId;
     return `${cfg.serviceName} · ${modelLabel}`;
   }
   // Fallback labels (used before aiProviderSetup is loaded)
   const fallback = {
-    gemini:         "Gemini · Gemini 2.0 Flash",
-    openai:         "OpenAI · GPT-4.1 Mini",
-    anthropic:      "Anthropic · Claude Haiku 4.5",
-    deepseek:       "DeepSeek · DeepSeek V3 Chat",
-    groq:           "Groq · Llama 3.3 70B",
-    mistral:        "Mistral · Mistral Small",
-    cohere:         "Cohere · Command R7B",
+    gemini: "Gemini · Gemini 2.0 Flash",
+    openai: "OpenAI · GPT-4.1 Mini",
+    anthropic: "Anthropic · Claude Haiku 4.5",
+    deepseek: "DeepSeek · DeepSeek V3 Chat",
+    groq: "Groq · Llama 3.3 70B",
+    mistral: "Mistral · Mistral Small",
+    cohere: "Cohere · Command R7B",
     bytedancesseed: "ByteDance Seed · Seed 1.6 Flash",
-    stepfun:        "StepFun · Step 3.5 Flash",
+    stepfun: "StepFun · Step 3.5 Flash",
   };
   return fallback[providerName] || providerName;
 }
@@ -146,7 +158,12 @@ function resolveSettingsModelId(providerName) {
   const cfg = aiState.aiProviderSetup[providerName];
   const models = cfg.models || [];
   const savedId = aiState.settingsModelId;
-  if (savedId && models.some(function (m) { return m.modelId === savedId; })) {
+  if (
+    savedId &&
+    models.some(function (m) {
+      return m.modelId === savedId;
+    })
+  ) {
     return savedId;
   }
   return cfg.defaultModelId || (models.length > 0 ? models[0].modelId : "");
@@ -159,66 +176,61 @@ function renderAiSettingsModal() {
         return { value: cfg.name, label: cfg.displayLabel };
       })
     : [
-        { value: "gemini",         label: "Google Gemini" },
-        { value: "openai",         label: "OpenAI ChatGPT" },
-        { value: "anthropic",      label: "Anthropic Claude" },
-        { value: "deepseek",       label: "DeepSeek" },
-        { value: "groq",           label: "Groq" },
-        { value: "mistral",        label: "Mistral AI" },
-        { value: "cohere",         label: "Cohere" },
+        { value: "gemini", label: "Google Gemini" },
+        { value: "openai", label: "OpenAI ChatGPT" },
+        { value: "anthropic", label: "Anthropic Claude" },
+        { value: "deepseek", label: "DeepSeek" },
+        { value: "groq", label: "Groq" },
+        { value: "mistral", label: "Mistral AI" },
+        { value: "cohere", label: "Cohere" },
         { value: "bytedancesseed", label: "ByteDance Seed" },
-        { value: "stepfun",        label: "StepFun" },
+        { value: "stepfun", label: "StepFun" },
       ];
 
   const selectedProvider = aiState.settingsProviderName;
-  const hasKey           = aiState.keyStatus[selectedProvider];
+  const hasKey = aiState.keyStatus[selectedProvider];
 
   // Model dropdown — shows loading spinner while dynamic models are being fetched
-  const modelOptions    = buildModelOptions(selectedProvider);
+  const modelOptions = buildModelOptions(selectedProvider);
   const selectedModelId = resolveSettingsModelId(selectedProvider);
-  const fetchedAt       = getModelsCacheFetchedAt(selectedProvider);
-  const lastUpdatedHtml = fetchedAt
-    ? `<span class="muted ai-models-last-updated" data-tooltip="Model list is cached for 7 days">Updated ${formatTimeAgo(fetchedAt)}</span>`
-    : "";
-  const refreshBtnHtml  = `<button class="btn small secondary ai-models-refresh-btn" id="btn-ai-refresh-models" type="button" data-tooltip="Fetch latest models for all providers that have an API key">↻ Refresh</button>`;
-  const modelLabelRowHtml = `
-      <div class="row between">
+  const fetchedAt = getModelsCacheFetchedAt(selectedProvider);
+
+  // Build the refresh button tooltip
+  const refreshTooltip = hasKey
+    ? `Fetch latest models from each provider's API (all providers with a saved key).${fetchedAt ? `<br>( Updated ${formatTimeAgo(fetchedAt)} )` : ""}`
+    : `No API key saved for this provider — add one to enable fetching models.`;
+
+  // Chevron SVG — used in the loading state button
+  const chevronSvg = `<svg width="17" height="17" viewBox="0 0 21 21" class="cs-chevron" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="m6 9l6 6l6-6"></path></svg>`;
+
+  // Model section — uses renderCustomSelect() when ready; shows a disabled loading button while fetching
+  const modelDropdownHtml = `
+      <div class="d-grid gap-6 mt-10">
         <span>Model</span>
-        ${lastUpdatedHtml}
-        ${refreshBtnHtml}
+        ${
+          aiState.modelsLoading
+            ? `<button class="cs-btn cs-btn-ai-provider" type="button" disabled>
+                 <span class="cs-btn-label"><span class="ai-models-loading-spinner"></span> Loading models...</span>
+                 ${chevronSvg}
+               </button>`
+            : modelOptions.length > 0
+              ? renderCustomSelect(
+                  "ai-model-select-wrap",
+                  "ai-model-select-btn",
+                  "ai-model-select-menu",
+                  modelOptions,
+                  selectedModelId,
+                  "cs-btn-ai-provider",
+                  false,
+                  "cs-wrap-full"
+                )
+              : ""
+        }
       </div>`;
-  const modelDropdownHtml = aiState.modelsLoading
-    ? `
-        <div class="d-grid gap-6 mt-10">
-          ${modelLabelRowHtml}
-          <button class="cs-btn cs-btn-ai-provider cs-wrap-full" type="button" disabled>
-            <span class="cs-btn-label"><span class="ai-models-loading-spinner"></span> Loading models...</span>
-          </button>
-        </div>`
-    : modelOptions.length > 0
-      ? `
-        <div class="d-grid gap-6 mt-10">
-          ${modelLabelRowHtml}
-          ${renderCustomSelect(
-            "ai-model-select-wrap",
-            "ai-model-select-btn",
-            "ai-model-select-menu",
-            modelOptions,
-            selectedModelId,
-            "cs-btn-ai-provider",
-            false,
-            "cs-wrap-full",
-          )}
-        </div>`
-      : `
-        <div class="d-grid gap-6 mt-10">
-          ${modelLabelRowHtml}
-        </div>`;
 
   // Resolve provider setup info for links (if available)
-  const providerSetup =
-    aiState.aiProviderSetup && aiState.aiProviderSetup[selectedProvider];
-  const apiKeyUrl      = providerSetup ? providerSetup.apiKeyUrl      : null;
+  const providerSetup = aiState.aiProviderSetup && aiState.aiProviderSetup[selectedProvider];
+  const apiKeyUrl = providerSetup ? providerSetup.apiKeyUrl : null;
   const apiKeyUrlLabel = providerSetup ? providerSetup.apiKeyUrlLabel : null;
 
   const providerLinksHtml = apiKeyUrl
@@ -255,7 +267,7 @@ function renderAiSettingsModal() {
             selectedProvider,
             "cs-btn-ai-provider", // btnExtraClass
             false, // menuUp
-            "cs-wrap-full",
+            "cs-wrap-full"
           )}
         </div>
         ${modelDropdownHtml}
@@ -289,9 +301,12 @@ function renderAiSettingsModal() {
 
         </label>
         ${providerLinksHtml}
-        <div class="row justify-content-flex-end mt-20">
-          <button class="btn small primary min-w65" id="btn-ai-settings-save">Save</button>
-          <button class="btn small secondary action min-w65" id="btn-ai-settings-cancel">Close</button>
+        <div class="row between mt-20">
+          <button class="btn small secondary ai-models-refresh-btn" id="btn-ai-refresh-models" type="button"${!hasKey ? " disabled" : ""} data-tooltip="${escapeAttr(refreshTooltip)}">↻ Refresh models</button>
+          <div class="row">
+            <button class="btn small primary min-w65" id="btn-ai-settings-save">Save</button>
+            <button class="btn small secondary action min-w65" id="btn-ai-settings-cancel">Close</button>
+          </div>
         </div>
       </div>
     </div>
@@ -304,10 +319,7 @@ function renderAiSettingsModal() {
  */
 function renderAiProviderSetupModal() {
   const providerName = aiProviderSetupModalState.providerName;
-  const setup =
-    aiState.aiProviderSetup && providerName
-      ? aiState.aiProviderSetup[providerName]
-      : null;
+  const setup = aiState.aiProviderSetup && providerName ? aiState.aiProviderSetup[providerName] : null;
 
   if (!setup) {
     return "";
