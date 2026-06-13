@@ -63,6 +63,23 @@ function renderAiPromptModal() {
         </div>`
       : "";
 
+  const promptHistory = getPromptHistory();
+  const historyHtml = promptHistory.length
+    ? `
+            <div class="ai-history-anchor">
+              <a href="#" class="ai-history-toggle muted" id="btn-ai-history-toggle">🕐 Recent prompts (${promptHistory.length})</a>
+              <div class="ai-history-popover${aiState.promptHistoryOpen ? " open" : ""}" id="ai-history-popover">
+                <div class="ai-history-header">
+                  <span>Recent prompts</span>
+                  <button class="ai-history-close" id="btn-ai-history-close" type="button" aria-label="Close">×</button>
+                </div>
+                <ul class="ai-history-list">${promptHistory.map(function (p, i) {
+                  return `<li><button class="ai-history-item" data-index="${i}" type="button"><span class="ai-history-num">${i + 1}</span>${escapeHtml(p)}</button></li>`;
+                }).join("")}</ul>
+              </div>
+            </div>`
+    : "";
+
   return `
     <div class="modal-overlay" id="ai-prompt-overlay" data-dismiss-on-outside-click="false">
       <div class="modal-box ai-prompt-box">
@@ -76,28 +93,7 @@ function renderAiPromptModal() {
           <textarea id="ai-prompt-textarea" class="input" rows="4"
             placeholder="${isFullMode ? "e.g. All essential Git commands" : "e.g. A command to find and kill a process on port 8080"}"
           >${escapeHtml(aiState.prompt)}</textarea>
-          ${(function () {
-            const history = getPromptHistory();
-            if (!history.length) {
-              return "";
-            }
-            const listItems = history
-              .map(function (p, i) {
-                return `<li><button class="ai-history-item" data-index="${i}" type="button"><span class="ai-history-num">${i + 1}</span>${escapeHtml(p)}</button></li>`;
-              })
-              .join("");
-            return `
-            <div class="ai-history-anchor">
-              <a href="#" class="ai-history-toggle muted" id="btn-ai-history-toggle">🕐 Recent prompts (${history.length})</a>
-              <div class="ai-history-popover${aiState.promptHistoryOpen ? " open" : ""}" id="ai-history-popover">
-                <div class="ai-history-header">
-                  <span>Recent prompts</span>
-                  <button class="ai-history-close" id="btn-ai-history-close" type="button" aria-label="Close">×</button>
-                </div>
-                <ul class="ai-history-list">${listItems}</ul>
-              </div>
-            </div>`;
-          })()}
+          ${historyHtml}
         </div>
         <div class="row align-items-flex-end">
           <a href="#" class="muted ai-model-label" id="ai-model-label-link" data-url="${aiState.aiProviderSetup && aiState.aiProviderSetup[aiState.providerName] ? aiState.aiProviderSetup[aiState.providerName].apiKeyUrl : ""}" data-tooltip="View API model details">${icons.externalLink} ${getAiModelLabel(aiState.providerName)}</a>

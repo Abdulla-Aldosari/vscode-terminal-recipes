@@ -1063,6 +1063,7 @@ code {
 }
 
 .cs-menu {
+  overflow: hidden;
   position: absolute;
   top: calc(100% + 4px);
   left: 0;
@@ -1071,8 +1072,14 @@ code {
   background: var(--recipes-dropdown-listBackground, var(--recipes-settings-dropdownBackground));
   border: 1px solid var(--recipes-settings-dropdownBorder, var(--recipes-panel-border));
   border-radius: var(--recipes-cornerRadius-small, 4px);
-  padding: var(--recipes-cornerRadius-small, 4px);
+  /* padding: var(--recipes-cornerRadius-small, 4px); */
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.cs-menu-items-wrapper {
+  overflow-y: auto;
+  max-height: 300px;
+  padding: var(--recipes-cornerRadius-small, 4px);
 }
 
 .cs-item {
@@ -1094,11 +1101,38 @@ code {
   color: var(--recipes-quickInputList-focusForeground, var(--recipes-editor-foreground));
 }
 
-.cs-item-label {
+.cs-item-label-group {
+  display: flex;
+  align-items: center;
+  gap: 5px;
   flex: 1;
+  min-width: 0;
+}
+
+.cs-item-label {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.cs-item-badge {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.cs-key-badge {
+  display: flex;
+  align-items: center;
+}
+
+.cs-key-badge.key-active {
+  color: var(--vscode-testing-iconPassed, #4caf50);
+}
+
+.cs-key-badge.key-inactive {
+  color: var(--vscode-disabledForeground, #888);
+  opacity: 0.35;
 }
 
 .cs-check {

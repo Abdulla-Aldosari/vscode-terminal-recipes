@@ -154,10 +154,7 @@ function resolveCommandTemplate(command) {
         return v.name === name;
       });
       const value = autoVarDef ? autoVarDef.currentValue || "" : "";
-      resolved = resolved.replace(
-        new RegExp("\\$\\{" + escapeRegExp(name) + "\\}", "g"),
-        value,
-      );
+      resolved = resolved.replace(new RegExp("\\$\\{" + escapeRegExp(name) + "\\}", "g"), value);
       return;
     }
     // Regular variables: from user draft
@@ -171,10 +168,7 @@ function resolveCommandTemplate(command) {
         .replace(new RegExp(" \\$\\{" + escapeRegExp(name) + "\\} ", "g"), " ")
         .replace(new RegExp("\\$\\{" + escapeRegExp(name) + "\\}", "g"), "");
     } else {
-      resolved = resolved.replace(
-        new RegExp("\\$\\{" + escapeRegExp(name) + "\\}", "g"),
-        value,
-      );
+      resolved = resolved.replace(new RegExp("\\$\\{" + escapeRegExp(name) + "\\}", "g"), value);
     }
   });
 
@@ -204,10 +198,7 @@ function resolveGroupTitle(groupId, groups) {
 function getCommandLocalDraft(commandId) {
   if (!uiState.commandLocalDrafts[commandId]) {
     const localVars =
-      (state.commandVariables &&
-        state.commandVariables.commands &&
-        state.commandVariables.commands[commandId]) ||
-      {};
+      (state.commandVariables && state.commandVariables.commands && state.commandVariables.commands[commandId]) || {};
     uiState.commandLocalDrafts[commandId] = Object.assign({}, localVars);
   }
   return uiState.commandLocalDrafts[commandId];
@@ -308,10 +299,7 @@ function getCommandRemember(commandId) {
         state.globalCommandVariables.commands[commandId]) ||
       {};
     var localVars =
-      (state.commandVariables &&
-        state.commandVariables.commands &&
-        state.commandVariables.commands[commandId]) ||
-      {};
+      (state.commandVariables && state.commandVariables.commands && state.commandVariables.commands[commandId]) || {};
 
     var allKeys = {};
     Object.keys(globalVars).forEach(function (k) {
@@ -411,12 +399,7 @@ function buildCommandVariablesPayload() {
  * @param {string} variableName
  * @param {string} activeScope - The currently active scope (unused, kept for API compat)
  */
-function updateScopeIndicatorDots(
-  container,
-  commandId,
-  variableName,
-  activeScope,
-) {
+function updateScopeIndicatorDots(container, commandId, variableName, activeScope) {
   if (!container) {
     return;
   }
@@ -518,13 +501,10 @@ function getEditingCommand() {
  */
 function highlightTemplateHtml(text) {
   var autoVarNames = getEnabledAutoVariableNames();
-  return escapeHtml(text).replace(
-    /\$\{([a-zA-Z0-9_]+)\}/g,
-    function (match, name) {
-      var cls = autoVarNames.includes(name) ? "var-auto" : "var-user";
-      return '<span class="' + cls + '">' + match + "</span>";
-    },
-  );
+  return escapeHtml(text).replace(/\$\{([a-zA-Z0-9_]+)\}/g, function (match, name) {
+    var cls = autoVarNames.includes(name) ? "var-auto" : "var-user";
+    return '<span class="' + cls + '">' + match + "</span>";
+  });
 }
 
 /**
@@ -565,7 +545,7 @@ function highlightResolvedHtml(command) {
     } else {
       result = result.replace(
         new RegExp("\\$\\{" + escapeRegExp(name) + "\\}", "g"),
-        '<span class="' + cls + '">' + escapeHtml(value) + "</span>",
+        '<span class="' + cls + '">' + escapeHtml(value) + "</span>"
       );
     }
   });
@@ -625,20 +605,16 @@ function updateTemplateHighlight(textarea) {
   var hasUser = allVarNames.some(function (n) {
     return !autoVarNames.includes(n);
   });
-  var html = escapeHtml(textarea.value).replace(
-    /\$\{([a-zA-Z0-9_]+)\}/g,
-    function (match, name) {
-      var cls = autoVarNames.includes(name) ? "var-auto" : "var-user";
-      return '<span class="' + cls + '">' + match + "</span>";
-    },
-  );
+  var html = escapeHtml(textarea.value).replace(/\$\{([a-zA-Z0-9_]+)\}/g, function (match, name) {
+    var cls = autoVarNames.includes(name) ? "var-auto" : "var-user";
+    return '<span class="' + cls + '">' + match + "</span>";
+  });
   // Trailing \n prevents the last line from collapsing in height
   highlightDiv.innerHTML = html + "\n";
   // Keep scroll in sync
   highlightDiv.scrollTop = textarea.scrollTop;
   // Update legend visibility
-  var legend =
-    textarea.parentElement && textarea.parentElement.nextElementSibling;
+  var legend = textarea.parentElement && textarea.parentElement.nextElementSibling;
   if (legend && legend.classList.contains("template-var-legend")) {
     var autoItem = legend.querySelector(".legend-auto");
     var userItem = legend.querySelector(".legend-user");
@@ -716,8 +692,7 @@ function paintNotice() {
     return;
   }
   var el = document.createElement("div");
-  el.className =
-    "notice" + (uiState.noticeType ? " notice-" + uiState.noticeType : "");
+  el.className = "notice" + (uiState.noticeType ? " notice-" + uiState.noticeType : "");
   el.innerHTML =
     '<div class="notice-icon">' +
     uiState.noticeIcon +
@@ -761,9 +736,7 @@ function selectCommandRow(commandId) {
   // Remove the class from the previously selected row in this tab
   var prevId = uiState[stateKey];
   if (prevId) {
-    var prevRow = document.querySelector(
-      'tr[data-command-id="' + prevId + '"]',
-    );
+    var prevRow = document.querySelector('tr[data-command-id="' + prevId + '"]');
     if (prevRow) {
       prevRow.classList.remove("selected-command-row");
     }
@@ -830,10 +803,7 @@ function bindCmdTitleLinks() {
  * Returns true if commandId is in either local or global favorites.
  */
 function isInFavorites(commandId) {
-  return (
-    state.globalFavorites.includes(commandId) ||
-    state.localFavorites.includes(commandId)
-  );
+  return state.globalFavorites.includes(commandId) || state.localFavorites.includes(commandId);
 }
 
 /**
@@ -979,31 +949,24 @@ function renderActionsCell(command, options) {
  *   Use 'cs-wrap-full' to make the dropdown stretch to 100% width.
  * @returns {string} HTML string
  */
-function renderCustomSelect(
-  wrapperId,
-  btnId,
-  menuId,
-  options,
-  selectedValue,
-  btnExtraClass,
-  menuUp,
-  wrapExtraClass,
-) {
+function renderCustomSelect(wrapperId, btnId, menuId, options, selectedValue, btnExtraClass, menuUp, wrapExtraClass) {
   const selectedOption = options.find(function (o) {
     return o.value === selectedValue;
   });
-  const selectedLabel = selectedOption
-    ? selectedOption.label
-    : options.length
-      ? options[0].label
-      : "—";
+  const selectedLabel = selectedOption ? selectedOption.label : options.length ? options[0].label : "—";
 
   const items = options
     .map(function (opt) {
       const isSelected = opt.value === selectedValue;
+      const badgeHtml = opt.badge ? `<span class="cs-item-badge">${opt.badge}</span>` : "";
+      const isStart = opt.badgePosition === "start";
       return `
       <div class="cs-item" role="menuitem" tabindex="-1" data-value="${escapeAttr(opt.value)}"${opt.tooltip ? ` data-tooltip="${escapeAttr(opt.tooltip)}"` : ""}>
-        <span class="cs-item-label">${escapeHtml(opt.label)}</span>
+        <span class="cs-item-label-group">
+          ${isStart ? badgeHtml : ""}
+          <span class="cs-item-label">${escapeHtml(opt.label)}</span>
+          ${!isStart ? badgeHtml : ""}
+        </span>
         ${isSelected ? icons.checkmark : ""}
       </div>
     `;
@@ -1020,7 +983,9 @@ function renderCustomSelect(
         ${icons.chevron}
       </button>
       <div class="${menuClass}" role="menu" id="${escapeAttr(menuId)}" hidden>
-        ${items}
+        <div class="cs-menu-items-wrapper">
+          ${items}      
+        </div>
       </div>
     </div>
   `;
@@ -1074,7 +1039,14 @@ function bindCustomSelect(wrapperId, btnId, menuId, onChange) {
       });
       var checkEl = menu.querySelector(".cs-check");
       if (checkEl) {
-        checkEl.closest(".cs-item").setAttribute("data-highlighted", "");
+        var highlightedItem = checkEl.closest(".cs-item");
+        highlightedItem.setAttribute("data-highlighted", "");
+        // Scroll the selected item to the center of the visible menu area
+        var itemsWrapper = menu.querySelector(".cs-menu-items-wrapper");
+        if (itemsWrapper) {
+          itemsWrapper.scrollTop =
+            highlightedItem.offsetTop - itemsWrapper.clientHeight / 2 + highlightedItem.offsetHeight / 2;
+        }
       }
       document.addEventListener("pointerdown", onPointerDown, true);
       window.addEventListener("blur", onWindowBlur);

@@ -166,14 +166,30 @@ function resolveSettingsModelId(providerName) {
   ) {
     return savedId;
   }
-  return cfg.defaultModelId || (models.length > 0 ? models[0].modelId : "");
+  // Verify defaultModelId exists in the current models list (may differ when using cached/dynamic models)
+  const defaultId = cfg.defaultModelId;
+  if (
+    defaultId &&
+    models.some(function (m) {
+      return m.modelId === defaultId;
+    })
+  ) {
+    return defaultId;
+  }
+  return models.length > 0 ? models[0].modelId : "";
 }
 
 function renderAiSettingsModal() {
   // Build provider dropdown options dynamically from aiProviderSetup if available
   const providers = aiState.aiProviderSetup
     ? Object.values(aiState.aiProviderSetup).map(function (cfg) {
-        return { value: cfg.name, label: cfg.displayLabel };
+        const hasKey = !!aiState.keyStatus[cfg.name];
+        return {
+          value: cfg.name,
+          label: cfg.displayLabel,
+          badge: `<span class="cs-key-badge ${hasKey ? "key-active" : "key-inactive"}">${icons.key}</span>`,
+          badgePosition: "end",
+        };
       })
     : [
         { value: "gemini", label: "Google Gemini" },
