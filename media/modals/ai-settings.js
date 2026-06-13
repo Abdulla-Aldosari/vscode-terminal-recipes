@@ -119,7 +119,6 @@ function getAiModelLabel(providerName) {
     groq: "Groq · Llama 3.3 70B",
     mistral: "Mistral · Mistral Small",
     cohere: "Cohere · Command R7B",
-    bytedancesseed: "ByteDance Seed · Seed 1.6 Flash",
     stepfun: "StepFun · Step 3.5 Flash",
   };
   return fallback[providerName] || providerName;
@@ -199,7 +198,6 @@ function renderAiSettingsModal() {
         { value: "groq", label: "Groq" },
         { value: "mistral", label: "Mistral AI" },
         { value: "cohere", label: "Cohere" },
-        { value: "bytedancesseed", label: "ByteDance Seed" },
         { value: "stepfun", label: "StepFun" },
       ];
 

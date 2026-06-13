@@ -63,7 +63,6 @@
             "groq",
             "mistral",
             "cohere",
-            "bytedancesseed",
             "stepfun"
           ],
           "enumDescriptions": [
@@ -74,7 +73,6 @@
             "Groq — free tier with fast inference",
             "Mistral AI — free models available",
             "Cohere — free trial available",
-            "ByteDance Seed — free model available",
             "StepFun — free model available"
           ],
           "default": "gemini",
