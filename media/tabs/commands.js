@@ -717,6 +717,17 @@ function bindCommandActionButtons() {
     });
   });
 
+  // --- Explain command with AI ---
+  document.querySelectorAll(".btn-explain").forEach(function (button) {
+    button.addEventListener("click", function () {
+      var command = button.dataset.command || "";
+      if (!command) {
+        return;
+      }
+      openAiExplainModal(command);
+    });
+  });
+
   // --- Go to command in Commands tab (from Recent and Favorites tabs) ---
   document.querySelectorAll(".btn-goto-command").forEach(function (button) {
     button.addEventListener("click", function () {

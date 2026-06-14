@@ -78,6 +78,10 @@ function postAiRefreshAllModels() {
   vscode.postMessage({ type: "aiRefreshAllModels" });
 }
 
+function postAiExplain(payload) {
+  vscode.postMessage({ type: "aiExplain", payload });
+}
+
 function postAiDeleteKey(providerName) {
   vscode.postMessage({ type: "aiDeleteKey", payload: { providerName } });
 }

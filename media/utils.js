@@ -885,6 +885,11 @@ function renderActionsCell(command, options) {
     ? `<button class="btn icon-btn secondary btn-edit action" data-command-id="${escapeAttr(command.id)}" data-tooltip="Edit command">${icons.edit}</button>`
     : "";
 
+  // ── Explain button (Commands tab only) ─────────────────────────────────────
+  var explainBtn = showEdit
+    ? `<button class="btn icon-btn secondary btn-explain" data-command-id="${escapeAttr(command.id)}" data-command="${escapeAttr(command.command)}" data-tooltip="Explain command with AI">${icons.explain}</button>`
+    : "";
+
   // ── Delete button ───────────────────────────────────────────────────────────
   var deleteBtn = showDelete
     ? `<button class="btn icon-btn danger btn-delete-command" data-command-id="${escapeAttr(command.id)}" data-tooltip="Delete command">${icons.delete}</button>`
@@ -928,6 +933,7 @@ function renderActionsCell(command, options) {
       ${useBtn}
       <button class="btn icon-btn secondary btn-copy action" data-command-id="${escapeAttr(command.id)}" data-tooltip="Copy to clipboard">${icons.copy}</button>
       ${editBtn}
+      ${explainBtn}
       ${deleteBtn}
       ${favBtn}
       ${gotoBtn}

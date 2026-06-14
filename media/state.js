@@ -195,6 +195,15 @@ let aiProviderSetupModalState = {
   providerName: null, // 'gemini' | 'openai' | 'anthropic' | ...
 };
 
+// AI Explain modal state
+let aiExplainState = {
+  visible:   false,
+  loading:   false,
+  command:   "",      // raw command text being explained
+  markdown:  "",      // raw Markdown received from AI
+  error:     "",
+};
+
 const state = {
   data: {
     version:    1,

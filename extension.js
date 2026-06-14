@@ -163,6 +163,10 @@ function activate(context) {
             await H.handleAiDeleteKey(panel, context, message.payload);
             return;
           }
+          if (message.type === "aiExplain") {
+            await H.handleAiExplain(panel, context, message.payload);
+            return;
+          }
         },
         null,
         context.subscriptions
@@ -242,6 +246,11 @@ function getWebviewHtml(webview, extensionUri, isDev = false, devModuleFiles = [
   const iconsUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, "media", "icons.js"));
   const utilsUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, "media", "utils.js"));
 
+  // 1b. Markdown parser (utility — must load before ai-explain.js)
+  const markdownParserUri = webview.asWebviewUri(
+    vscode.Uri.joinPath(extensionUri, "media", "markdown-parser.js")
+  );
+
   // 2. Modals
   const modalsRunConfirmUri = webview.asWebviewUri(
     vscode.Uri.joinPath(extensionUri, "media", "modals", "run-confirm.js")
@@ -257,6 +266,9 @@ function getWebviewHtml(webview, extensionUri, isDev = false, devModuleFiles = [
   );
   const modalsAiGenerateUri = webview.asWebviewUri(
     vscode.Uri.joinPath(extensionUri, "media", "modals", "ai-generate.js")
+  );
+  const modalsAiExplainUri = webview.asWebviewUri(
+    vscode.Uri.joinPath(extensionUri, "media", "modals", "ai-explain.js")
   );
   const modalsEnumManagerUri = webview.asWebviewUri(
     vscode.Uri.joinPath(extensionUri, "media", "modals", "enum-manager.js")
@@ -309,6 +321,7 @@ function getWebviewHtml(webview, extensionUri, isDev = false, devModuleFiles = [
   <script nonce="${nonce}" src="${stateUri}"></script>
   <script nonce="${nonce}" src="${iconsUri}"></script>
   <script nonce="${nonce}" src="${utilsUri}"></script>
+  <script nonce="${nonce}" src="${markdownParserUri}"></script>
 
   <!-- 2. Modals (must exist before tab renderers that reference renderCommandCard, etc.) -->
   <script nonce="${nonce}" src="${modalsRunConfirmUri}"></script>
@@ -316,6 +329,7 @@ function getWebviewHtml(webview, extensionUri, isDev = false, devModuleFiles = [
   <script nonce="${nonce}" src="${modalsNewCommandUri}"></script>
   <script nonce="${nonce}" src="${modalsAiSettingsUri}"></script>
   <script nonce="${nonce}" src="${modalsAiGenerateUri}"></script>
+  <script nonce="${nonce}" src="${modalsAiExplainUri}"></script>
   <script nonce="${nonce}" src="${modalsEnumManagerUri}"></script>
 
   <!-- 3. Tabs -->

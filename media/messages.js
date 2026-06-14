@@ -269,4 +269,9 @@ window.addEventListener("message", function (event) {
     render();
     return;
   }
+
+  if (message.type === "aiExplainResult") {
+    handleAiExplainResult(message.payload);
+    return;
+  }
 });
