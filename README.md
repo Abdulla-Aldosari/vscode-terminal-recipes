@@ -1,101 +1,131 @@
-# Terminal Recipes
+<p align="center">
+  <img src="media/icon.png" alt="Terminal Recipes" width="128" />
+</p>
+
+<h1 align="center">Terminal Recipes</h1>
 
 <p align="center">
-  <img src="media/icon.png" alt="Terminal Recipes Icon" width="128" />
+  <a href="https://marketplace.visualstudio.com/items?itemName=abdulla-aldosari.terminal-recipes">
+    <img src="https://img.shields.io/visual-studio-marketplace/v/abdulla-aldosari.terminal-recipes?style=flat-square&label=VS%20Marketplace&color=0078d7" alt="Marketplace Version" />
+  </a>
+  <a href="https://marketplace.visualstudio.com/items?itemName=abdulla-aldosari.terminal-recipes">
+    <img src="https://img.shields.io/visual-studio-marketplace/i/abdulla-aldosari.terminal-recipes?style=flat-square&label=Installs&color=brightgreen" alt="Installs" />
+  </a>
+  <a href="https://marketplace.visualstudio.com/items?itemName=abdulla-aldosari.terminal-recipes">
+    <img src="https://img.shields.io/visual-studio-marketplace/r/abdulla-aldosari.terminal-recipes?style=flat-square&label=Rating&color=orange" alt="Rating" />
+  </a>
+  <a href="https://github.com/Abdulla-Aldosari/vscode-terminal-recipes/actions/workflows/test.yml">
+    <img src="https://img.shields.io/github/actions/workflow/status/Abdulla-Aldosari/vscode-terminal-recipes/test.yml?branch=main&style=flat-square&label=Tests" alt="Tests" />
+  </a>
+  <a href="LICENSE">
+    <img src="https://img.shields.io/github/license/Abdulla-Aldosari/vscode-terminal-recipes?style=flat-square&color=lightgrey" alt="MIT License" />
+  </a>
 </p>
 
 <p align="center">
-  <strong>Manage categorized terminal commands and run, use, or copy them with variable support.</strong>
+  <strong>Organize, run, and generate terminal commands — with variables, favorites, and a built-in AI assistant.</strong>
 </p>
 
 ---
 
-Terminal Recipes is a VS Code extension that gives you a central panel to organize, browse, and execute your frequently used terminal commands. Group them by category, define reusable variables, and run them with a single click.
+Terminal Recipes gives you a central panel inside VS Code to store and run your frequently used terminal commands. Organize them by category and group, define reusable variables, and execute them with a single click — across every project you work on.
 
-## Features
+---
 
-### 📂 Categories & Groups
+## Previews
 
-Organize your commands into **categories** (e.g., General, Spark, MySQL) and further refine them with **groups** (e.g., Setup, Build, Test, Deploy). Create, rename, and delete categories and groups as needed.
+> *(Screenshots and GIFs coming soon — stored in `docs/images/`)*
 
-### 📝 Command Management
+---
 
-- **Add** new commands with a title, template, description, and group assignments.
-- **Edit** existing commands — update the title, template, description, or group tags.
-- **Delete** commands with a confirmation dialog.
-- **Browse** commands in a filterable table view — filter by category and group.
+## Key Features
 
-### ⚡ Command Actions
+### 📂 Categorized Command Management
 
-Each command supports three actions:
+Organize commands into **categories** and **groups** (e.g. MySQL → Setup, Build, Deploy). Create, rename, and delete both. Filter the command table by category and group, toggle visible columns, and drag rows to reorder them within a group.
 
-| Action | Description |
-|--------|-------------|
-| **Run** | Sends the command to the terminal and executes it immediately (with a confirmation dialog). |
-| **Use** | Sends the command to the terminal *without* pressing Enter, so you can review or modify it before running. |
-| **Copy** | Copies the resolved command to your clipboard. |
+### ⚡ Three Ways to Run a Command
 
-### 🔤 Variable Support
+| Action | What it does |
+|---|---|
+| **Run** | Executes the command immediately (with a confirmation dialog) |
+| **Use** | Pastes it into the terminal input so you can review or edit before running |
+| **Copy** | Copies the resolved command to your clipboard |
 
-Use `${variableName}` placeholders in your command templates. When you run, use, or copy a command, variables are resolved with the values you provide.
+### 🔤 Variables — Three Independent Scopes
 
-- **`${workspaceFolder}`** — Automatically resolved to your current workspace folder path.
-- **Custom variables** — Define any variable (e.g., `${name}`, `${port}`, `${env}`) and fill in the values in the Edit Command tab.
-- **Remember** — Check the "Remember" checkbox next to a variable to persist its value per workspace. Remembered values are saved to `.vscode/terminal-recipes.variables.json`.
+Add `${variableName}` placeholders to any command template. When you run or use a command, a dialog prompts you to fill in the values.
 
-### 💾 Global Commands Storage
+Each variable can be saved in one of three independent scopes:
 
-All commands and categories are stored globally in:
+| Scope | Saved to | Best for |
+|---|---|---|
+| **Local** | `.vscode/terminal-recipes.variables.json` | Values that differ per project |
+| **Global** | `~/.vscode-terminal-recipes/variables.json` | Values shared across all projects |
+| **Off** | Session memory only — never written to disk | One-time values you don't need to keep |
 
-```
-~/.vscode-terminal-recipes/commands.json
-```
+Switching the scope toggle never deletes the value stored in the other scopes.
 
-You can open and edit this file directly from the panel using the **"Open Global JSON"** button. This means your recipes are available across all workspaces.
+**Auto Variables** (`$date`, `$user`, `$workspaceFolder`) resolve automatically without any input.  
+**Enum Variables** let you predefine a fixed list of options that appear as a dropdown at run time.
 
-### 🏗️ Per-Workspace Variables
+### 🤖 AI Assistant
 
-Variable values are stored per workspace in:
+Generate and understand commands without leaving VS Code:
 
-```
-.vscode/terminal-recipes.variables.json
-```
+- **Generate** — Describe what you need in plain language and the AI produces a set of ready-to-insert commands.
+- **Explain** — Click the Explain button on any command to get a structured breakdown: what it does, what each part means, practical examples, and warnings.
 
-This allows different workspaces to have different variable values for the same commands.
+**8 AI providers supported:** Google Gemini · OpenAI · Anthropic Claude · DeepSeek · Groq · Mistral AI · Cohere · StepFun
 
-## Getting Started
+> Several providers offer **free tiers** — Gemini, DeepSeek, and Groq are good starting points.
 
-1. Install the extension.
-2. Open the panel using one of:
-   - **Command Palette** → `Terminal Recipes: Open Panel`
-   - **Keyboard Shortcut** → `F4 F4` (press F4 twice)
-3. Create a category and optionally add groups.
-4. Add your commands with templates.
-5. Run, use, or copy commands from the Commands tab.
+### ⭐ Favorites & Recent Commands
 
-## Example
+- **Favorites** — Mark any command as a favorite with Global or Workspace scope. Quick-add with a single click, or Ctrl+click to manage the scope. Jump back to the original command from the Favorites tab at any time.
+- **Recent** — Every command you run is tracked automatically. Revisit or re-run recent commands without searching the full list.
 
-Create a command with a template like:
+---
 
-```
-php spark make:migration ${name}
-```
+## What's New in v1.0.0
 
-When you run it, you'll be prompted to fill in `${name}`. Enter `CreateUsersTable` and the executed command becomes:
+- 🤖 AI command generation and explanation with 8 provider options (including free tiers)
+- ⭐ Favorites system with Global and Workspace scope
+- 🔤 Three-scope variable system (Local / Global / Off) with per-variable independent storage
+- 📋 Enum Variables — predefine fixed option lists for any variable
 
-```
-php spark make:migration CreateUsersTable
-```
+To check the full changelog [click here](CHANGELOG.md).
 
-## Keyboard Shortcut
-
-| Shortcut | Action |
-|----------|--------|
-| `F4 F4` | Open the Terminal Recipes panel |
+---
 
 ## Requirements
 
 - VS Code `1.86.0` or later.
+
+## Getting Started
+
+1. Install the extension from the VS Code Marketplace.
+2. Open the panel:
+   - **Command Palette** → `Terminal Recipes: Open Panel`
+   - **Keyboard shortcut** → `F4 F4` (press F4 twice)
+3. Create a category and optionally add groups.
+4. Add your first command with a template.
+5. Click **Run**, **Use**, or **Copy** to execute it.
+
+## Keyboard Shortcut
+
+| Shortcut | Action |
+|---|---|
+| `F4 F4` | Open the Terminal Recipes panel |
+
+---
+
+## Documentation
+
+- [Settings Reference](docs/settings.md) — all configuration options explained
+- [Frequently Asked Questions](docs/faqs.md) — common questions and troubleshooting
+
+---
 
 ## License
 

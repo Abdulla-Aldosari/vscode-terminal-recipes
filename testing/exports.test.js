@@ -225,13 +225,14 @@ expectFn(handlers, "handleSaveFavorites");
 expectFn(handlers, "handleAiListModels");
 expectFn(handlers, "handleAiRefreshAllModels");
 expectFn(handlers, "handleAiDeleteKey");
+expectFn(handlers, "handleAiExplain");
 
-test("has exactly 16 exports", function () {
+test("has exactly 17 exports", function () {
   const keys = Object.keys(handlers);
   assert.strictEqual(
     keys.length,
-    16,
-    `Expected 16 exports, got ${keys.length}: ${keys.join(", ")}`,
+    17,
+    `Expected 17 exports, got ${keys.length}: ${keys.join(", ")}`,
   );
 });
 
