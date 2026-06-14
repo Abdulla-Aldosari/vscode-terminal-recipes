@@ -150,7 +150,9 @@ function buildModelOptions(providerName) {
   if (!aiState.aiProviderSetup || !aiState.aiProviderSetup[providerName]) {
     return [];
   }
-  const models = aiState.aiProviderSetup[providerName].models || [];
+  const models = (aiState.aiProviderSetup[providerName].models || [])
+    .slice()
+    .sort(function (a, b) { return a.modelId.localeCompare(b.modelId); });
   return models.map(function (m) {
     return {
       value: m.modelId,
