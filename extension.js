@@ -19,6 +19,7 @@ const {
 const { getTerminalProfiles } = require("./lib/terminal");
 const { buildAutoVariablesPayload } = require("./lib/auto-variables");
 const H = require("./lib/handlers");
+const { initLogger } = require("./lib/logger");
 
 /**
  * Called by VS Code when the extension is activated.
@@ -28,8 +29,9 @@ const H = require("./lib/handlers");
  */
 function activate(context) {
   let panel = null;
-  const aiOutputChannel = vscode.window.createOutputChannel("Terminal Recipes", "json");
-  context.subscriptions.push(aiOutputChannel);
+  const loggerOutputChannel = vscode.window.createOutputChannel("Terminal Recipes", "json");
+  context.subscriptions.push(loggerOutputChannel);
+  initLogger(loggerOutputChannel);
 
   const openPanelCommand = vscode.commands.registerCommand(
     "terminalRecipes.openPanel",
@@ -134,7 +136,7 @@ function activate(context) {
             return;
           }
           if (message.type === "aiGenerate") {
-            await H.handleAiGenerate(panel, context, message.payload, aiOutputChannel);
+            await H.handleAiGenerate(panel, context, message.payload);
             return;
           }
           if (message.type === "aiInsert") {

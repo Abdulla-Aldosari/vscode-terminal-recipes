@@ -89,10 +89,10 @@
           "editPresentation": "multilineText",
           "description": "Custom system instructions for the AI command generator. Leave empty to use the default instructions."
         },
-        "terminalRecipes.aiDebugOutput": {
+        "terminalRecipes.debugOutput": {
           "type": "boolean",
           "default": false,
-          "description": "Show AI request and response payloads in the VS Code Output Channel (Terminal Recipes AI). Useful for inspecting the request body and verifying that the AI response matches the expected JSON schema."
+          "description": "Enable detailed debug output in the VS Code Output Channel (Terminal Recipes). Logs internal operations such as AI requests, model listings, and other extension events."
         }
       }
     }

@@ -39,7 +39,7 @@ const FILES = [
   p("lib", "ai", "providers-config.js"),
   p("lib", "ai", "schemas.js"),
   p("lib", "ai", "systemInstruction.js"),
-  p("lib", "ai", "debugLogger.js"),
+  p("lib", "logger.js"),
 
   // media/ — webview foundation
   p("media", "state.js"),

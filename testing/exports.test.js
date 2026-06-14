@@ -222,13 +222,16 @@ expectFn(handlers, "handleAiGenerate");
 expectFn(handlers, "handleAiInsert");
 expectFn(handlers, "handleSaveAutoVariablesSettings");
 expectFn(handlers, "handleSaveFavorites");
+expectFn(handlers, "handleAiListModels");
+expectFn(handlers, "handleAiRefreshAllModels");
+expectFn(handlers, "handleAiDeleteKey");
 
-test("has exactly 13 exports", function () {
+test("has exactly 16 exports", function () {
   const keys = Object.keys(handlers);
   assert.strictEqual(
     keys.length,
-    13,
-    `Expected 13 exports, got ${keys.length}: ${keys.join(", ")}`,
+    16,
+    `Expected 16 exports, got ${keys.length}: ${keys.join(", ")}`,
   );
 });
 
