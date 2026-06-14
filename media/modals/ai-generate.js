@@ -73,9 +73,11 @@ function renderAiPromptModal() {
                   <span>Recent prompts</span>
                   <button class="ai-history-close" id="btn-ai-history-close" type="button" aria-label="Close">×</button>
                 </div>
-                <ul class="ai-history-list">${promptHistory.map(function (p, i) {
-                  return `<li><button class="ai-history-item" data-index="${i}" type="button"><span class="ai-history-num">${i + 1}</span>${escapeHtml(p)}</button></li>`;
-                }).join("")}</ul>
+                <ul class="ai-history-list">${promptHistory
+                  .map(function (p, i) {
+                    return `<li><button class="ai-history-item" data-index="${i}" type="button"><span class="ai-history-num">${i + 1}</span>${escapeHtml(p)}</button></li>`;
+                  })
+                  .join("")}</ul>
               </div>
             </div>`
     : "";
@@ -96,7 +98,7 @@ function renderAiPromptModal() {
           ${historyHtml}
         </div>
         <div class="row align-items-flex-end">
-          <a href="#" class="muted ai-model-label" id="ai-model-label-link" data-url="${aiState.aiProviderSetup && aiState.aiProviderSetup[aiState.providerName] ? aiState.aiProviderSetup[aiState.providerName].apiKeyUrl : ""}" data-tooltip="View API model details">${icons.externalLink} ${getAiModelLabel(aiState.providerName)}</a>
+          <a href="#" class="muted ai-model-label" id="ai-model-label-link" data-tooltip="Change AI model">${getAiModelLabel(aiState.providerName)}</a>
           <button class="btn small primary" id="btn-ai-generate">${icons.sparkles} Generate</button>
           <button class="btn small secondary action min-w65" id="btn-ai-prompt-cancel">Cancel</button>
         </div>
@@ -319,6 +321,17 @@ function bindAiGenerateEvents() {
       });
     }
 
+    const aiModelLabelLink = document.getElementById("ai-model-label-link");
+    if (aiModelLabelLink) {
+      aiModelLabelLink.addEventListener("click", function (e) {
+        e.preventDefault();
+        aiState.returnToPrompt = true;
+        aiState.view = "settings";
+        aiState.apiKeyInput = "";
+        vscode.postMessage({ type: "aiGetSettings" });
+      });
+    }
+
     const cancelBtn = document.getElementById("btn-ai-prompt-cancel");
     if (cancelBtn) {
       cancelBtn.addEventListener("click", function () {
@@ -326,17 +339,6 @@ function bindAiGenerateEvents() {
         aiState.error = "";
         aiState.prompt = "";
         render();
-      });
-    }
-
-    const aiModelLabelLink = document.getElementById("ai-model-label-link");
-    if (aiModelLabelLink) {
-      aiModelLabelLink.addEventListener("click", function (e) {
-        e.preventDefault();
-        const url = aiModelLabelLink.dataset.url;
-        if (url) {
-          vscode.postMessage({ type: "openExternalUrl", payload: { url } });
-        }
       });
     }
 

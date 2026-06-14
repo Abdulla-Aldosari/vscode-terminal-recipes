@@ -452,7 +452,8 @@ function bindAiSettingsEvents() {
         // Update active providerName + modelId immediately so prompt modal reflects the new selection
         aiState.providerName = aiState.settingsProviderName;
         aiState.settingsModelId = resolvedModelId;
-        aiState.view = null;
+        aiState.view = aiState.returnToPrompt ? "prompt" : null;
+        aiState.returnToPrompt = false;
         aiState.apiKeyInput = "";
       });
     }
@@ -482,7 +483,8 @@ function bindAiSettingsEvents() {
     const cancelBtn = document.getElementById("btn-ai-settings-cancel");
     if (cancelBtn) {
       cancelBtn.addEventListener("click", function () {
-        aiState.view = null;
+        aiState.view = aiState.returnToPrompt ? "prompt" : null;
+        aiState.returnToPrompt = false;
         aiState.apiKeyInput = "";
         render();
       });

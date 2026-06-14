@@ -185,6 +185,8 @@ let aiState = {
   shellName: "",
   // Whether the prompt history popover is currently open
   promptHistoryOpen: false,
+  // If true: return to 'prompt' view after closing AI settings
+  returnToPrompt: false,
 };
 
 // AI Provider Setup modal state
