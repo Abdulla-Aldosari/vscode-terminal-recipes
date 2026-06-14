@@ -157,6 +157,10 @@ function activate(context) {
             await H.handleAiRefreshAllModels(panel, context);
             return;
           }
+          if (message.type === "aiDeleteKey") {
+            await H.handleAiDeleteKey(panel, context, message.payload);
+            return;
+          }
         },
         null,
         context.subscriptions

@@ -139,6 +139,21 @@ window.addEventListener("message", function (event) {
     return;
   }
 
+  if (message.type === "aiDeleteKeyResult") {
+    if (message.payload && message.payload.success) {
+      clearModelsCache(aiState.settingsProviderName);
+      vscode.postMessage({ type: "aiGetSettings" });
+      showNotice("API key removed.", icons.circleCheck, "success");
+    } else {
+      showNotice(
+        `Failed to remove key: ${message.payload && message.payload.error ? message.payload.error : "Unknown error"}`,
+        icons.circleX,
+        "error",
+      );
+    }
+    return;
+  }
+
   if (message.type === "aiGenerateResult") {
     if (message.payload && message.payload.success) {
       aiState.result = message.payload.result;
@@ -223,6 +238,15 @@ window.addEventListener("message", function (event) {
       setModelsCache(resultProvider, message.payload.models);
       if (aiState.aiProviderSetup && aiState.aiProviderSetup[resultProvider]) {
         aiState.aiProviderSetup[resultProvider].models = message.payload.models;
+      }
+    } else {
+      // Fetch failed or returned empty — cache static models to prevent re-fetching on next open
+      const staticModels =
+        aiState.aiProviderSetup && aiState.aiProviderSetup[resultProvider]
+          ? aiState.aiProviderSetup[resultProvider].models
+          : null;
+      if (staticModels && staticModels.length > 0) {
+        setModelsCache(resultProvider, staticModels);
       }
     }
     // Only clear loading state and re-render for the currently displayed provider

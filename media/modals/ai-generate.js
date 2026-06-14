@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for details.
 
 // media/modals/ai-generate.js
-// AI Generate prompt, loading overlay, results modal, and all AI bind events.
+// AI Generate prompt, loading overlay, results modal, and generate/results bind events.
 // Loads after ai-settings.js.
 
 // ─── Prompt History Helpers ───────────────────────────────────────────────────
@@ -215,9 +215,9 @@ function renderAiResultsModal() {
   `;
 }
 
-// ─── AI UI Bind Functions ─────────────────────────────────────────────────────
+// ─── AI Generate Bind Function ───────────────────────────────────────────────
 
-function bindAiEvents() {
+function bindAiGenerateEvents() {
   // ⚙️ AI Settings button (in header)
   const aiSettingsBtn = document.getElementById("btn-ai-settings");
   if (aiSettingsBtn) {
@@ -259,136 +259,6 @@ function bindAiEvents() {
       // Fetch current settings so providerName is always up-to-date before rendering
       vscode.postMessage({ type: "aiGetSettings" });
     });
-  }
-
-  // --- Settings modal events ---
-  if (aiState.view === "settings") {
-    // Bind AI provider custom select
-    bindCustomSelect(
-      "ai-provider-select-wrap",
-      "ai-provider-select-btn",
-      "ai-provider-select-menu",
-      function (newProvider) {
-        aiState.settingsProviderName = newProvider;
-        aiState.settingsModelId = ""; // reset so resolveSettingsModelId picks the new provider's default
-        aiState.apiKeyInput = "";
-        // Use cache if fresh; otherwise fetch from API
-        if (aiState.keyStatus[newProvider]) {
-          const cached = getCachedModels(newProvider);
-          if (cached && aiState.aiProviderSetup && aiState.aiProviderSetup[newProvider]) {
-            aiState.aiProviderSetup[newProvider].models = cached;
-            aiState.modelsLoading = false;
-          } else {
-            aiState.modelsLoading = true;
-            postAiListModels(newProvider);
-          }
-        } else {
-          aiState.modelsLoading = false;
-        }
-        render();
-      }
-    );
-
-    // Bind model custom select (if rendered)
-    bindCustomSelect("ai-model-select-wrap", "ai-model-select-btn", "ai-model-select-menu", function (newModelId) {
-      aiState.settingsModelId = newModelId;
-    });
-
-    const apiKeyInput = document.getElementById("ai-api-key-input");
-    if (apiKeyInput) {
-      apiKeyInput.addEventListener("input", function () {
-        aiState.apiKeyInput = apiKeyInput.value;
-      });
-    }
-
-    // 🔑 "Get API Key" link — opens provider's website in browser
-    const getApiKeyLink = document.getElementById("btn-ai-get-api-key");
-    if (getApiKeyLink) {
-      getApiKeyLink.addEventListener("click", function (e) {
-        e.preventDefault();
-        const url = getApiKeyLink.dataset.url;
-        if (url) {
-          vscode.postMessage({ type: "openExternalUrl", payload: { url } });
-        }
-      });
-    }
-
-    // ❓ "How to get API Key?" link — opens the setup help modal
-    const showHelpLink = document.getElementById("btn-ai-show-setup-help");
-    if (showHelpLink) {
-      showHelpLink.addEventListener("click", function (e) {
-        e.preventDefault();
-        aiProviderSetupModalState = {
-          visible: true,
-          providerName: aiState.settingsProviderName,
-        };
-        render();
-      });
-    }
-
-    const saveBtn = document.getElementById("btn-ai-settings-save");
-    if (saveBtn) {
-      saveBtn.addEventListener("click", function () {
-        const resolvedModelId = resolveSettingsModelId(aiState.settingsProviderName);
-        vscode.postMessage({
-          type: "aiSaveSettings",
-          payload: {
-            providerName: aiState.settingsProviderName,
-            modelId: resolvedModelId,
-            apiKey: aiState.apiKeyInput,
-          },
-        });
-        // Update active providerName + modelId immediately so prompt modal reflects the new selection
-        aiState.providerName = aiState.settingsProviderName;
-        aiState.settingsModelId = resolvedModelId;
-        aiState.view = null;
-        aiState.apiKeyInput = "";
-      });
-    }
-
-    // ↻ "Refresh" button — refreshes all providers that have an API key
-    const refreshModelsBtn = document.getElementById("btn-ai-refresh-models");
-    if (refreshModelsBtn) {
-      refreshModelsBtn.addEventListener("click", function () {
-        if (!aiState.keyStatus[aiState.settingsProviderName]) { return; }
-        aiState.modelsLoading = true;
-        postAiRefreshAllModels();
-        render();
-      });
-    }
-
-    const cancelBtn = document.getElementById("btn-ai-settings-cancel");
-    if (cancelBtn) {
-      cancelBtn.addEventListener("click", function () {
-        aiState.view = null;
-        aiState.apiKeyInput = "";
-        render();
-      });
-    }
-  }
-
-  // --- AI Provider Setup Help modal events ---
-  if (aiProviderSetupModalState.visible) {
-    // 🌐 Open URL link inside setup modal
-    const setupOpenUrlLink = document.getElementById("btn-ai-setup-open-url");
-    if (setupOpenUrlLink) {
-      setupOpenUrlLink.addEventListener("click", function (e) {
-        e.preventDefault();
-        const url = setupOpenUrlLink.dataset.url;
-        if (url) {
-          vscode.postMessage({ type: "openExternalUrl", payload: { url } });
-        }
-      });
-    }
-
-    // Close button inside setup modal
-    const setupCloseBtn = document.getElementById("btn-ai-setup-close");
-    if (setupCloseBtn) {
-      setupCloseBtn.addEventListener("click", function () {
-        aiProviderSetupModalState = { visible: false, providerName: null };
-        render();
-      });
-    }
   }
 
   // --- Prompt modal events ---

@@ -213,7 +213,8 @@ function render() {
       }
     });
   });
-  bindAiEvents();
+  bindAiSettingsEvents();
+  bindAiGenerateEvents();
   bindCmdTitleLinks();
   if (enumManagerState.visible) {
     bindEnumManagerEvents();

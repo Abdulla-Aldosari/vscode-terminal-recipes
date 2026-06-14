@@ -147,7 +147,7 @@ button:focus:not(.toggle-option-3):not(.tag):not(.icon-btn):not(.tab):not(.fav-s
   position: fixed;
   top: 14px;
   right: 14px;
-  z-index: 999;
+  z-index: 9999;
   max-width: min(420px, calc(100vw - 24px));
   padding: 12px 20px 10px 11px;
   border: 1px solid;

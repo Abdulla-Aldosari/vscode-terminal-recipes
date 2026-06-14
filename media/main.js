@@ -78,6 +78,10 @@ function postAiRefreshAllModels() {
   vscode.postMessage({ type: "aiRefreshAllModels" });
 }
 
+function postAiDeleteKey(providerName) {
+  vscode.postMessage({ type: "aiDeleteKey", payload: { providerName } });
+}
+
 // ─── Global Helpers ────────────────────────────────────────────────────────────
 
 // Disable right-click context menu unless text is selected

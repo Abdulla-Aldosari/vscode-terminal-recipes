@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for details.
 
 // media/modals/ai-settings.js
-// AI Settings modal and AI Provider Setup Help modal.
+// AI Settings modal, AI Provider Setup Help modal, and settings bind events.
 // Loads after new-command.js.
 
 // ─── AI Models Cache Helpers ──────────────────────────────────────────────────
@@ -48,6 +48,22 @@ function setModelsCache(providerName, models) {
     const raw = localStorage.getItem(AI_MODELS_CACHE_KEY);
     const cache = raw ? JSON.parse(raw) : {};
     cache[providerName] = { models, fetchedAt: Date.now() };
+    localStorage.setItem(AI_MODELS_CACHE_KEY, JSON.stringify(cache));
+  } catch {}
+}
+
+/**
+ * Removes the cached model list for a provider (e.g. when a new API key is saved).
+ * @param {string} providerName
+ */
+function clearModelsCache(providerName) {
+  try {
+    const raw = localStorage.getItem(AI_MODELS_CACHE_KEY);
+    if (!raw) {
+      return;
+    }
+    const cache = JSON.parse(raw);
+    delete cache[providerName];
     localStorage.setItem(AI_MODELS_CACHE_KEY, JSON.stringify(cache));
   } catch {}
 }
@@ -303,9 +319,10 @@ function renderAiSettingsModal() {
             }
           </div>       
           <div class="d-flex gap-6">
-            <input id="ai-api-key-input" class="input" type="password" placeholder="${hasKey ? "Enter new key to update..." : "Enter your API key..."}" value="${escapeAttr(aiState.apiKeyInput)}" autocomplete="off" />
-            <button class="btn small secondary action" id="btn-ai-settings-save-api-key">Update KEY</button>
-          </div>
+             <input id="ai-api-key-input" class="input" type="password" placeholder="${hasKey ? "Enter new key to update..." : "Enter your API key..."}" value="${escapeAttr(aiState.apiKeyInput)}" autocomplete="off" />
+             <button class="btn small secondary action" id="btn-ai-settings-save-api-key"${aiState.apiKeyInput.length < 10 ? " disabled" : ""}>${hasKey ? "Update Key" : "Save Key"}</button>
+             ${hasKey ? `<button class="btn small danger" id="btn-ai-delete-api-key" data-tooltip="Remove saved API key for ${escapeAttr(selectedProvider)}">Remove Key</button>` : ""}
+           </div>
           <div class="ai-SecretStorage-note">
             Using VS Code's native <code>SecretStorage</code>, your API key is securely encrypted and stored within your operating system's native credential manager (e.g., Windows Credential Manager, macOS Keychain, or Linux Secret Service). It is never saved as plain text in your local settings or workspace files.
           </div>
@@ -323,10 +340,180 @@ function renderAiSettingsModal() {
   `;
 }
 
-/**
- * Renders the AI Provider Setup Help modal.
- * Shows step-by-step instructions for getting an API key for the selected provider.
- */
+// ─── AI Settings Bind Function ────────────────────────────────────────────────
+
+function bindAiSettingsEvents() {
+  // --- Settings modal events ---
+  if (aiState.view === "settings") {
+    // Bind AI provider custom select
+    bindCustomSelect(
+      "ai-provider-select-wrap",
+      "ai-provider-select-btn",
+      "ai-provider-select-menu",
+      function (newProvider) {
+        aiState.settingsProviderName = newProvider;
+        aiState.settingsModelId = ""; // reset so resolveSettingsModelId picks the new provider's default
+        aiState.apiKeyInput = "";
+        // Use cache if fresh; otherwise fetch from API
+        if (aiState.keyStatus[newProvider]) {
+          const cached = getCachedModels(newProvider);
+          if (cached && aiState.aiProviderSetup && aiState.aiProviderSetup[newProvider]) {
+            aiState.aiProviderSetup[newProvider].models = cached;
+            aiState.modelsLoading = false;
+          } else {
+            aiState.modelsLoading = true;
+            postAiListModels(newProvider);
+          }
+        } else {
+          aiState.modelsLoading = false;
+        }
+        render();
+      }
+    );
+
+    // Bind model custom select (if rendered)
+    bindCustomSelect("ai-model-select-wrap", "ai-model-select-btn", "ai-model-select-menu", function (newModelId) {
+      aiState.settingsModelId = newModelId;
+    });
+
+    const apiKeyInput = document.getElementById("ai-api-key-input");
+    const saveApiKeyBtn = document.getElementById("btn-ai-settings-save-api-key");
+    if (apiKeyInput && saveApiKeyBtn) {
+      apiKeyInput.addEventListener("input", function () {
+        aiState.apiKeyInput = apiKeyInput.value;
+        saveApiKeyBtn.disabled = apiKeyInput.value.length < 10;
+      });
+    }
+
+    // 🔑 "Get API Key" link — opens provider's website in browser
+    const getApiKeyLink = document.getElementById("btn-ai-get-api-key");
+    if (getApiKeyLink) {
+      getApiKeyLink.addEventListener("click", function (e) {
+        e.preventDefault();
+        const url = getApiKeyLink.dataset.url;
+        if (url) {
+          vscode.postMessage({ type: "openExternalUrl", payload: { url } });
+        }
+      });
+    }
+
+    // ❓ "How to get API Key?" link — opens the setup help modal
+    const showHelpLink = document.getElementById("btn-ai-show-setup-help");
+    if (showHelpLink) {
+      showHelpLink.addEventListener("click", function (e) {
+        e.preventDefault();
+        aiProviderSetupModalState = {
+          visible: true,
+          providerName: aiState.settingsProviderName,
+        };
+        render();
+      });
+    }
+
+    // 🔑 "Update KEY / Save Key" button — saves the API key only, keeps the modal open and refreshes models
+    if (saveApiKeyBtn) {
+      saveApiKeyBtn.addEventListener("click", function () {
+        if (!aiState.apiKeyInput) {
+          return;
+        }
+        const resolvedModelId = resolveSettingsModelId(aiState.settingsProviderName);
+        clearModelsCache(aiState.settingsProviderName);
+        vscode.postMessage({
+          type: "aiSaveSettings",
+          payload: {
+            providerName: aiState.settingsProviderName,
+            modelId: resolvedModelId,
+            apiKey: aiState.apiKeyInput,
+          },
+        });
+        aiState.apiKeyInput = "";
+        // view stays as "settings" — modal remains open
+      });
+    }
+
+    const saveBtn = document.getElementById("btn-ai-settings-save");
+    if (saveBtn) {
+      saveBtn.addEventListener("click", function () {
+        const resolvedModelId = resolveSettingsModelId(aiState.settingsProviderName);
+        // Clear model cache if a new API key was entered
+        if (aiState.apiKeyInput) {
+          clearModelsCache(aiState.settingsProviderName);
+        }
+        vscode.postMessage({
+          type: "aiSaveSettings",
+          payload: {
+            providerName: aiState.settingsProviderName,
+            modelId: resolvedModelId,
+            apiKey: aiState.apiKeyInput,
+          },
+        });
+        // Update active providerName + modelId immediately so prompt modal reflects the new selection
+        aiState.providerName = aiState.settingsProviderName;
+        aiState.settingsModelId = resolvedModelId;
+        aiState.view = null;
+        aiState.apiKeyInput = "";
+      });
+    }
+
+    // ↻ "Refresh" button — refreshes all providers that have an API key
+    const refreshModelsBtn = document.getElementById("btn-ai-refresh-models");
+    if (refreshModelsBtn) {
+      refreshModelsBtn.addEventListener("click", function () {
+        if (!aiState.keyStatus[aiState.settingsProviderName]) {
+          return;
+        }
+        aiState.modelsLoading = true;
+        postAiRefreshAllModels();
+        render();
+      });
+    }
+
+    // 🗑️ "Remove Key" button — deletes the API key for the selected provider
+    const deleteApiKeyBtn = document.getElementById("btn-ai-delete-api-key");
+    if (deleteApiKeyBtn) {
+      deleteApiKeyBtn.addEventListener("click", function () {
+        clearModelsCache(aiState.settingsProviderName);
+        postAiDeleteKey(aiState.settingsProviderName);
+      });
+    }
+
+    const cancelBtn = document.getElementById("btn-ai-settings-cancel");
+    if (cancelBtn) {
+      cancelBtn.addEventListener("click", function () {
+        aiState.view = null;
+        aiState.apiKeyInput = "";
+        render();
+      });
+    }
+  }
+
+  // --- AI Provider Setup Help modal events ---
+  if (aiProviderSetupModalState.visible) {
+    // 🌐 Open URL link inside setup modal
+    const setupOpenUrlLink = document.getElementById("btn-ai-setup-open-url");
+    if (setupOpenUrlLink) {
+      setupOpenUrlLink.addEventListener("click", function (e) {
+        e.preventDefault();
+        const url = setupOpenUrlLink.dataset.url;
+        if (url) {
+          vscode.postMessage({ type: "openExternalUrl", payload: { url } });
+        }
+      });
+    }
+
+    // Close button inside setup modal
+    const setupCloseBtn = document.getElementById("btn-ai-setup-close");
+    if (setupCloseBtn) {
+      setupCloseBtn.addEventListener("click", function () {
+        aiProviderSetupModalState = { visible: false, providerName: null };
+        render();
+      });
+    }
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 function renderAiProviderSetupModal() {
   const providerName = aiProviderSetupModalState.providerName;
   const setup = aiState.aiProviderSetup && providerName ? aiState.aiProviderSetup[providerName] : null;
