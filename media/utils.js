@@ -834,7 +834,7 @@ function persistFavorites(payload) {
 // ─── Persist Helpers ──────────────────────────────────────────────────────────
 
 function persistDataThenRender(successMessage) {
-  showNotice(successMessage, icons.circleCheck, "success");
+  uiState.pendingSaveMessage = successMessage;
   render();
   vscode.postMessage({ type: "saveData", payload: state.data });
 }

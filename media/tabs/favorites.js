@@ -12,10 +12,17 @@
 function renderFavoritesTab() {
   const hasWorkspace = !!state.workspaceFolder;
   const scope = uiState.favoritesScope;
+  const allCommands = state.data.commands || [];
   const favoriteIds = scope === "local" ? state.localFavorites : state.globalFavorites;
-  const favoritedCommands = (state.data.commands || []).filter(function (cmd) {
+  const favoritedCommands = allCommands.filter(function (cmd) {
     return favoriteIds.includes(cmd.id);
   });
+  const validLocalCount = state.localFavorites.filter(function (id) {
+    return allCommands.some(function (cmd) { return cmd.id === id; });
+  }).length;
+  const validGlobalCount = state.globalFavorites.filter(function (id) {
+    return allCommands.some(function (cmd) { return cmd.id === id; });
+  }).length;
   const emptyMsg =
     scope === "local"
       ? "No local favorites for this workspace yet. Click the star icon on any command to add it."
@@ -30,7 +37,7 @@ function renderFavoritesTab() {
 
   return `
     <section class="card">
-      ${showWrap ? renderFavoritesScopeToggle(scope, hasWorkspace, skipConfirm) : ""}
+      ${showWrap ? renderFavoritesScopeToggle(scope, hasWorkspace, skipConfirm, validLocalCount, validGlobalCount) : ""}
       <div class="table-wrap">
         ${favoritedCommands.length === 0 ? `<p class="muted">${emptyMsg}</p>` : renderFavoritesTable(favoritedCommands)}
       </div>
@@ -44,7 +51,7 @@ function renderFavoritesTab() {
  * @param {boolean} showToggle - whether to show the scope toggle (requires workspace)
  * @param {boolean} skipConfirm - whether to show the restore confirmation link
  */
-function renderFavoritesScopeToggle(scope, showToggle, skipConfirm) {
+function renderFavoritesScopeToggle(scope, showToggle, skipConfirm, validLocalCount, validGlobalCount) {
   return `
     <div class="fav-scope-toggle-wrap">
       ${
@@ -52,8 +59,8 @@ function renderFavoritesScopeToggle(scope, showToggle, skipConfirm) {
           ? `
       <div class="fav-scope-toggle-section">
         <div class="fav-scope-toggle">
-          <button class="fav-scope-btn d-focus ${scope === "local" ? "active" : ""}" data-scope="local" data-tooltip="Show favorites for this workspace only">Local Workspace (${state.localFavorites.length})</button>
-          <button class="fav-scope-btn d-focus ${scope === "global" ? "active" : ""}" data-scope="global" data-tooltip="Show favorites available in all workspaces">Global (${state.globalFavorites.length})</button>
+          <button class="fav-scope-btn d-focus ${scope === "local" ? "active" : ""}" data-scope="local" data-tooltip="Show favorites for this workspace only">Local Workspace (${validLocalCount})</button>
+          <button class="fav-scope-btn d-focus ${scope === "global" ? "active" : ""}" data-scope="global" data-tooltip="Show favorites available in all workspaces">Global (${validGlobalCount})</button>
         </div>
         <span class="muted fav-scope-hint">${scope === "local" ? escapeHtml(state.workspaceFolder || "") : "Available everywhere"}</span>
       </div>`

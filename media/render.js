@@ -159,8 +159,7 @@ function render() {
           <button class="tab d-focus ${!uiState.editingCommandId && uiState.activeTab === "favorites" ? "active" : ""}" data-tab="favorites">${icons.heart} Favorites</button>
           <button class="tab d-focus ${!uiState.editingCommandId && uiState.activeTab === "categories" ? "active" : ""}" data-tab="categories">${icons.group} Categories & Groups</button>
           <button class="tab d-focus ${!uiState.editingCommandId && uiState.activeTab === "commands" ? "active" : ""}" data-tab="commands">${icons.command} Commands</button>
-          <button class="tab d-focus tab-push-right ${!uiState.editingCommandId && uiState.activeTab === "add" ? "active" : ""}" data-tab="add" ${selectedCategory ? "" : "disabled"}>${icons.add} Add New Command</button>
-          <button class="tab d-focus ${!uiState.editingCommandId && uiState.activeTab === "variables" ? "active" : ""}" data-tab="variables">${icons.variables} Variables</button>
+          <button class="tab d-focus tab-push-right ${!uiState.editingCommandId && uiState.activeTab === "variables" ? "active" : ""}" data-tab="variables">${icons.variables} Variables</button>
         </div>
       </section>
 

@@ -50,6 +50,7 @@ const uiState = {
   editingCommandId:       null,
   editSourceTab:          null,
   pendingScrollCommandId: null,
+  pendingSaveMessage:     null,
   commandDrafts:          {}, // Kept for backward compat references — primary store is scope drafts below
   commandLocalDrafts:     {}, // { [commandId]: { [varName]: value } } — workspace-local scope
   commandGlobalDrafts:    {}, // { [commandId]: { [varName]: value } } — global scope

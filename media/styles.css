@@ -146,7 +146,7 @@ button:focus:not(.d-focus) {
   right: 14px;
   z-index: 9999;
   max-width: min(420px, calc(100vw - 24px));
-  padding: 12px 20px 10px 11px;
+  padding: 14px 20px 10px 11px;
   border: 1px solid;
   border-color: color-mix(in srgb, var(--recipes-editor-background) 70%, #828282);
   border-radius: var(--recipes-cornerRadius-small, 4px);
@@ -166,7 +166,9 @@ button:focus:not(.d-focus) {
 }
 
 .notice .notice-icon {
-  padding: 0px 12px 0px 5px;
+  padding: 0px 9px 0px 4px;
+  color: var(--msg-notice-color);
+  opacity: 0.6;
 }
 
 .notice .notice-message {
@@ -177,21 +179,20 @@ button:focus:not(.d-focus) {
 }
 
 .notice-close {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-inline-start: auto;
-  padding: 2px 4px 2px 10px;
+  padding: 2px 3px 0px 3px;
   background: none;
   border: none;
   cursor: pointer;
   color: inherit;
   opacity: 0.5;
   flex-shrink: 0;
+  margin: -2px -6px 0px 25px;
+  border-radius: 6px;
 }
 
 .notice-close:hover {
   opacity: 1;
+  background: #7e7e7e33;
 }
 
 .notice.notice-error {

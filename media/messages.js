@@ -28,8 +28,11 @@ window.addEventListener("message", function (event) {
   }
 
   if (message.type === "saveResult") {
+    const pendingMessage = uiState.pendingSaveMessage;
+    uiState.pendingSaveMessage = null;
+
     if (message.payload && message.payload.success) {
-      showNotice("Saved successfully. XXXX", icons.circleCheck, "success");
+      showNotice(pendingMessage || "Saved successfully.", icons.circleCheck, "success");
     } else {
       showNotice(
         `Save failed: ${message.payload && message.payload.message ? message.payload.message : "Unknown error"}`,

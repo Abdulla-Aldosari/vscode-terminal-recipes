@@ -33,6 +33,7 @@ function renderCommandsTab(selectedCategory) {
         <button class="btn small secondary ml-auto${uiState.sortingMode ? " sort-btn-active" : ""}" id="btn-toggle-sort" data-tooltip="${uiState.sortingMode ? "Click to exit sort mode" : "Drag to reorder commands"}">${icons.sort} ${uiState.sortingMode ? "Done Sorting" : "Sort"}</button>
         ${renderColumnToggleDropdown()}
         <button class="btn small secondary ai-create-btn" id="btn-add-with-ai" data-tooltip="${uiState.selectedGroupId === "all" ? "Select a specific group first" : "Generate a command using AI"}" ${uiState.selectedGroupId === "all" || uiState.sortingMode ? "disabled" : ""}>${icons.sparkles} Add with AI</button>
+        <button class="btn small secondary" id="btn-add-new-command" data-tooltip="Add a new command" ${uiState.sortingMode ? "disabled" : ""}>${icons.add} Add New Command</button>
       </div>
       <div class="group-tags-row${uiState.sortingMode ? " sort-disabled-wrap" : ""}">
         <span class="groups-label">Groups:</span>
@@ -357,6 +358,18 @@ function bindCommandsTabEvents() {
       render();
     });
   });
+
+  // --- Add New Command Button ---
+  var addNewCommandBtn = document.getElementById("btn-add-new-command");
+  if (addNewCommandBtn) {
+    addNewCommandBtn.addEventListener("click", function () {
+      if (uiState.selectedGroupId && uiState.selectedGroupId !== "all") {
+        uiState.newCommandDraft.groupId = uiState.selectedGroupId;
+      }
+      uiState.activeTab = "add";
+      render();
+    });
+  }
 
   // --- Sort Toggle Button ---
   var sortBtn = document.getElementById("btn-toggle-sort");
