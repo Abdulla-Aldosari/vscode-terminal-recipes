@@ -15,11 +15,11 @@
  * @param {string} command - Raw command text to explain
  */
 function openAiExplainModal(command) {
-  aiExplainState.visible  = true;
-  aiExplainState.loading  = true;
-  aiExplainState.command  = command;
+  aiExplainState.visible = true;
+  aiExplainState.loading = true;
+  aiExplainState.command = command;
   aiExplainState.markdown = "";
-  aiExplainState.error    = "";
+  aiExplainState.error = "";
 
   _injectAiExplainModal();
   postAiExplain({ command });
@@ -29,11 +29,11 @@ function openAiExplainModal(command) {
  * Closes the explain modal and removes it from the DOM.
  */
 function closeAiExplainModal() {
-  aiExplainState.visible  = false;
-  aiExplainState.loading  = false;
+  aiExplainState.visible = false;
+  aiExplainState.loading = false;
   aiExplainState.markdown = "";
-  aiExplainState.error    = "";
-  aiExplainState.command  = "";
+  aiExplainState.error = "";
+  aiExplainState.command = "";
 
   var el = document.getElementById("ai-explain-overlay");
   if (el) {
@@ -89,7 +89,7 @@ function _renderAiExplainModal() {
         <span class="ai-explain-icon">${icons.explain}</span>
         <span class="ai-explain-title" id="ai-explain-title">Command Explanation</span>
       </div>
-      <button class="btn icon-btn secondary ai-explain-close" id="btn-ai-explain-close" type="button" data-tooltip="Close" data-tooltip-pos="left">&#x2715;</button>
+      <button class="btn icon-btn secondary ai-explain-close d-focus" id="btn-ai-explain-close" type="button" data-tooltip="Close" data-tooltip-pos="left">&#x2715;</button>
     </div>
     <div class="ai-explain-command-bar">
       <code class="ai-explain-command-text">${commandHtml}</code>
@@ -172,10 +172,10 @@ function handleAiExplainResult(payload) {
 
   if (payload && payload.success) {
     aiExplainState.markdown = payload.markdown || "";
-    aiExplainState.error    = "";
+    aiExplainState.error = "";
   } else {
     aiExplainState.markdown = "";
-    aiExplainState.error    = (payload && payload.message) ? payload.message : "An unexpected error occurred.";
+    aiExplainState.error = payload && payload.message ? payload.message : "An unexpected error occurred.";
   }
 
   _repaintAiExplainContent();

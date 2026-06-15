@@ -10,10 +10,9 @@
  * Renders the Favorites tab.
  */
 function renderFavoritesTab() {
-  const hasWorkspace   = !!state.workspaceFolder;
-  const scope          = uiState.favoritesScope;
-  const favoriteIds    =
-    scope === "local" ? state.localFavorites : state.globalFavorites;
+  const hasWorkspace = !!state.workspaceFolder;
+  const scope = uiState.favoritesScope;
+  const favoriteIds = scope === "local" ? state.localFavorites : state.globalFavorites;
   const favoritedCommands = (state.data.commands || []).filter(function (cmd) {
     return favoriteIds.includes(cmd.id);
   });
@@ -33,11 +32,7 @@ function renderFavoritesTab() {
     <section class="card">
       ${showWrap ? renderFavoritesScopeToggle(scope, hasWorkspace, skipConfirm) : ""}
       <div class="table-wrap">
-        ${
-          favoritedCommands.length === 0
-            ? `<p class="muted">${emptyMsg}</p>`
-            : renderFavoritesTable(favoritedCommands)
-        }
+        ${favoritedCommands.length === 0 ? `<p class="muted">${emptyMsg}</p>` : renderFavoritesTable(favoritedCommands)}
       </div>
     </section>
   `;
@@ -57,8 +52,8 @@ function renderFavoritesScopeToggle(scope, showToggle, skipConfirm) {
           ? `
       <div class="fav-scope-toggle-section">
         <div class="fav-scope-toggle">
-          <button class="fav-scope-btn ${scope === "local" ? "active" : ""}" data-scope="local" data-tooltip="Show favorites for this workspace only">Local Workspace (${state.localFavorites.length})</button>
-          <button class="fav-scope-btn ${scope === "global" ? "active" : ""}" data-scope="global" data-tooltip="Show favorites available in all workspaces">Global (${state.globalFavorites.length})</button>
+          <button class="fav-scope-btn d-focus ${scope === "local" ? "active" : ""}" data-scope="local" data-tooltip="Show favorites for this workspace only">Local Workspace (${state.localFavorites.length})</button>
+          <button class="fav-scope-btn d-focus ${scope === "global" ? "active" : ""}" data-scope="global" data-tooltip="Show favorites available in all workspaces">Global (${state.globalFavorites.length})</button>
         </div>
         <span class="muted fav-scope-hint">${scope === "local" ? escapeHtml(state.workspaceFolder || "") : "Available everywhere"}</span>
       </div>`
@@ -91,16 +86,17 @@ function renderFavoritesTable(commands) {
             const titleHtml = command.helpUrl
               ? `<a class="cmd-title-link" data-url="${escapeAttr(command.helpUrl)}" data-tooltip="Open documentation">${escapeHtml(command.title)}</a>`
               : `<strong>${escapeHtml(command.title)}</strong>`;
-            const _cat        = (state.data.categories || []).find(function (c) {
+            const _cat = (state.data.categories || []).find(function (c) {
               return c.id === command.categoryId;
             });
-            const _catTitle   = _cat ? _cat.title || "" : "";
-            const _groups     = _cat ? _cat.groups || [] : [];
+            const _catTitle = _cat ? _cat.title || "" : "";
+            const _groups = _cat ? _cat.groups || [] : [];
             const _groupTitle = resolveGroupTitle(command.groupId || "", _groups);
-            const _hasGroup   = !!_groupTitle && _groupTitle !== "-";
-            const _catGroupLabel = _catTitle && _hasGroup
-              ? `${_catTitle} / ${_groupTitle}`
-              : _catTitle || (_hasGroup ? _groupTitle : "") || "-";
+            const _hasGroup = !!_groupTitle && _groupTitle !== "-";
+            const _catGroupLabel =
+              _catTitle && _hasGroup
+                ? `${_catTitle} / ${_groupTitle}`
+                : _catTitle || (_hasGroup ? _groupTitle : "") || "-";
             return `
             <tr data-command-id="${escapeAttr(command.id)}"${command.id === uiState.favoritesSelectedCommandRowId ? ' class="selected-command-row"' : ""}>
               <td class="main-t-title-column">${titleHtml}<br><span class="muted">${escapeHtml(command.id)}</span></td>
@@ -124,12 +120,12 @@ function renderFavoritesTable(commands) {
  * opened from Commands/Recent tabs and from Favorites tab CTRL+click.
  */
 function renderFavoriteModal() {
-  const s            = favoriteModalState;
+  const s = favoriteModalState;
   const hasWorkspace = !!state.workspaceFolder;
-  const command      = (state.data.commands || []).find(function (c) {
+  const command = (state.data.commands || []).find(function (c) {
     return c.id === s.commandId;
   });
-  const cmdTitle    = command ? command.title : "";
+  const cmdTitle = command ? command.title : "";
   const noneSelected = !s.selectedLocal && !s.selectedGlobal;
   // Only show warning/Unfavorite if command was already in at least one favorites list
   const wasInFavorites = isInFavorites(s.commandId);
@@ -141,8 +137,8 @@ function renderFavoriteModal() {
         <p class="delete-confirm-command-name">${escapeHtml(cmdTitle)}</p>
         <p class="modal-description">Select where to save this command as a favorite:</p>
         <div class="fav-modal-tags">
-          ${hasWorkspace ? `<button class="tag fav-modal-tag ${s.selectedLocal ? "active" : ""}" data-scope="local" data-tooltip="Save for this workspace only">Local Workspace</button>` : ""}
-          <button class="tag fav-modal-tag ${s.selectedGlobal ? "active" : ""}" data-scope="global" data-tooltip="Save for all workspaces">Global</button>
+          ${hasWorkspace ? `<button class="tag d-focus fav-modal-tag ${s.selectedLocal ? "active" : ""}" data-scope="local" data-tooltip="Save for this workspace only">Local Workspace</button>` : ""}
+          <button class="tag d-focus fav-modal-tag ${s.selectedGlobal ? "active" : ""}" data-scope="global" data-tooltip="Save for all workspaces">Global</button>
         </div>
         ${wasInFavorites && noneSelected ? `<p class="modal-description fav-modal-hint">No selection — clicking Save will remove from all favorites.</p>` : ""}
         <div class="row between mt-20">
@@ -164,13 +160,13 @@ function renderUnfavoriteConfirmModal() {
   if (!unfavoriteConfirmState.visible) {
     return "";
   }
-  const s       = unfavoriteConfirmState;
+  const s = unfavoriteConfirmState;
   const command = (state.data.commands || []).find(function (c) {
     return c.id === s.commandId;
   });
-  const cmdTitle   = command ? command.title : "";
+  const cmdTitle = command ? command.title : "";
   const scopeLabel = s.scope === "local" ? "Local Workspace" : "Global";
-  let skipConfirm  = false;
+  let skipConfirm = false;
   try {
     skipConfirm = localStorage.getItem("unfav_confirm_skip") === "1";
   } catch {}
@@ -214,14 +210,14 @@ function bindFavoritesTabEvents() {
   document.querySelectorAll(".btn-unfavorite").forEach(function (button) {
     button.addEventListener("click", function (e) {
       const commandId = button.dataset.commandId;
-      const scope     = uiState.favoritesScope;
+      const scope = uiState.favoritesScope;
 
       if (e.ctrlKey) {
         // CTRL+click → open unified manage modal with current state pre-filled
         favoriteModalState = {
-          visible:       true,
+          visible: true,
           commandId,
-          selectedLocal:  state.localFavorites.includes(commandId),
+          selectedLocal: state.localFavorites.includes(commandId),
           selectedGlobal: state.globalFavorites.includes(commandId),
         };
         render();
@@ -242,22 +238,14 @@ function bindFavoritesTabEvents() {
           });
           state.localFavorites = newLocal;
           persistFavorites({ local: newLocal });
-          showNotice(
-            "Removed from Local Workspace Favorites.",
-            icons.heartMinus,
-            "info",
-          );
+          showNotice("Removed from Local Workspace Favorites.", icons.heartMinus, "info");
         } else {
           const newGlobal = state.globalFavorites.filter(function (id) {
             return id !== commandId;
           });
           state.globalFavorites = newGlobal;
           persistFavorites({ global: newGlobal });
-          showNotice(
-            "Removed from Global Favorites.",
-            icons.heartMinus,
-            "info",
-          );
+          showNotice("Removed from Global Favorites.", icons.heartMinus, "info");
         }
         render();
       } else {
@@ -269,9 +257,7 @@ function bindFavoritesTabEvents() {
   });
 
   // Restore unfav confirmation dialog
-  const restoreUnfavConfirmBtn = document.getElementById(
-    "btn-restore-unfav-confirm",
-  );
+  const restoreUnfavConfirmBtn = document.getElementById("btn-restore-unfav-confirm");
   if (restoreUnfavConfirmBtn) {
     restoreUnfavConfirmBtn.addEventListener("click", function (e) {
       e.preventDefault();
@@ -315,14 +301,14 @@ function bindFavoriteModalEvents() {
           return id !== commandId;
         });
         state.globalFavorites = newGlobal;
-        state.localFavorites  = newLocal;
+        state.localFavorites = newLocal;
         persistFavorites({ global: newGlobal, local: newLocal });
         showNotice("Removed from all favorites.", icons.heartMinus, "info");
       }
       favoriteModalState = {
-        visible:       false,
-        commandId:     null,
-        selectedLocal:  false,
+        visible: false,
+        commandId: null,
+        selectedLocal: false,
         selectedGlobal: false,
       };
       render();
@@ -333,8 +319,8 @@ function bindFavoriteModalEvents() {
   const saveBtn = document.getElementById("btn-fav-save");
   if (saveBtn) {
     saveBtn.addEventListener("click", function () {
-      const commandId  = favoriteModalState.commandId;
-      const wantLocal  = favoriteModalState.selectedLocal;
+      const commandId = favoriteModalState.commandId;
+      const wantLocal = favoriteModalState.selectedLocal;
       const wantGlobal = favoriteModalState.selectedGlobal;
 
       if (commandId) {
@@ -363,17 +349,13 @@ function bindFavoriteModalEvents() {
         }
 
         state.globalFavorites = newGlobal;
-        state.localFavorites  = newLocal;
+        state.localFavorites = newLocal;
         persistFavorites({ global: newGlobal, local: newLocal });
 
         if (!wantGlobal && !wantLocal) {
           showNotice("Removed from all favorites.", icons.heartMinus, "info");
         } else if (wantGlobal && wantLocal) {
-          showNotice(
-            "Saved to Local & Global Favorites.",
-            icons.heartPlus,
-            "success",
-          );
+          showNotice("Saved to Local & Global Favorites.", icons.heartPlus, "success");
         } else if (wantGlobal) {
           showNotice("Saved to Global Favorites.", icons.heartPlus, "success");
         } else {
@@ -382,9 +364,9 @@ function bindFavoriteModalEvents() {
       }
 
       favoriteModalState = {
-        visible:       false,
-        commandId:     null,
-        selectedLocal:  false,
+        visible: false,
+        commandId: null,
+        selectedLocal: false,
         selectedGlobal: false,
       };
       render();
@@ -396,9 +378,9 @@ function bindFavoriteModalEvents() {
   if (cancelBtn) {
     cancelBtn.addEventListener("click", function () {
       favoriteModalState = {
-        visible:       false,
-        commandId:     null,
-        selectedLocal:  false,
+        visible: false,
+        commandId: null,
+        selectedLocal: false,
         selectedGlobal: false,
       };
       render();
@@ -420,7 +402,7 @@ function bindFavoriteModalEvents() {
             function () {
               box.classList.remove("modal-box-flash");
             },
-            { once: true },
+            { once: true }
           );
         }
       }
@@ -436,7 +418,7 @@ function bindUnfavoriteConfirmEvents() {
   if (removeBtn) {
     removeBtn.addEventListener("click", function () {
       const commandId = unfavoriteConfirmState.commandId;
-      const scope     = unfavoriteConfirmState.scope;
+      const scope = unfavoriteConfirmState.scope;
 
       // Save "don't show again" preference
       const checkbox = document.getElementById("unfav-dont-show-again");
@@ -490,7 +472,7 @@ function bindUnfavoriteConfirmEvents() {
             function () {
               box.classList.remove("modal-box-flash");
             },
-            { once: true },
+            { once: true }
           );
         }
       }

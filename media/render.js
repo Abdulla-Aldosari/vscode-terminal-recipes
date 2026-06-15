@@ -153,20 +153,14 @@ function render() {
       </header>
       <p class="workspace-label">Workspace: <code>${escapeHtml(state.workspaceFolder || "No workspace open")}</code></p>
 
-      ${
-        uiState.noticeMessage
-          ? `<div class="notice${uiState.noticeType ? " notice-" + uiState.noticeType : ""}"><div class="notice-icon">${uiState.noticeIcon}</div><div class="notice-message">${uiState.noticeMessage}</div></div>`
-          : ""
-      }
-
       <section class="card tabs-section">
         <div class="tabs">
-          <button class="tab ${!uiState.editingCommandId && uiState.activeTab === "recent" ? "active" : ""}" data-tab="recent">${icons.recent} Recent Commands</button>
-          <button class="tab ${!uiState.editingCommandId && uiState.activeTab === "favorites" ? "active" : ""}" data-tab="favorites">${icons.heart} Favorites</button>
-          <button class="tab ${!uiState.editingCommandId && uiState.activeTab === "categories" ? "active" : ""}" data-tab="categories">${icons.group} Categories & Groups</button>
-          <button class="tab ${!uiState.editingCommandId && uiState.activeTab === "commands" ? "active" : ""}" data-tab="commands">${icons.command} Commands</button>
-          <button class="tab tab-push-right ${!uiState.editingCommandId && uiState.activeTab === "add" ? "active" : ""}" data-tab="add" ${selectedCategory ? "" : "disabled"}>${icons.add} Add New Command</button>
-          <button class="tab ${!uiState.editingCommandId && uiState.activeTab === "variables" ? "active" : ""}" data-tab="variables">${icons.variables} Variables</button>
+          <button class="tab d-focus ${!uiState.editingCommandId && uiState.activeTab === "recent" ? "active" : ""}" data-tab="recent">${icons.recent} Recent Commands</button>
+          <button class="tab d-focus ${!uiState.editingCommandId && uiState.activeTab === "favorites" ? "active" : ""}" data-tab="favorites">${icons.heart} Favorites</button>
+          <button class="tab d-focus ${!uiState.editingCommandId && uiState.activeTab === "categories" ? "active" : ""}" data-tab="categories">${icons.group} Categories & Groups</button>
+          <button class="tab d-focus ${!uiState.editingCommandId && uiState.activeTab === "commands" ? "active" : ""}" data-tab="commands">${icons.command} Commands</button>
+          <button class="tab d-focus tab-push-right ${!uiState.editingCommandId && uiState.activeTab === "add" ? "active" : ""}" data-tab="add" ${selectedCategory ? "" : "disabled"}>${icons.add} Add New Command</button>
+          <button class="tab d-focus ${!uiState.editingCommandId && uiState.activeTab === "variables" ? "active" : ""}" data-tab="variables">${icons.variables} Variables</button>
         </div>
       </section>
 
@@ -201,6 +195,7 @@ function render() {
     </div>
   `;
 
+  paintNotice();
   bindEvents();
   // Auto-resize template textareas and initialize syntax highlight overlay
   document.querySelectorAll(".template-textarea").forEach(function (el) {

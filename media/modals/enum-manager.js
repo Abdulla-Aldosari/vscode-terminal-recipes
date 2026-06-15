@@ -13,7 +13,7 @@
  * Renders the Enum Manager modal for a specific variable.
  */
 function renderEnumManagerModal() {
-  const s      = enumManagerState;
+  const s = enumManagerState;
   const values = s.enumValues || [];
 
   const rowsHtml = values
@@ -25,8 +25,8 @@ function renderEnumManagerModal() {
         <td class="enum-cell-desc">${escapeHtml(item.description)}</td>
         <td class="enum-cell-actions">
           <div>
-            <button type="button" class="btn icon-btn small secondary btn-enum-edit" data-idx="${idx}" data-tooltip="Edit enum value">${icons.edit}</button>
-            <button type="button" class="btn icon-btn small danger btn-enum-delete" data-idx="${idx}" data-tooltip="Delete enum value">${icons.delete}</button>
+            <button type="button" class="btn icon-btn small secondary btn-enum-edit d-focus" data-idx="${idx}" data-tooltip="Edit enum value">${icons.edit}</button>
+            <button type="button" class="btn icon-btn small danger btn-enum-delete d-focus" data-idx="${idx}" data-tooltip="Delete enum value">${icons.delete}</button>
           </div>
         </td>
       </tr>
@@ -90,18 +90,14 @@ function bindEnumManagerEvents() {
     confirmBtn.addEventListener("click", function () {
       const titleInput = document.getElementById("enum-input-title");
       const valueInput = document.getElementById("enum-input-value");
-      const descInput  = document.getElementById("enum-input-desc");
+      const descInput = document.getElementById("enum-input-desc");
 
-      const title       = titleInput ? titleInput.value.trim() : "";
-      const value       = valueInput ? valueInput.value.trim() : "";
-      const description = descInput  ? descInput.value.trim()  : "";
+      const title = titleInput ? titleInput.value.trim() : "";
+      const value = valueInput ? valueInput.value.trim() : "";
+      const description = descInput ? descInput.value.trim() : "";
 
       if (!title || !value) {
-        showNotice(
-          "Title and Value are required.",
-          icons.exclamationTriangle,
-          "warning",
-        );
+        showNotice("Title and Value are required.", icons.exclamationTriangle, "warning");
         return;
       }
 
@@ -111,14 +107,14 @@ function bindEnumManagerEvents() {
           value,
           description,
         };
-        enumManagerState.editIndex       = null;
-        enumManagerState.editTitle       = "";
-        enumManagerState.editValue       = "";
+        enumManagerState.editIndex = null;
+        enumManagerState.editTitle = "";
+        enumManagerState.editValue = "";
         enumManagerState.editDescription = "";
       } else {
         enumManagerState.enumValues.push({ title, value, description });
-        enumManagerState.editTitle       = "";
-        enumManagerState.editValue       = "";
+        enumManagerState.editTitle = "";
+        enumManagerState.editValue = "";
         enumManagerState.editDescription = "";
       }
 
@@ -130,9 +126,9 @@ function bindEnumManagerEvents() {
   const cancelEditBtn = document.getElementById("btn-enum-edit-cancel");
   if (cancelEditBtn) {
     cancelEditBtn.addEventListener("click", function () {
-      enumManagerState.editIndex       = null;
-      enumManagerState.editTitle       = "";
-      enumManagerState.editValue       = "";
+      enumManagerState.editIndex = null;
+      enumManagerState.editTitle = "";
+      enumManagerState.editValue = "";
       enumManagerState.editDescription = "";
       render();
     });
@@ -141,14 +137,14 @@ function bindEnumManagerEvents() {
   // --- Edit row buttons ---
   document.querySelectorAll(".btn-enum-edit").forEach(function (btn) {
     btn.addEventListener("click", function () {
-      const idx  = parseInt(btn.dataset.idx, 10);
+      const idx = parseInt(btn.dataset.idx, 10);
       const item = enumManagerState.enumValues[idx];
       if (!item) {
         return;
       }
-      enumManagerState.editIndex       = idx;
-      enumManagerState.editTitle       = item.title;
-      enumManagerState.editValue       = item.value;
+      enumManagerState.editIndex = idx;
+      enumManagerState.editTitle = item.title;
+      enumManagerState.editValue = item.value;
       enumManagerState.editDescription = item.description;
       render();
     });
@@ -160,9 +156,9 @@ function bindEnumManagerEvents() {
       const idx = parseInt(btn.dataset.idx, 10);
       enumManagerState.enumValues.splice(idx, 1);
       if (enumManagerState.editIndex === idx) {
-        enumManagerState.editIndex       = null;
-        enumManagerState.editTitle       = "";
-        enumManagerState.editValue       = "";
+        enumManagerState.editIndex = null;
+        enumManagerState.editTitle = "";
+        enumManagerState.editValue = "";
         enumManagerState.editDescription = "";
       }
       render();
@@ -173,8 +169,8 @@ function bindEnumManagerEvents() {
   const saveBtn = document.getElementById("btn-enum-manager-save");
   if (saveBtn) {
     saveBtn.addEventListener("click", function () {
-      const varName    = enumManagerState.varName;
-      const commandId  = enumManagerState.commandId;
+      const varName = enumManagerState.varName;
+      const commandId = enumManagerState.commandId;
       const enumValues = enumManagerState.enumValues.slice();
 
       // Apply to the correct draft's variableMeta
@@ -224,13 +220,13 @@ function bindEnumManagerEvents() {
       }
 
       enumManagerState = {
-        visible:         false,
-        commandId:       null,
-        varName:         "",
-        enumValues:      [],
-        editIndex:       null,
-        editTitle:       "",
-        editValue:       "",
+        visible: false,
+        commandId: null,
+        varName: "",
+        enumValues: [],
+        editIndex: null,
+        editTitle: "",
+        editValue: "",
         editDescription: "",
       };
       render();
@@ -242,13 +238,13 @@ function bindEnumManagerEvents() {
   if (cancelBtn) {
     cancelBtn.addEventListener("click", function () {
       enumManagerState = {
-        visible:         false,
-        commandId:       null,
-        varName:         "",
-        enumValues:      [],
-        editIndex:       null,
-        editTitle:       "",
-        editValue:       "",
+        visible: false,
+        commandId: null,
+        varName: "",
+        enumValues: [],
+        editIndex: null,
+        editTitle: "",
+        editValue: "",
         editDescription: "",
       };
       render();
@@ -258,7 +254,7 @@ function bindEnumManagerEvents() {
   // --- Live input tracking ---
   const titleInput = document.getElementById("enum-input-title");
   const valueInput = document.getElementById("enum-input-value");
-  const descInput  = document.getElementById("enum-input-desc");
+  const descInput = document.getElementById("enum-input-desc");
 
   if (titleInput) {
     titleInput.addEventListener("input", function () {

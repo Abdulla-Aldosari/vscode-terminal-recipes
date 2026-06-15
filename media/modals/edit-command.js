@@ -11,19 +11,17 @@ function syncEditCommandDraftFromDom() {
     return;
   }
 
-  const titleInput       = document.getElementById("edit-command-title");
+  const titleInput = document.getElementById("edit-command-title");
   const descriptionInput = document.getElementById("edit-command-description");
-  const templateInput    = document.getElementById("edit-command-template");
-  const helpUrlInput     = document.getElementById("edit-command-help-url");
+  const templateInput = document.getElementById("edit-command-template");
+  const helpUrlInput = document.getElementById("edit-command-help-url");
 
   if (!titleInput || !templateInput) {
     return;
   }
 
   uiState.editCommandDraft.title = titleInput.value;
-  uiState.editCommandDraft.description = descriptionInput
-    ? descriptionInput.value
-    : "";
+  uiState.editCommandDraft.description = descriptionInput ? descriptionInput.value : "";
   uiState.editCommandDraft.template = templateInput.value;
   if (helpUrlInput) {
     uiState.editCommandDraft.helpUrl = helpUrlInput.value;
@@ -42,14 +40,12 @@ function syncEditCommandDraftFromCommand(command) {
     !uiState.editCommandDraft.groupId
   ) {
     uiState.editCommandDraft = {
-      title:          command.title || "",
-      template:       command.command || "",
-      description:    command.description || "",
-      groupId:        command.groupId || "",
-      helpUrl:        command.helpUrl || "",
-      variableMeta:   command.variableMeta
-        ? JSON.parse(JSON.stringify(command.variableMeta))
-        : {},
+      title: command.title || "",
+      template: command.command || "",
+      description: command.description || "",
+      groupId: command.groupId || "",
+      helpUrl: command.helpUrl || "",
+      variableMeta: command.variableMeta ? JSON.parse(JSON.stringify(command.variableMeta)) : {},
       targetCategoryId: command.categoryId || "",
     };
   }
@@ -67,21 +63,19 @@ function renderEditTab() {
   }
 
   syncEditCommandDraftFromCommand(command);
-  const editDraft        = uiState.editCommandDraft;
+  const editDraft = uiState.editCommandDraft;
   const targetCategoryId = editDraft.targetCategoryId || command.categoryId;
-  const allCategories    = state.data.categories || [];
-  const targetCategory   = allCategories.find(function (cat) {
+  const allCategories = state.data.categories || [];
+  const targetCategory = allCategories.find(function (cat) {
     return cat.id === targetCategoryId;
   });
-  const groups       = targetCategory ? targetCategory.groups || [] : [];
+  const groups = targetCategory ? targetCategory.groups || [] : [];
   const autoVarNames = getEnabledAutoVariableNames();
-  const variables    = collectVariables([
-    editDraft.template || command.command,
-  ]).filter(function (n) {
+  const variables = collectVariables([editDraft.template || command.command]).filter(function (n) {
     return !autoVarNames.includes(n);
   });
   const commandRemember = getCommandRemember(command.id);
-  const isMoved        = targetCategoryId !== command.categoryId;
+  const isMoved = targetCategoryId !== command.categoryId;
 
   return `
     <section class="card recipe-editor">
@@ -112,7 +106,7 @@ function renderEditTab() {
             targetCategoryId,
             "cs-btn-sm cs-btn-category", // btnExtraClass
             false, // menuUp
-            "cs-wrap-full", // wrapExtraClass
+            "cs-wrap-full" // wrapExtraClass
           )}
           ${isMoved ? `<span class="muted move-category-warning">${icons.exclamationTriangle} Moving to new category — (Please select a group from the list below)</span>` : ""}
         </div>
@@ -122,7 +116,7 @@ function renderEditTab() {
             ${groups.length === 0 ? `<span class="muted">No groups in this category.</span>` : ""}
             ${groups
               .map(function (group) {
-                return `<button type="button" class="tag edit-command-group-tag ${editDraft.groupId === group.id ? "active" : ""}" data-group-id="${escapeAttr(group.id)}">${escapeHtml(group.title)}</button>`;
+                return `<button type="button" class="tag d-focus edit-command-group-tag ${editDraft.groupId === group.id ? "active" : ""}" data-group-id="${escapeAttr(group.id)}">${escapeHtml(group.title)}</button>`;
               })
               .join("")}
           </div>
@@ -142,8 +136,8 @@ function renderEditTab() {
             </div>
             ${variables
               .map(function (name) {
-                const pref         = commandRemember[name] || (state.workspaceFolder ? "local" : "global");
-                const localDraftV  = getCommandLocalDraft(command.id);
+                const pref = commandRemember[name] || (state.workspaceFolder ? "local" : "global");
+                const localDraftV = getCommandLocalDraft(command.id);
                 const globalDraftV = getCommandGlobalDraft(command.id);
                 const sessionDraftV = getCommandSessionDraft(command.id);
                 let rawVal;
@@ -155,12 +149,11 @@ function renderEditTab() {
                   rawVal = sessionDraftV[name];
                 }
                 rawVal = rawVal !== undefined ? rawVal : "";
-                const isEmptyVal  = rawVal === RECIPES_EMPTY_VALUE;
-                const displayVal  = isEmptyVal ? "[EmptyValue]" : rawVal;
-                const meta        =
-                  editDraft.variableMeta && editDraft.variableMeta[name];
-                const isEnum      = meta && meta.type === "enum";
-                const enumCount   = isEnum ? meta.enumValues.length : 0;
+                const isEmptyVal = rawVal === RECIPES_EMPTY_VALUE;
+                const displayVal = isEmptyVal ? "[EmptyValue]" : rawVal;
+                const meta = editDraft.variableMeta && editDraft.variableMeta[name];
+                const isEnum = meta && meta.type === "enum";
+                const enumCount = isEnum ? meta.enumValues.length : 0;
                 return `
               <div class="variable-row">
                 <label class="variable-name">\${${escapeHtml(name)}}</label>
@@ -202,7 +195,7 @@ function renderEditTab() {
 
 function bindEditTabEvents() {
   const command = getEditingCommand();
-  const form    = document.getElementById("form-edit-command");
+  const form = document.getElementById("form-edit-command");
 
   if (!command || !form) {
     return;
@@ -212,10 +205,10 @@ function bindEditTabEvents() {
   // If the user presses Cancel, the snapshot is restored so no changes persist.
   if (!uiState.editCommandScopeSnapshot || uiState.editCommandScopeSnapshot.commandId !== command.id) {
     uiState.editCommandScopeSnapshot = {
-      commandId:       command.id,
-      local:           Object.assign({}, getCommandLocalDraft(command.id)),
-      global:          Object.assign({}, getCommandGlobalDraft(command.id)),
-      session:         Object.assign({}, getCommandSessionDraft(command.id)),
+      commandId: command.id,
+      local: Object.assign({}, getCommandLocalDraft(command.id)),
+      global: Object.assign({}, getCommandGlobalDraft(command.id)),
+      session: Object.assign({}, getCommandSessionDraft(command.id)),
       commandRemember: Object.assign({}, getCommandRemember(command.id)),
     };
   }
@@ -225,7 +218,7 @@ function bindEditTabEvents() {
     syncEditCommandDraftFromDom();
     const draft = uiState.editCommandDraft;
 
-    const titleTrimmed    = draft.title    ? draft.title.trim()    : "";
+    const titleTrimmed = draft.title ? draft.title.trim() : "";
     const templateTrimmed = draft.template ? draft.template.trim() : "";
 
     if (titleTrimmed.length < 3) {
@@ -241,29 +234,22 @@ function bindEditTabEvents() {
     }
 
     // Apply trimmed values
-    draft.title    = titleTrimmed;
+    draft.title = titleTrimmed;
     draft.template = templateTrimmed;
 
     if (!draft.groupId) {
-      showError(
-        "Please select at least one group from the list below.",
-        icons.exclamationTriangle,
-        "warning",
-      );
+      showError("Please select at least one group from the list below.", icons.exclamationTriangle, "warning");
       render();
       return;
     }
 
-    command.title       = draft.title;
+    command.title = draft.title;
     command.description = draft.description;
-    command.command     = draft.template;
-    command.groupId     = draft.groupId;
+    command.command = draft.template;
+    command.groupId = draft.groupId;
 
     // Apply category move if changed
-    if (
-      draft.targetCategoryId &&
-      draft.targetCategoryId !== command.categoryId
-    ) {
+    if (draft.targetCategoryId && draft.targetCategoryId !== command.categoryId) {
       command.categoryId = draft.targetCategoryId;
     }
 
@@ -276,11 +262,13 @@ function bindEditTabEvents() {
 
     // Read variable values from DOM → write to scope-specific drafts
     document.querySelectorAll(".variable-input").forEach(function (varInput) {
-      const cid   = varInput.dataset.commandId;
+      const cid = varInput.dataset.commandId;
       const vname = varInput.dataset.variableName;
-      if (!cid || !vname) { return; }
+      if (!cid || !vname) {
+        return;
+      }
       const scope = varInput.dataset.scope || getCommandRemember(cid)[vname] || "off";
-      const val   = varInput.dataset.isEmptyValue === "true" ? RECIPES_EMPTY_VALUE : varInput.value;
+      const val = varInput.dataset.isEmptyValue === "true" ? RECIPES_EMPTY_VALUE : varInput.value;
       if (scope === "local") {
         getCommandLocalDraft(cid)[vname] = val;
       } else if (scope === "global") {
@@ -291,31 +279,29 @@ function bindEditTabEvents() {
     });
 
     // Read toggle states from DOM → update commandRemember
-    document
-      .querySelectorAll(".variable-remember-toggle")
-      .forEach(function (container) {
-        const cid       = container.dataset.commandId;
-        const vname     = container.dataset.variableName;
-        const activeBtn = container.querySelector(".toggle-option-3.active");
-        if (cid && vname && activeBtn) {
-          const rm = getCommandRemember(cid);
-          rm[vname] = activeBtn.dataset.value;
-          uiState.commandRemember[cid] = rm;
-        }
-      });
+    document.querySelectorAll(".variable-remember-toggle").forEach(function (container) {
+      const cid = container.dataset.commandId;
+      const vname = container.dataset.variableName;
+      const activeBtn = container.querySelector(".toggle-option-3.active");
+      if (cid && vname && activeBtn) {
+        const rm = getCommandRemember(cid);
+        rm[vname] = activeBtn.dataset.value;
+        uiState.commandRemember[cid] = rm;
+      }
+    });
 
     const savedCommandId = command.id;
-    const returnTab      = uiState.editSourceTab || "commands";
+    const returnTab = uiState.editSourceTab || "commands";
     uiState.editCommandScopeSnapshot = null; // Discard snapshot — save was intentional
     uiState.editingCommandId = null;
     uiState.editCommandDraft = {
-      title:       "",
-      template:    "",
+      title: "",
+      template: "",
       description: "",
-      groupId:     "",
+      groupId: "",
     };
-    uiState.editSourceTab          = null;
-    uiState.activeTab              = returnTab;
+    uiState.editSourceTab = null;
+    uiState.activeTab = returnTab;
     uiState.pendingScrollCommandId = savedCommandId;
     persistDataThenRender("Command updated and saved.");
     persistCommandVariables();
@@ -325,38 +311,34 @@ function bindEditTabEvents() {
   if (cancelEditButton) {
     cancelEditButton.addEventListener("click", function () {
       const savedCommandId = command.id;
-      const returnTab      = uiState.editSourceTab || "commands";
+      const returnTab = uiState.editSourceTab || "commands";
 
       // Restore scope drafts from snapshot — discard all edits made in this session
       if (uiState.editCommandScopeSnapshot && uiState.editCommandScopeSnapshot.commandId === command.id) {
-        uiState.commandLocalDrafts[command.id]   = uiState.editCommandScopeSnapshot.local;
-        uiState.commandGlobalDrafts[command.id]  = uiState.editCommandScopeSnapshot.global;
+        uiState.commandLocalDrafts[command.id] = uiState.editCommandScopeSnapshot.local;
+        uiState.commandGlobalDrafts[command.id] = uiState.editCommandScopeSnapshot.global;
         uiState.commandSessionDrafts[command.id] = uiState.editCommandScopeSnapshot.session;
-        uiState.commandRemember[command.id]      = uiState.editCommandScopeSnapshot.commandRemember;
+        uiState.commandRemember[command.id] = uiState.editCommandScopeSnapshot.commandRemember;
         uiState.editCommandScopeSnapshot = null;
       }
 
       uiState.editingCommandId = null;
       uiState.editCommandDraft = {
-        title:       "",
-        template:    "",
+        title: "",
+        template: "",
         description: "",
-        groupId:     "",
+        groupId: "",
       };
-      uiState.editSourceTab          = null;
-      uiState.activeTab              = returnTab;
+      uiState.editSourceTab = null;
+      uiState.activeTab = returnTab;
       uiState.pendingScrollCommandId = savedCommandId;
       render();
     });
   }
 
   const editCommandTitleInput = document.getElementById("edit-command-title");
-  const editCommandTemplateInput = document.getElementById(
-    "edit-command-template",
-  );
-  const editCommandDescriptionInput = document.getElementById(
-    "edit-command-description",
-  );
+  const editCommandTemplateInput = document.getElementById("edit-command-template");
+  const editCommandDescriptionInput = document.getElementById("edit-command-description");
 
   if (editCommandTitleInput) {
     editCommandTitleInput.addEventListener("input", function () {
@@ -369,7 +351,7 @@ function bindEditTabEvents() {
       uiState.editCommandDraft.template = editCommandTemplateInput.value;
       // Preserve cursor position before re-render (to update variables section)
       const cursorStart = editCommandTemplateInput.selectionStart;
-      const cursorEnd   = editCommandTemplateInput.selectionEnd;
+      const cursorEnd = editCommandTemplateInput.selectionEnd;
       render();
       // Restore focus and cursor after re-render
       const restored = document.getElementById("edit-command-template");
@@ -386,24 +368,21 @@ function bindEditTabEvents() {
     });
   }
 
-  document
-    .querySelectorAll(".edit-command-group-tag")
-    .forEach(function (tabButton) {
-      tabButton.addEventListener("click", function () {
-        const groupId = tabButton.dataset.groupId;
-        uiState.editCommandDraft.groupId =
-          uiState.editCommandDraft.groupId === groupId ? "" : groupId;
-        render();
-      });
+  document.querySelectorAll(".edit-command-group-tag").forEach(function (tabButton) {
+    tabButton.addEventListener("click", function () {
+      const groupId = tabButton.dataset.groupId;
+      uiState.editCommandDraft.groupId = uiState.editCommandDraft.groupId === groupId ? "" : groupId;
+      render();
     });
+  });
 
   document.querySelectorAll(".variable-input").forEach(function (input) {
     // Write typed value to the correct scope draft based on data-scope attribute
     input.addEventListener("input", function () {
-      const commandId    = input.dataset.commandId;
+      const commandId = input.dataset.commandId;
       const variableName = input.dataset.variableName;
-      const scope        = input.dataset.scope || getCommandRemember(commandId)[variableName] || "off";
-      const val          = input.value;
+      const scope = input.dataset.scope || getCommandRemember(commandId)[variableName] || "off";
+      const val = input.value;
       if (scope === "local") {
         getCommandLocalDraft(commandId)[variableName] = val;
       } else if (scope === "global") {
@@ -413,7 +392,7 @@ function bindEditTabEvents() {
       }
       // Update scope indicator dots
       const toggleContainer = document.querySelector(
-        ".variable-remember-toggle[data-command-id=\"" + commandId + "\"][data-variable-name=\"" + variableName + "\"]"
+        '.variable-remember-toggle[data-command-id="' + commandId + '"][data-variable-name="' + variableName + '"]'
       );
       updateScopeIndicatorDots(toggleContainer, commandId, variableName, scope);
     });
@@ -423,12 +402,17 @@ function bindEditTabEvents() {
       if (e.altKey && e.key === "0") {
         e.preventDefault();
         const commandId = input.dataset.commandId;
-        const varName   = input.dataset.variableName;
-        const scope     = input.dataset.scope || getCommandRemember(commandId)[varName] || "off";
-        if (!varName || !commandId) { return; }
-        const scopeDraft = scope === "local" ? getCommandLocalDraft(commandId)
-                         : scope === "global" ? getCommandGlobalDraft(commandId)
-                         : getCommandSessionDraft(commandId);
+        const varName = input.dataset.variableName;
+        const scope = input.dataset.scope || getCommandRemember(commandId)[varName] || "off";
+        if (!varName || !commandId) {
+          return;
+        }
+        const scopeDraft =
+          scope === "local"
+            ? getCommandLocalDraft(commandId)
+            : scope === "global"
+              ? getCommandGlobalDraft(commandId)
+              : getCommandSessionDraft(commandId);
         if (input.dataset.isEmptyValue === "true") {
           const saved = input.dataset.preEmptyValue !== undefined ? input.dataset.preEmptyValue : "";
           input.removeAttribute("data-pre-empty-value");
@@ -461,7 +445,7 @@ function bindEditTabEvents() {
         uiState.editCommandDraft.groupId = ""; // reset group — it belongs to the new category
       }
       render();
-    },
+    }
   );
 
   // Bind helpUrl input in edit tab
@@ -475,14 +459,12 @@ function bindEditTabEvents() {
   // Bind Enum Manager buttons in edit tab
   document.querySelectorAll(".btn-open-enum-manager").forEach(function (btn) {
     btn.addEventListener("click", function () {
-      const varName   = btn.dataset.varName;
+      const varName = btn.dataset.varName;
       const commandId = btn.dataset.commandId || null;
 
       let currentEnumValues = [];
       if (commandId === null || commandId === "") {
-        const meta =
-          uiState.newCommandDraft.variableMeta &&
-          uiState.newCommandDraft.variableMeta[varName];
+        const meta = uiState.newCommandDraft.variableMeta && uiState.newCommandDraft.variableMeta[varName];
         currentEnumValues =
           meta && meta.type === "enum" && meta.enumValues
             ? meta.enumValues.map(function (e) {
@@ -490,9 +472,7 @@ function bindEditTabEvents() {
               })
             : [];
       } else {
-        const meta =
-          uiState.editCommandDraft.variableMeta &&
-          uiState.editCommandDraft.variableMeta[varName];
+        const meta = uiState.editCommandDraft.variableMeta && uiState.editCommandDraft.variableMeta[varName];
         currentEnumValues =
           meta && meta.type === "enum" && meta.enumValues
             ? meta.enumValues.map(function (e) {
@@ -502,13 +482,13 @@ function bindEditTabEvents() {
       }
 
       enumManagerState = {
-        visible:         true,
-        commandId:       commandId === "" ? null : commandId,
+        visible: true,
+        commandId: commandId === "" ? null : commandId,
         varName,
-        enumValues:      currentEnumValues,
-        editIndex:       null,
-        editTitle:       "",
-        editValue:       "",
+        enumValues: currentEnumValues,
+        editIndex: null,
+        editTitle: "",
+        editValue: "",
         editDescription: "",
       };
       render();
@@ -516,72 +496,73 @@ function bindEditTabEvents() {
   });
 
   // Bind toggle switches in edit tab — switches active scope without re-render
-  document
-    .querySelectorAll(".variable-remember-toggle")
-    .forEach(function (container) {
-      container.querySelectorAll(".toggle-option-3").forEach(function (btn) {
-        btn.addEventListener("click", function () {
-          if (btn.disabled) { return; }
+  document.querySelectorAll(".variable-remember-toggle").forEach(function (container) {
+    container.querySelectorAll(".toggle-option-3").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        if (btn.disabled) {
+          return;
+        }
 
-          const commandId    = container.dataset.commandId;
-          const variableName = container.dataset.variableName;
-          const newScope     = btn.dataset.value;
+        const commandId = container.dataset.commandId;
+        const variableName = container.dataset.variableName;
+        const newScope = btn.dataset.value;
 
-          // Find the corresponding input element
-          const inputEl = document.querySelector(
-            ".variable-input[data-command-id=\"" + commandId + "\"][data-variable-name=\"" + variableName + "\"]"
-          );
+        // Find the corresponding input element
+        const inputEl = document.querySelector(
+          '.variable-input[data-command-id="' + commandId + '"][data-variable-name="' + variableName + '"]'
+        );
 
-          // Step 1: Save current input value to current scope's draft before switching
-          if (inputEl) {
-            const currentActiveBtn = container.querySelector(".toggle-option-3.active");
-            const currentScope     = currentActiveBtn ? currentActiveBtn.dataset.value : "off";
-            const currentVal       = inputEl.dataset.isEmptyValue === "true"
-              ? RECIPES_EMPTY_VALUE
-              : inputEl.value;
-            const currentScopeDraft = currentScope === "local" ? getCommandLocalDraft(commandId)
-                                    : currentScope === "global" ? getCommandGlobalDraft(commandId)
-                                    : getCommandSessionDraft(commandId);
-            currentScopeDraft[variableName] = currentVal;
-          }
+        // Step 1: Save current input value to current scope's draft before switching
+        if (inputEl) {
+          const currentActiveBtn = container.querySelector(".toggle-option-3.active");
+          const currentScope = currentActiveBtn ? currentActiveBtn.dataset.value : "off";
+          const currentVal = inputEl.dataset.isEmptyValue === "true" ? RECIPES_EMPTY_VALUE : inputEl.value;
+          const currentScopeDraft =
+            currentScope === "local"
+              ? getCommandLocalDraft(commandId)
+              : currentScope === "global"
+                ? getCommandGlobalDraft(commandId)
+                : getCommandSessionDraft(commandId);
+          currentScopeDraft[variableName] = currentVal;
+        }
 
-          // Step 2: Update active class
-          container.querySelectorAll(".toggle-option-3").forEach(function (b) {
-            b.classList.remove("active");
-          });
-          btn.classList.add("active");
-
-          // Step 3: Update commandRemember (scope preference)
-          const rememberMap = getCommandRemember(commandId);
-          rememberMap[variableName] = newScope;
-          uiState.commandRemember[commandId] = rememberMap;
-
-          // Step 4: Load new scope's value into the input
-          if (inputEl) {
-            let newVal = "";
-            if (newScope === "local") {
-              newVal = getCommandLocalDraft(commandId)[variableName] || "";
-            } else if (newScope === "global") {
-              newVal = getCommandGlobalDraft(commandId)[variableName] || "";
-            } else {
-              newVal = getCommandSessionDraft(commandId)[variableName] || "";
-            }
-            const isEmptyValue = newVal === RECIPES_EMPTY_VALUE;
-            inputEl.value    = isEmptyValue ? "[EmptyValue]" : newVal;
-            inputEl.readOnly = isEmptyValue;
-            if (isEmptyValue) {
-              inputEl.setAttribute("data-is-empty-value", "true");
-            } else {
-              inputEl.removeAttribute("data-is-empty-value");
-            }
-            inputEl.removeAttribute("data-pre-empty-value");
-            inputEl.setAttribute("data-scope", newScope);
-          }
-
-          // Step 5: Update scope indicator dots
-          updateScopeIndicatorDots(container, commandId, variableName, newScope);
-          // No auto-save here — save happens on form submit
+        // Step 2: Update active class
+        container.querySelectorAll(".toggle-option-3").forEach(function (b) {
+          b.classList.remove("active");
         });
+        btn.classList.add("active");
+
+        // Step 3: Update commandRemember (scope preference)
+        const rememberMap = getCommandRemember(commandId);
+        rememberMap[variableName] = newScope;
+        uiState.commandRemember[commandId] = rememberMap;
+
+        // Step 4: Load new scope's value into the input
+        if (inputEl) {
+          let newVal = "";
+          if (newScope === "local") {
+            newVal = getCommandLocalDraft(commandId)[variableName] || "";
+          } else if (newScope === "global") {
+            newVal = getCommandGlobalDraft(commandId)[variableName] || "";
+          } else {
+            newVal = getCommandSessionDraft(commandId)[variableName] || "";
+          }
+          const isEmptyValue = newVal === RECIPES_EMPTY_VALUE;
+          inputEl.value = isEmptyValue ? "[EmptyValue]" : newVal;
+          inputEl.readOnly = isEmptyValue;
+          if (isEmptyValue) {
+            inputEl.setAttribute("data-is-empty-value", "true");
+          } else {
+            inputEl.removeAttribute("data-is-empty-value");
+          }
+          inputEl.removeAttribute("data-pre-empty-value");
+          inputEl.setAttribute("data-scope", newScope);
+        }
+
+        // Step 5: Update scope indicator dots
+        updateScopeIndicatorDots(container, commandId, variableName, newScope);
+        // No auto-save here — save happens on form submit
       });
     });
+  });
 }

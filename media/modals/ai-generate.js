@@ -147,13 +147,13 @@ function renderAiResultsModal() {
     isFullMode && groups.length > 0
       ? `
       <div class="group-tags-row">
-        <button class="tag group-filter-tag ${aiState.filterGroupId === "all" ? "active" : ""}" data-ai-filter="all">All (${allCommands.length})</button>
+        <button class="tag d-focus group-filter-tag ${aiState.filterGroupId === "all" ? "active" : ""}" data-ai-filter="all">All (${allCommands.length})</button>
         ${groups
           .map(function (g) {
             const count = allCommands.filter(function (cmd) {
               return cmd.groupId === g.id;
             }).length;
-            return `<button class="tag group-filter-tag ${aiState.filterGroupId === g.id ? "active" : ""}" data-ai-filter="${escapeAttr(g.id)}">${escapeHtml(g.title)} (${count})</button>`;
+            return `<button class="tag d-focus group-filter-tag ${aiState.filterGroupId === g.id ? "active" : ""}" data-ai-filter="${escapeAttr(g.id)}">${escapeHtml(g.title)} (${count})</button>`;
           })
           .join("")}
       </div>`

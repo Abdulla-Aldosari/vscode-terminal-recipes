@@ -36,10 +36,10 @@ function renderCommandsTab(selectedCategory) {
       </div>
       <div class="group-tags-row${uiState.sortingMode ? " sort-disabled-wrap" : ""}">
         <span class="groups-label">Groups:</span>
-        <button class="tag group-filter-tag ${uiState.selectedGroupId === "all" ? "active" : ""}" data-group-id="all">All</button>
+        <button class="tag d-focus group-filter-tag ${uiState.selectedGroupId === "all" ? "active" : ""}" data-group-id="all">All</button>
         ${groups
           .map(function (group) {
-            return `<button class="tag group-filter-tag ${uiState.selectedGroupId === group.id ? "active" : ""}" data-group-id="${escapeAttr(group.id)}">${escapeHtml(group.title)}</button>`;
+            return `<button class="tag d-focus group-filter-tag ${uiState.selectedGroupId === group.id ? "active" : ""}" data-group-id="${escapeAttr(group.id)}">${escapeHtml(group.title)}</button>`;
           })
           .join("")}
       </div>
@@ -63,7 +63,7 @@ function renderCustomCategorySelect() {
     uiState.selectedCategoryId,
     "", // btnExtraClass
     false, // menuUp
-    uiState.sortingMode ? "sort-disabled-wrap" : "",
+    uiState.sortingMode ? "sort-disabled-wrap" : ""
   );
 }
 
@@ -245,10 +245,7 @@ function bindDragAndDrop() {
       if (y < SCROLL_ZONE) {
         window.scrollBy(0, -SCROLL_SPEED * (1 - y / SCROLL_ZONE));
       } else if (y > vh - SCROLL_ZONE) {
-        window.scrollBy(
-          0,
-          SCROLL_SPEED * ((y - (vh - SCROLL_ZONE)) / SCROLL_ZONE),
-        );
+        window.scrollBy(0, SCROLL_SPEED * ((y - (vh - SCROLL_ZONE)) / SCROLL_ZONE));
       }
       autoScrollTimer = requestAnimationFrame(frame);
     }
@@ -338,19 +335,14 @@ function bindDragAndDrop() {
 
 function bindCommandsTabEvents() {
   // --- Custom category select ---
-  bindCustomSelect(
-    "custom-category-select",
-    "cs-btn-toggle",
-    "cs-menu",
-    function (value) {
-      setSelectedCategory(value);
-      uiState.selectedGroupId = "all";
-      try {
-        localStorage.setItem("selectedGroupId", "all");
-      } catch {}
-      render();
-    },
-  );
+  bindCustomSelect("custom-category-select", "cs-btn-toggle", "cs-menu", function (value) {
+    setSelectedCategory(value);
+    uiState.selectedGroupId = "all";
+    try {
+      localStorage.setItem("selectedGroupId", "all");
+    } catch {}
+    render();
+  });
 
   document.querySelectorAll(".group-filter-tag").forEach(function (tagButton) {
     tagButton.addEventListener("click", function () {
@@ -424,39 +416,28 @@ function bindCommandsTabEvents() {
     });
 
     // Checkbox change → update state + re-render table only (keep menu open)
-    colToggleMenu
-      .querySelectorAll(".col-toggle-checkbox")
-      .forEach(function (checkbox) {
-        checkbox.addEventListener("change", function (e) {
-          // Stop propagation so the pointerdown outside-click doesn't fire and close the menu
-          e.stopPropagation();
-          const colKey = checkbox.dataset.colKey;
-          if (
-            colKey &&
-            Object.prototype.hasOwnProperty.call(
-              uiState.columnVisibility,
-              colKey,
-            )
-          ) {
-            uiState.columnVisibility[colKey] = checkbox.checked;
-            // Persist to localStorage
-            try {
-              localStorage.setItem(
-                "columnVisibility",
-                JSON.stringify(uiState.columnVisibility),
-              );
-            } catch {}
-            // Re-render just the table panel without closing the menu
-            const tablePanel = document.querySelector(".table-panel");
-            if (tablePanel) {
-              const groups = getSelectedCategoryGroups();
-              const commands = getVisibleCommands();
-              tablePanel.innerHTML = renderCommandsTable(commands, groups);
-              bindCommandActionButtons();
-            }
+    colToggleMenu.querySelectorAll(".col-toggle-checkbox").forEach(function (checkbox) {
+      checkbox.addEventListener("change", function (e) {
+        // Stop propagation so the pointerdown outside-click doesn't fire and close the menu
+        e.stopPropagation();
+        const colKey = checkbox.dataset.colKey;
+        if (colKey && Object.prototype.hasOwnProperty.call(uiState.columnVisibility, colKey)) {
+          uiState.columnVisibility[colKey] = checkbox.checked;
+          // Persist to localStorage
+          try {
+            localStorage.setItem("columnVisibility", JSON.stringify(uiState.columnVisibility));
+          } catch {}
+          // Re-render just the table panel without closing the menu
+          const tablePanel = document.querySelector(".table-panel");
+          if (tablePanel) {
+            const groups = getSelectedCategoryGroups();
+            const commands = getVisibleCommands();
+            tablePanel.innerHTML = renderCommandsTable(commands, groups);
+            bindCommandActionButtons();
           }
-        });
+        }
       });
+    });
   }
 }
 
@@ -484,8 +465,7 @@ function performCommandAction(commandId, action, forceShowVariables) {
     const globalScopeBuffer = {};
     const sessionScopeBuffer = {};
     allVars.forEach(function (name) {
-      const pref =
-        rememberMap[name] || (state.workspaceFolder ? "local" : "global");
+      const pref = rememberMap[name] || (state.workspaceFolder ? "local" : "global");
       var lv = getCommandLocalDraft(commandId)[name];
       var gv = getCommandGlobalDraft(commandId)[name];
       var sv = getCommandSessionDraft(commandId)[name];
@@ -526,8 +506,7 @@ function performCommandAction(commandId, action, forceShowVariables) {
     const globalScopeBuffer = {};
     const sessionScopeBuffer = {};
     allVars.forEach(function (name) {
-      const pref =
-        rememberMap[name] || (state.workspaceFolder ? "local" : "global");
+      const pref = rememberMap[name] || (state.workspaceFolder ? "local" : "global");
       var lv = getCommandLocalDraft(commandId)[name];
       var gv = getCommandGlobalDraft(commandId)[name];
       var sv = getCommandSessionDraft(commandId)[name];
@@ -602,11 +581,9 @@ function bindCommandActionButtons() {
 
       if (missing.length > 0) {
         const autoVarNames = getEnabledAutoVariableNames();
-        const allVars = collectVariables([command.command]).filter(
-          function (name) {
-            return !autoVarNames.includes(name);
-          },
-        );
+        const allVars = collectVariables([command.command]).filter(function (name) {
+          return !autoVarNames.includes(name);
+        });
         const rememberMap = getCommandRemember(commandId);
         const inputValues = {};
         const rememberFlags = {};
@@ -614,8 +591,7 @@ function bindCommandActionButtons() {
         const globalScopeBuffer = {};
         const sessionScopeBuffer = {};
         allVars.forEach(function (name) {
-          const pref =
-            rememberMap[name] || (state.workspaceFolder ? "local" : "global");
+          const pref = rememberMap[name] || (state.workspaceFolder ? "local" : "global");
           var lv = getCommandLocalDraft(commandId)[name];
           var gv = getCommandGlobalDraft(commandId)[name];
           var sv = getCommandSessionDraft(commandId)[name];
@@ -688,9 +664,7 @@ function bindCommandActionButtons() {
           description: command.description || "",
           groupId: command.groupId || "",
           helpUrl: command.helpUrl || "",
-          variableMeta: command.variableMeta
-            ? JSON.parse(JSON.stringify(command.variableMeta))
-            : {},
+          variableMeta: command.variableMeta ? JSON.parse(JSON.stringify(command.variableMeta)) : {},
           targetCategoryId: command.categoryId || "",
         };
       }
@@ -778,11 +752,9 @@ function bindCommandActionButtons() {
         state.localFavorites = newLocal;
         persistFavorites({ global: newGlobal, local: newLocal });
         showNotice(
-          hasWorkspace
-            ? "Added to Global & Local Favorites."
-            : "Added to Global Favorites. (No workspace for local)",
+          hasWorkspace ? "Added to Global & Local Favorites." : "Added to Global Favorites. (No workspace for local)",
           icons.heartPlus,
-          "success",
+          "success"
         );
         render();
       } else if (ctrlOrMeta) {
@@ -797,11 +769,7 @@ function bindCommandActionButtons() {
       } else if (shift) {
         // Shift+Click → Add to Local (requires workspace)
         if (!hasWorkspace) {
-          showNotice(
-            "Local favorites require an open workspace.",
-            icons.exclamationTriangle,
-            "warning",
-          );
+          showNotice("Local favorites require an open workspace.", icons.exclamationTriangle, "warning");
           paintNotice();
           return;
         }
@@ -851,11 +819,7 @@ function bindCommandActionButtons() {
         state.globalFavorites = newGlobal;
         state.localFavorites = newLocal;
         persistFavorites({ global: newGlobal, local: newLocal });
-        showNotice(
-          "Removed from Global & Local Favorites.",
-          icons.heartMinus,
-          "info",
-        );
+        showNotice("Removed from Global & Local Favorites.", icons.heartMinus, "info");
         render();
       } else if (ctrlOrMeta) {
         // Ctrl+Right → Remove from Global
@@ -865,21 +829,13 @@ function bindCommandActionButtons() {
           });
           state.globalFavorites = newGlobal;
           persistFavorites({ global: newGlobal, local: state.localFavorites });
-          showNotice(
-            "Removed from Global Favorites.",
-            icons.heartMinus,
-            "info",
-          );
+          showNotice("Removed from Global Favorites.", icons.heartMinus, "info");
           render();
         }
       } else if (shift) {
         // Shift+Right → Remove from Local (requires workspace)
         if (!hasWorkspace) {
-          showNotice(
-            "Local favorites require an open workspace.",
-            icons.exclamationTriangle,
-            "warning",
-          );
+          showNotice("Local favorites require an open workspace.", icons.exclamationTriangle, "warning");
           paintNotice();
           return;
         }
@@ -903,26 +859,18 @@ function bindCommandActionButtons() {
 
   const confirmRunYesButton = document.getElementById("btn-confirm-run-yes");
   const confirmRunNoButton = document.getElementById("btn-confirm-run-no");
-  const confirmRunVariablesButton = document.getElementById(
-    "btn-confirm-run-variables",
-  );
+  const confirmRunVariablesButton = document.getElementById("btn-confirm-run-variables");
 
   // --- Shell selector dropdown ---
-  bindCustomSelect(
-    "shell-selector-wrap",
-    "shell-selector-btn",
-    "shell-selector-menu",
-    function (shellName) {
-      const profiles =
-        (state.terminalProfiles && state.terminalProfiles.profiles) || [];
-      const profile = profiles.find(function (p) {
-        return p.name === shellName;
-      });
-      runConfirmState.selectedShellName = shellName || null;
-      runConfirmState.selectedShellPath = profile ? profile.shellPath : null;
-      render();
-    },
-  );
+  bindCustomSelect("shell-selector-wrap", "shell-selector-btn", "shell-selector-menu", function (shellName) {
+    const profiles = (state.terminalProfiles && state.terminalProfiles.profiles) || [];
+    const profile = profiles.find(function (p) {
+      return p.name === shellName;
+    });
+    runConfirmState.selectedShellName = shellName || null;
+    runConfirmState.selectedShellPath = profile ? profile.shellPath : null;
+    render();
+  });
 
   if (confirmRunYesButton) {
     confirmRunYesButton.addEventListener("click", function () {
@@ -974,11 +922,9 @@ function bindCommandActionButtons() {
       }
 
       const autoVarNamesRunVars = getEnabledAutoVariableNames();
-      const allVars = collectVariables([command.command]).filter(
-        function (name) {
-          return !autoVarNamesRunVars.includes(name);
-        },
-      );
+      const allVars = collectVariables([command.command]).filter(function (name) {
+        return !autoVarNamesRunVars.includes(name);
+      });
 
       const rememberMap = getCommandRemember(commandId);
       const inputValues = {};
@@ -988,8 +934,7 @@ function bindCommandActionButtons() {
       const sessionScopeBuffer = {};
 
       allVars.forEach(function (name) {
-        const pref =
-          rememberMap[name] || (state.workspaceFolder ? "local" : "global");
+        const pref = rememberMap[name] || (state.workspaceFolder ? "local" : "global");
         var lv = getCommandLocalDraft(commandId)[name];
         var gv = getCommandGlobalDraft(commandId)[name];
         var sv = getCommandSessionDraft(commandId)[name];
@@ -1029,10 +974,7 @@ function bindCommandActionButtons() {
         const varName = input.dataset.variableName;
         if (!varName) return;
         if (input.dataset.isEmptyValue === "true") {
-          const saved =
-            input.dataset.preEmptyValue !== undefined
-              ? input.dataset.preEmptyValue
-              : "";
+          const saved = input.dataset.preEmptyValue !== undefined ? input.dataset.preEmptyValue : "";
           input.removeAttribute("data-pre-empty-value");
           input.readOnly = false;
           input.removeAttribute("data-is-empty-value");
@@ -1050,214 +992,180 @@ function bindCommandActionButtons() {
   });
 
   // Bind custom selects for enum variables in variable input modal
-  document
-    .querySelectorAll(".enum-input-wrap[data-variable-name]")
-    .forEach(function (wrapEl) {
-      const varName = wrapEl.dataset.variableName;
-      if (!varName) {
-        return;
-      }
-      bindCustomSelect(
-        "enum-var-wrap-" + varName,
-        "enum-var-btn-" + varName,
-        "enum-var-menu-" + varName,
-        function (selectedValue) {
-          const customInput = wrapEl.querySelector(
-            ".variable-modal-custom-input",
-          );
-          if (selectedValue === "__custom__") {
-            if (customInput) {
-              customInput.classList.remove("hidden");
-              customInput.focus();
-            }
-          } else {
-            if (customInput) {
-              customInput.classList.add("hidden");
-              customInput.value = selectedValue;
-              customInput.removeAttribute("data-is-empty-value");
-              customInput.readOnly = false;
-            }
-            variableInputState.inputValues[varName] = selectedValue;
+  document.querySelectorAll(".enum-input-wrap[data-variable-name]").forEach(function (wrapEl) {
+    const varName = wrapEl.dataset.variableName;
+    if (!varName) {
+      return;
+    }
+    bindCustomSelect(
+      "enum-var-wrap-" + varName,
+      "enum-var-btn-" + varName,
+      "enum-var-menu-" + varName,
+      function (selectedValue) {
+        const customInput = wrapEl.querySelector(".variable-modal-custom-input");
+        if (selectedValue === "__custom__") {
+          if (customInput) {
+            customInput.classList.remove("hidden");
+            customInput.focus();
           }
-        },
-      );
-    });
+        } else {
+          if (customInput) {
+            customInput.classList.add("hidden");
+            customInput.value = selectedValue;
+            customInput.removeAttribute("data-is-empty-value");
+            customInput.readOnly = false;
+          }
+          variableInputState.inputValues[varName] = selectedValue;
+        }
+      }
+    );
+  });
 
   // Bind toggle switches in variable input modal — switches active scope + updates input/dropdown value
-  document
-    .querySelectorAll(".variable-modal-remember-toggle")
-    .forEach(function (container) {
-      container.querySelectorAll(".toggle-option-3").forEach(function (btn) {
-        btn.addEventListener("click", function () {
-          if (btn.disabled) {
-            return;
+  document.querySelectorAll(".variable-modal-remember-toggle").forEach(function (container) {
+    container.querySelectorAll(".toggle-option-3").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        if (btn.disabled) {
+          return;
+        }
+
+        const varName = container.dataset.variableName;
+        const commandId = variableInputState.commandId;
+        const newScope = btn.dataset.value;
+
+        // Find the modal text input and the enum wrap for this variable
+        const inputEl = document.querySelector('.variable-modal-input[data-variable-name="' + varName + '"]');
+        const enumWrap = document.getElementById("enum-var-wrap-" + varName);
+
+        // Determine the current value from the modal (enum dropdown or text input)
+        var currentActiveVal = variableInputState.inputValues[varName] || "";
+        if (inputEl && !inputEl.classList.contains("hidden")) {
+          currentActiveVal = inputEl.dataset.isEmptyValue === "true" ? RECIPES_EMPTY_VALUE : inputEl.value;
+        }
+
+        // Step 1: Save current value to current scope BUFFER (not scope draft)
+        const currentActiveBtn = container.querySelector(".toggle-option-3.active");
+        const currentScope = currentActiveBtn ? currentActiveBtn.dataset.value : "off";
+        if (variableInputState.localScopeBuffer && currentScope === "local") {
+          variableInputState.localScopeBuffer[varName] = currentActiveVal;
+        } else if (variableInputState.globalScopeBuffer && currentScope === "global") {
+          variableInputState.globalScopeBuffer[varName] = currentActiveVal;
+        } else if (variableInputState.sessionScopeBuffer) {
+          variableInputState.sessionScopeBuffer[varName] = currentActiveVal;
+        }
+
+        // Step 2: Update active class
+        container.querySelectorAll(".toggle-option-3").forEach(function (b) {
+          b.classList.remove("active");
+        });
+        btn.classList.add("active");
+
+        // Step 3: Update rememberFlag
+        variableInputState.rememberFlags[varName] = newScope;
+
+        // Step 4: Load new scope's value from BUFFER
+        var newVal = "";
+        if (variableInputState.localScopeBuffer && newScope === "local") {
+          newVal = variableInputState.localScopeBuffer[varName] || "";
+        } else if (variableInputState.globalScopeBuffer && newScope === "global") {
+          newVal = variableInputState.globalScopeBuffer[varName] || "";
+        } else if (variableInputState.sessionScopeBuffer) {
+          newVal = variableInputState.sessionScopeBuffer[varName] || "";
+        }
+        variableInputState.inputValues[varName] = newVal;
+
+        // Step 5a: Update text input (for non-enum or enum custom input)
+        if (inputEl) {
+          const isEmptyValue = newVal === RECIPES_EMPTY_VALUE;
+          inputEl.value = isEmptyValue ? "[EmptyValue]" : newVal;
+          inputEl.readOnly = isEmptyValue;
+          if (isEmptyValue) {
+            inputEl.setAttribute("data-is-empty-value", "true");
+          } else {
+            inputEl.removeAttribute("data-is-empty-value");
           }
+          inputEl.removeAttribute("data-pre-empty-value");
+        }
 
-          const varName = container.dataset.variableName;
-          const commandId = variableInputState.commandId;
-          const newScope = btn.dataset.value;
-
-          // Find the modal text input and the enum wrap for this variable
-          const inputEl = document.querySelector(
-            '.variable-modal-input[data-variable-name="' + varName + '"]',
-          );
-          const enumWrap = document.getElementById("enum-var-wrap-" + varName);
-
-          // Determine the current value from the modal (enum dropdown or text input)
-          var currentActiveVal = variableInputState.inputValues[varName] || "";
-          if (inputEl && !inputEl.classList.contains("hidden")) {
-            currentActiveVal =
-              inputEl.dataset.isEmptyValue === "true"
-                ? RECIPES_EMPTY_VALUE
-                : inputEl.value;
-          }
-
-          // Step 1: Save current value to current scope BUFFER (not scope draft)
-          const currentActiveBtn = container.querySelector(
-            ".toggle-option-3.active",
-          );
-          const currentScope = currentActiveBtn
-            ? currentActiveBtn.dataset.value
-            : "off";
-          if (variableInputState.localScopeBuffer && currentScope === "local") {
-            variableInputState.localScopeBuffer[varName] = currentActiveVal;
-          } else if (
-            variableInputState.globalScopeBuffer &&
-            currentScope === "global"
-          ) {
-            variableInputState.globalScopeBuffer[varName] = currentActiveVal;
-          } else if (variableInputState.sessionScopeBuffer) {
-            variableInputState.sessionScopeBuffer[varName] = currentActiveVal;
-          }
-
-          // Step 2: Update active class
-          container.querySelectorAll(".toggle-option-3").forEach(function (b) {
-            b.classList.remove("active");
+        // Step 5b: If this is an Enum variable, also update the dropdown selection
+        if (enumWrap && commandId) {
+          const command = (state.data.commands || []).find(function (c) {
+            return c.id === commandId;
           });
-          btn.classList.add("active");
-
-          // Step 3: Update rememberFlag
-          variableInputState.rememberFlags[varName] = newScope;
-
-          // Step 4: Load new scope's value from BUFFER
-          var newVal = "";
-          if (variableInputState.localScopeBuffer && newScope === "local") {
-            newVal = variableInputState.localScopeBuffer[varName] || "";
-          } else if (
-            variableInputState.globalScopeBuffer &&
-            newScope === "global"
-          ) {
-            newVal = variableInputState.globalScopeBuffer[varName] || "";
-          } else if (variableInputState.sessionScopeBuffer) {
-            newVal = variableInputState.sessionScopeBuffer[varName] || "";
-          }
-          variableInputState.inputValues[varName] = newVal;
-
-          // Step 5a: Update text input (for non-enum or enum custom input)
-          if (inputEl) {
-            const isEmptyValue = newVal === RECIPES_EMPTY_VALUE;
-            inputEl.value = isEmptyValue ? "[EmptyValue]" : newVal;
-            inputEl.readOnly = isEmptyValue;
-            if (isEmptyValue) {
-              inputEl.setAttribute("data-is-empty-value", "true");
-            } else {
-              inputEl.removeAttribute("data-is-empty-value");
-            }
-            inputEl.removeAttribute("data-pre-empty-value");
-          }
-
-          // Step 5b: If this is an Enum variable, also update the dropdown selection
-          if (enumWrap && commandId) {
-            const command = (state.data.commands || []).find(function (c) {
-              return c.id === commandId;
+          const enumMeta = command && command.variableMeta && command.variableMeta[varName];
+          const isEnum = enumMeta && enumMeta.type === "enum" && enumMeta.enumValues && enumMeta.enumValues.length > 0;
+          if (isEnum) {
+            const displayVal = newVal === RECIPES_EMPTY_VALUE ? "" : newVal;
+            const isInEnum = enumMeta.enumValues.some(function (ev) {
+              return ev.value === displayVal;
             });
-            const enumMeta =
-              command && command.variableMeta && command.variableMeta[varName];
-            const isEnum =
-              enumMeta &&
-              enumMeta.type === "enum" &&
-              enumMeta.enumValues &&
-              enumMeta.enumValues.length > 0;
-            if (isEnum) {
-              const displayVal = newVal === RECIPES_EMPTY_VALUE ? "" : newVal;
-              const isInEnum = enumMeta.enumValues.some(function (ev) {
-                return ev.value === displayVal;
-              });
-              const btnEl = document.getElementById("enum-var-btn-" + varName);
-              const menuEl = document.getElementById(
-                "enum-var-menu-" + varName,
-              );
-              const customEl = enumWrap.querySelector(
-                ".variable-modal-custom-input",
-              );
+            const btnEl = document.getElementById("enum-var-btn-" + varName);
+            const menuEl = document.getElementById("enum-var-menu-" + varName);
+            const customEl = enumWrap.querySelector(".variable-modal-custom-input");
 
-              if (isInEnum) {
-                // Show the selected enum option
-                if (btnEl) {
-                  var lbl = btnEl.querySelector(".cs-btn-label");
-                  if (lbl) lbl.textContent = displayVal;
-                }
-                if (menuEl) {
-                  menuEl.querySelectorAll(".cs-item").forEach(function (item) {
-                    item.querySelectorAll(".cs-check").forEach(function (el) {
-                      el.remove();
-                    });
-                    if (item.dataset.value === displayVal) {
-                      item.insertAdjacentHTML("beforeend", icons.checkmark);
-                    }
+            if (isInEnum) {
+              // Show the selected enum option
+              if (btnEl) {
+                var lbl = btnEl.querySelector(".cs-btn-label");
+                if (lbl) lbl.textContent = displayVal;
+              }
+              if (menuEl) {
+                menuEl.querySelectorAll(".cs-item").forEach(function (item) {
+                  item.querySelectorAll(".cs-check").forEach(function (el) {
+                    el.remove();
                   });
-                }
-                if (customEl) {
-                  customEl.classList.add("hidden");
-                }
-                if (inputEl) {
-                  inputEl.classList.add("hidden");
-                }
-              } else {
-                // Switch to custom input mode
-                if (btnEl) {
-                  var lbl2 = btnEl.querySelector(".cs-btn-label");
-                  if (lbl2) lbl2.textContent = "✏️ Custom value...";
-                }
-                if (menuEl) {
-                  menuEl.querySelectorAll(".cs-item").forEach(function (item) {
-                    item.querySelectorAll(".cs-check").forEach(function (el) {
-                      el.remove();
-                    });
-                    if (item.dataset.value === "__custom__") {
-                      item.insertAdjacentHTML("beforeend", icons.checkmark);
-                    }
+                  if (item.dataset.value === displayVal) {
+                    item.insertAdjacentHTML("beforeend", icons.checkmark);
+                  }
+                });
+              }
+              if (customEl) {
+                customEl.classList.add("hidden");
+              }
+              if (inputEl) {
+                inputEl.classList.add("hidden");
+              }
+            } else {
+              // Switch to custom input mode
+              if (btnEl) {
+                var lbl2 = btnEl.querySelector(".cs-btn-label");
+                if (lbl2) lbl2.textContent = "✏️ Custom value...";
+              }
+              if (menuEl) {
+                menuEl.querySelectorAll(".cs-item").forEach(function (item) {
+                  item.querySelectorAll(".cs-check").forEach(function (el) {
+                    el.remove();
                   });
-                }
-                // When newVal is RECIPES_EMPTY_VALUE, Step 5a already set the correct "[EmptyValue]" readonly state — don't overwrite
-                if (customEl) {
-                  customEl.classList.remove("hidden");
-                  if (newVal !== RECIPES_EMPTY_VALUE) {
-                    customEl.value = displayVal;
+                  if (item.dataset.value === "__custom__") {
+                    item.insertAdjacentHTML("beforeend", icons.checkmark);
                   }
+                });
+              }
+              // When newVal is RECIPES_EMPTY_VALUE, Step 5a already set the correct "[EmptyValue]" readonly state — don't overwrite
+              if (customEl) {
+                customEl.classList.remove("hidden");
+                if (newVal !== RECIPES_EMPTY_VALUE) {
+                  customEl.value = displayVal;
                 }
-                if (inputEl) {
-                  inputEl.classList.remove("hidden");
-                  if (newVal !== RECIPES_EMPTY_VALUE) {
-                    inputEl.value = displayVal;
-                  }
+              }
+              if (inputEl) {
+                inputEl.classList.remove("hidden");
+                if (newVal !== RECIPES_EMPTY_VALUE) {
+                  inputEl.value = displayVal;
                 }
               }
             }
           }
+        }
 
-          // Step 6: Update scope indicator dots
-          updateScopeIndicatorDots(container, commandId, varName, newScope);
-        });
+        // Step 6: Update scope indicator dots
+        updateScopeIndicatorDots(container, commandId, varName, newScope);
       });
     });
+  });
 
-  var variableInputConfirmButton = document.getElementById(
-    "btn-variable-input-confirm",
-  );
-  var variableInputCancelButton = document.getElementById(
-    "btn-variable-input-cancel",
-  );
+  var variableInputConfirmButton = document.getElementById("btn-variable-input-confirm");
+  var variableInputCancelButton = document.getElementById("btn-variable-input-cancel");
 
   if (variableInputConfirmButton) {
     variableInputConfirmButton.addEventListener("click", function () {
@@ -1278,62 +1186,38 @@ function bindCommandActionButtons() {
       }
 
       // Collect remember flags from toggle switches in the modal DOM
-      document
-        .querySelectorAll(".variable-modal-remember-toggle")
-        .forEach(function (container) {
-          const varName = container.dataset.variableName;
-          const activeBtn = container.querySelector(".toggle-option-3.active");
-          variableInputState.rememberFlags[varName] = activeBtn
-            ? activeBtn.dataset.value
-            : "off";
-        });
+      document.querySelectorAll(".variable-modal-remember-toggle").forEach(function (container) {
+        const varName = container.dataset.variableName;
+        const activeBtn = container.querySelector(".toggle-option-3.active");
+        variableInputState.rememberFlags[varName] = activeBtn ? activeBtn.dataset.value : "off";
+      });
 
       // Collect current DOM values → update the active scope's buffer
-      document
-        .querySelectorAll(".variable-modal-input")
-        .forEach(function (input) {
-          const varName = input.dataset.variableName;
-          if (!varName) return;
-          const val =
-            input.dataset.isEmptyValue === "true"
-              ? RECIPES_EMPTY_VALUE
-              : input.value;
-          variableInputState.inputValues[varName] = val;
-          const scope = variableInputState.rememberFlags[varName] || "off";
-          if (scope === "local" && variableInputState.localScopeBuffer) {
-            variableInputState.localScopeBuffer[varName] = val;
-          } else if (
-            scope === "global" &&
-            variableInputState.globalScopeBuffer
-          ) {
-            variableInputState.globalScopeBuffer[varName] = val;
-          } else if (variableInputState.sessionScopeBuffer) {
-            variableInputState.sessionScopeBuffer[varName] = val;
-          }
-        });
+      document.querySelectorAll(".variable-modal-input").forEach(function (input) {
+        const varName = input.dataset.variableName;
+        if (!varName) return;
+        const val = input.dataset.isEmptyValue === "true" ? RECIPES_EMPTY_VALUE : input.value;
+        variableInputState.inputValues[varName] = val;
+        const scope = variableInputState.rememberFlags[varName] || "off";
+        if (scope === "local" && variableInputState.localScopeBuffer) {
+          variableInputState.localScopeBuffer[varName] = val;
+        } else if (scope === "global" && variableInputState.globalScopeBuffer) {
+          variableInputState.globalScopeBuffer[varName] = val;
+        } else if (variableInputState.sessionScopeBuffer) {
+          variableInputState.sessionScopeBuffer[varName] = val;
+        }
+      });
 
       // Write ALL scope buffers to their respective scope drafts (Cancel-safe approach)
       variableInputState.missingVariables.forEach(function (varName) {
-        if (
-          variableInputState.localScopeBuffer &&
-          variableInputState.localScopeBuffer[varName] !== undefined
-        ) {
-          getCommandLocalDraft(commandId)[varName] =
-            variableInputState.localScopeBuffer[varName];
+        if (variableInputState.localScopeBuffer && variableInputState.localScopeBuffer[varName] !== undefined) {
+          getCommandLocalDraft(commandId)[varName] = variableInputState.localScopeBuffer[varName];
         }
-        if (
-          variableInputState.globalScopeBuffer &&
-          variableInputState.globalScopeBuffer[varName] !== undefined
-        ) {
-          getCommandGlobalDraft(commandId)[varName] =
-            variableInputState.globalScopeBuffer[varName];
+        if (variableInputState.globalScopeBuffer && variableInputState.globalScopeBuffer[varName] !== undefined) {
+          getCommandGlobalDraft(commandId)[varName] = variableInputState.globalScopeBuffer[varName];
         }
-        if (
-          variableInputState.sessionScopeBuffer &&
-          variableInputState.sessionScopeBuffer[varName] !== undefined
-        ) {
-          getCommandSessionDraft(commandId)[varName] =
-            variableInputState.sessionScopeBuffer[varName];
+        if (variableInputState.sessionScopeBuffer && variableInputState.sessionScopeBuffer[varName] !== undefined) {
+          getCommandSessionDraft(commandId)[varName] = variableInputState.sessionScopeBuffer[varName];
         }
       });
 
@@ -1405,9 +1289,7 @@ function bindCommandActionButtons() {
     });
   }
 
-  var confirmDeleteYesButton = document.getElementById(
-    "btn-confirm-delete-yes",
-  );
+  var confirmDeleteYesButton = document.getElementById("btn-confirm-delete-yes");
   var confirmDeleteNoButton = document.getElementById("btn-confirm-delete-no");
 
   if (confirmDeleteYesButton) {
@@ -1441,17 +1323,13 @@ function executeDeleteConfirm() {
   }
 
   if (type === "category") {
-    state.data.categories = (state.data.categories || []).filter(
-      function (category) {
-        return category.id !== id;
-      },
-    );
+    state.data.categories = (state.data.categories || []).filter(function (category) {
+      return category.id !== id;
+    });
 
-    state.data.commands = (state.data.commands || []).filter(
-      function (command) {
-        return command.categoryId !== id;
-      },
-    );
+    state.data.commands = (state.data.commands || []).filter(function (command) {
+      return command.categoryId !== id;
+    });
 
     if (uiState.selectedCategoryId === id) {
       uiState.selectedCategoryId = "";
@@ -1482,17 +1360,12 @@ function executeDeleteConfirm() {
     var selectedCategory = getSelectedCategory();
 
     if (selectedCategory) {
-      selectedCategory.groups = (selectedCategory.groups || []).filter(
-        function (group) {
-          return group.id !== id;
-        },
-      );
+      selectedCategory.groups = (selectedCategory.groups || []).filter(function (group) {
+        return group.id !== id;
+      });
 
       (state.data.commands || []).forEach(function (command) {
-        if (
-          command.categoryId === selectedCategory.id &&
-          command.groupId === id
-        ) {
+        if (command.categoryId === selectedCategory.id && command.groupId === id) {
           command.groupId = "";
         }
       });
@@ -1507,11 +1380,9 @@ function executeDeleteConfirm() {
   }
 
   if (type === "command") {
-    state.data.commands = (state.data.commands || []).filter(
-      function (command) {
-        return command.id !== id;
-      },
-    );
+    state.data.commands = (state.data.commands || []).filter(function (command) {
+      return command.id !== id;
+    });
 
     delete uiState.commandDrafts[id];
     delete uiState.commandLocalDrafts[id];
@@ -1519,20 +1390,14 @@ function executeDeleteConfirm() {
     delete uiState.commandSessionDrafts[id];
     delete uiState.commandRemember[id];
 
-    if (
-      state.commandVariables.commands &&
-      Object.prototype.hasOwnProperty.call(state.commandVariables.commands, id)
-    ) {
+    if (state.commandVariables.commands && Object.prototype.hasOwnProperty.call(state.commandVariables.commands, id)) {
       delete state.commandVariables.commands[id];
     }
 
     if (
       state.globalCommandVariables &&
       state.globalCommandVariables.commands &&
-      Object.prototype.hasOwnProperty.call(
-        state.globalCommandVariables.commands,
-        id,
-      )
+      Object.prototype.hasOwnProperty.call(state.globalCommandVariables.commands, id)
     ) {
       delete state.globalCommandVariables.commands[id];
     }

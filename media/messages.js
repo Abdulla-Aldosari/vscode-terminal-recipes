@@ -29,12 +29,12 @@ window.addEventListener("message", function (event) {
 
   if (message.type === "saveResult") {
     if (message.payload && message.payload.success) {
-      showNotice("Saved successfully.", icons.circleCheck, "success");
+      showNotice("Saved successfully. XXXX", icons.circleCheck, "success");
     } else {
       showNotice(
         `Save failed: ${message.payload && message.payload.message ? message.payload.message : "Unknown error"}`,
         icons.circleX,
-        "error",
+        "error"
       );
     }
     // Page is already rendered by persistDataThenRender() — just update the notice element
@@ -44,30 +44,20 @@ window.addEventListener("message", function (event) {
 
   if (message.type === "actionResult") {
     if (message.payload && message.payload.success) {
-      showNotice(
-        `Action "${message.payload.action}" completed.`,
-        icons.circleCheck,
-        "info",
-      );
+      showNotice(`Action "${message.payload.action}" completed.`, icons.circleCheck, "info");
 
-      if (
-        message.payload.commandVariables &&
-        typeof message.payload.commandVariables === "object"
-      ) {
+      if (message.payload.commandVariables && typeof message.payload.commandVariables === "object") {
         state.commandVariables = message.payload.commandVariables;
       }
 
-      if (
-        message.payload.globalCommandVariables &&
-        typeof message.payload.globalCommandVariables === "object"
-      ) {
+      if (message.payload.globalCommandVariables && typeof message.payload.globalCommandVariables === "object") {
         state.globalCommandVariables = message.payload.globalCommandVariables;
       }
     } else {
       showNotice(
         `Action failed: ${message.payload && message.payload.message ? message.payload.message : "Unknown error"}`,
         icons.circleX,
-        "error",
+        "error"
       );
     }
 
@@ -90,15 +80,12 @@ window.addEventListener("message", function (event) {
 
   if (message.type === "aiSettingsResult") {
     if (message.payload) {
-      const providerName           = message.payload.providerName || "gemini";
-      aiState.providerName         = providerName;
+      const providerName = message.payload.providerName || "gemini";
+      aiState.providerName = providerName;
       aiState.settingsProviderName = providerName;
-      aiState.keyStatus            = message.payload.keyStatus || {};
+      aiState.keyStatus = message.payload.keyStatus || {};
       // Store provider setup data from providers-config.js (sent by extension)
-      if (
-        message.payload.aiProviderSetup &&
-        typeof message.payload.aiProviderSetup === "object"
-      ) {
+      if (message.payload.aiProviderSetup && typeof message.payload.aiProviderSetup === "object") {
         aiState.aiProviderSetup = message.payload.aiProviderSetup;
       }
       // Restore saved model selection — fall back to provider's default
@@ -132,7 +119,7 @@ window.addEventListener("message", function (event) {
       showNotice(
         `Failed to save settings: ${message.payload && message.payload.message ? message.payload.message : "Unknown error"}`,
         icons.circleX,
-        "error",
+        "error"
       );
       render();
     }
@@ -148,7 +135,7 @@ window.addEventListener("message", function (event) {
       showNotice(
         `Failed to remove key: ${message.payload && message.payload.error ? message.payload.error : "Unknown error"}`,
         icons.circleX,
-        "error",
+        "error"
       );
     }
     return;
@@ -157,25 +144,19 @@ window.addEventListener("message", function (event) {
   if (message.type === "aiGenerateResult") {
     if (message.payload && message.payload.success) {
       aiState.result = message.payload.result;
-      aiState.mode   = message.payload.mode;
+      aiState.mode = message.payload.mode;
       // Initialize all commands as checked
-      const cmds =
-        message.payload.mode === "full"
-          ? message.payload.result.commands || []
-          : [message.payload.result];
+      const cmds = message.payload.mode === "full" ? message.payload.result.commands || [] : [message.payload.result];
       const checked = {};
       cmds.forEach(function (cmd) {
         checked[cmd.id] = true;
       });
-      aiState.checkedIds    = checked;
+      aiState.checkedIds = checked;
       aiState.filterGroupId = "all";
-      aiState.error         = "";
-      aiState.view          = "results";
+      aiState.error = "";
+      aiState.view = "results";
     } else {
-      aiState.error =
-        message.payload && message.payload.message
-          ? message.payload.message
-          : "Unknown error";
+      aiState.error = message.payload && message.payload.message ? message.payload.message : "Unknown error";
       aiState.view = "prompt";
     }
     render();
@@ -184,20 +165,13 @@ window.addEventListener("message", function (event) {
 
   if (message.type === "aiInsertResult") {
     if (message.payload && message.payload.success) {
-      aiState.view   = null;
+      aiState.view = null;
       aiState.result = null;
       aiState.prompt = "";
-      aiState.error  = "";
-      showNotice(
-        `Inserted ${message.payload.count} command(s) successfully.`,
-        icons.circleCheck,
-        "success",
-      );
+      aiState.error = "";
+      showNotice(`Inserted ${message.payload.count} command(s) successfully.`, icons.circleCheck, "success");
     } else {
-      aiState.error =
-        message.payload && message.payload.message
-          ? message.payload.message
-          : "Unknown error";
+      aiState.error = message.payload && message.payload.message ? message.payload.message : "Unknown error";
       aiState.view = "results";
     }
     render();
@@ -206,19 +180,12 @@ window.addEventListener("message", function (event) {
 
   if (message.type === "saveAutoVariablesSettingsResult") {
     if (message.payload && message.payload.success) {
-      showNotice(
-        "Auto variables settings saved.",
-        icons.circleCheck,
-        "success",
-      );
+      showNotice("Auto variables settings saved.", icons.circleCheck, "success");
     } else {
       showNotice(
-        "Failed to save: " +
-          (message.payload && message.payload.message
-            ? message.payload.message
-            : "Unknown error"),
+        "Failed to save: " + (message.payload && message.payload.message ? message.payload.message : "Unknown error"),
         icons.circleX,
-        "error",
+        "error"
       );
     }
     // Page is already rendered — just insert the notice element directly

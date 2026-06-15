@@ -638,11 +638,12 @@ function showNotice(message, icon, type) {
     clearTimeout(noticeTimer);
   }
 
+  return;
+
   noticeTimer = setTimeout(function () {
     uiState.noticeMessage = "";
     uiState.noticeIcon = "";
     uiState.noticeType = "";
-    // Remove the notice element directly — no full re-render needed
     var noticeEl = document.querySelector(".notice");
     if (noticeEl) {
       noticeEl.remove();
@@ -679,12 +680,8 @@ function showError(message, icon, type) {
  * Call this after showNotice() / showError() when a full render is not needed.
  */
 function paintNotice() {
-  var layout = document.querySelector(".layout");
-  if (!layout) {
-    return;
-  }
   // Remove any existing notice
-  var existing = layout.querySelector(".notice");
+  var existing = document.querySelector(".notice");
   if (existing) {
     existing.remove();
   }
@@ -693,19 +690,22 @@ function paintNotice() {
   }
   var el = document.createElement("div");
   el.className = "notice" + (uiState.noticeType ? " notice-" + uiState.noticeType : "");
-  el.innerHTML =
-    '<div class="notice-icon">' +
-    uiState.noticeIcon +
-    '</div><div class="notice-message">' +
-    uiState.noticeMessage +
-    "</div>";
-  // Insert after workspace-label (2nd child), before the tabs section
-  var workspaceLabel = layout.querySelector(".workspace-label");
-  if (workspaceLabel && workspaceLabel.nextSibling) {
-    layout.insertBefore(el, workspaceLabel.nextSibling);
-  } else {
-    layout.appendChild(el);
-  }
+  el.innerHTML = `
+    <div class="notice-icon">${uiState.noticeIcon}</div>
+    <div class="notice-message">${uiState.noticeMessage}</div>
+    <button class="notice-close d-focus" aria-label="Dismiss">${icons.cancel}</button>
+  `;
+  el.querySelector(".notice-close").addEventListener("click", function () {
+    if (noticeTimer) {
+      clearTimeout(noticeTimer);
+      noticeTimer = null;
+    }
+    uiState.noticeMessage = "";
+    uiState.noticeIcon = "";
+    uiState.noticeType = "";
+    el.remove();
+  });
+  document.body.appendChild(el);
 }
 
 // ─── Scroll / DOM Helpers ─────────────────────────────────────────────────────
@@ -877,22 +877,22 @@ function renderActionsCell(command, options) {
     : "Insert into terminal (without running)";
 
   var useBtn = command.command.includes("\n")
-    ? `<button class="btn icon-btn secondary" disabled data-tooltip="Use is not available for multi-line commands">${icons.use}</button>`
-    : `<button class="btn icon-btn secondary btn-use action" data-command-id="${escapeAttr(command.id)}" data-tooltip="${escapeAttr(_useTitle)}">${icons.use}</button>`;
+    ? `<button class="btn icon-btn secondary d-focus" disabled data-tooltip="Use is not available for multi-line commands">${icons.use}</button>`
+    : `<button class="btn icon-btn secondary btn-use action d-focus" data-command-id="${escapeAttr(command.id)}" data-tooltip="${escapeAttr(_useTitle)}">${icons.use}</button>`;
 
   // ── Edit button ─────────────────────────────────────────────────────────────
   var editBtn = showEdit
-    ? `<button class="btn icon-btn secondary btn-edit action" data-command-id="${escapeAttr(command.id)}" data-tooltip="Edit command">${icons.edit}</button>`
+    ? `<button class="btn icon-btn secondary btn-edit action d-focus" data-command-id="${escapeAttr(command.id)}" data-tooltip="Edit command">${icons.edit}</button>`
     : "";
 
   // ── Explain button (Commands tab only) ─────────────────────────────────────
   var explainBtn = showEdit
-    ? `<button class="btn icon-btn secondary btn-explain" data-command-id="${escapeAttr(command.id)}" data-command="${escapeAttr(command.command)}" data-tooltip="Explain command with AI">${icons.explain}</button>`
+    ? `<button class="btn icon-btn secondary btn-explain d-focus" data-command-id="${escapeAttr(command.id)}" data-command="${escapeAttr(command.command)}" data-tooltip="Explain command with AI">${icons.explain}</button>`
     : "";
 
   // ── Delete button ───────────────────────────────────────────────────────────
   var deleteBtn = showDelete
-    ? `<button class="btn icon-btn danger btn-delete-command" data-command-id="${escapeAttr(command.id)}" data-tooltip="Delete command">${icons.delete}</button>`
+    ? `<button class="btn icon-btn danger btn-delete-command d-focus" data-command-id="${escapeAttr(command.id)}" data-tooltip="Delete command">${icons.delete}</button>`
     : "";
 
   // ── Favorite / Unfavorite button ────────────────────────────────────────────
@@ -916,22 +916,22 @@ function renderActionsCell(command, options) {
           : _fs === "global"
             ? "In Global Favorites<br>(click to manage)"
             : "In Local &amp; Global Favorites<br>(click to manage)";
-    favBtn = `<button class="btn icon-btn ${_cls} btn-add-favorite" data-command-id="${escapeAttr(command.id)}" data-tooltip="${escapeAttr(_tip)}" data-tooltip-pos="left">${_icon}</button>`;
+    favBtn = `<button class="btn icon-btn ${_cls} btn-add-favorite d-focus" data-command-id="${escapeAttr(command.id)}" data-tooltip="${escapeAttr(_tip)}" data-tooltip-pos="left">${_icon}</button>`;
   } else if (favoriteStyle === "unfavorite") {
     var _scope = uiState.favoritesScope;
     var _scopeLabel = _scope === "local" ? "Local Workspace" : "Global";
-    favBtn = `<button class="btn icon-btn secondary btn-unfavorite" data-command-id="${escapeAttr(command.id)}" data-tooltip="Remove from ${escapeAttr(_scopeLabel)} favorites<br>CTRL+click to open manage panel">${icons.heartMinus}</button>`;
+    favBtn = `<button class="btn icon-btn secondary btn-unfavorite d-focus" data-command-id="${escapeAttr(command.id)}" data-tooltip="Remove from ${escapeAttr(_scopeLabel)} favorites<br>CTRL+click to open manage panel">${icons.heartMinus}</button>`;
   }
 
   // ── Goto button ─────────────────────────────────────────────────────────────
   var gotoBtn = showGoto
-    ? `<button class="btn icon-btn secondary btn-goto-command" data-command-id="${escapeAttr(command.id)}" data-tooltip="Go to command in Commands tab">${icons.externalLink}</button>`
+    ? `<button class="btn icon-btn secondary btn-goto-command d-focus" data-command-id="${escapeAttr(command.id)}" data-tooltip="Go to command in Commands tab">${icons.externalLink}</button>`
     : "";
 
   return `<div class="actions-cell">
-      <button class="btn icon-btn success btn-run" data-command-id="${escapeAttr(command.id)}" data-tooltip="Run command">${icons.run}</button>
+      <button class="btn icon-btn success btn-run d-focus" data-command-id="${escapeAttr(command.id)}" data-tooltip="Run command">${icons.run}</button>
       ${useBtn}
-      <button class="btn icon-btn secondary btn-copy action" data-command-id="${escapeAttr(command.id)}" data-tooltip="Copy to clipboard">${icons.copy}</button>
+      <button class="btn icon-btn secondary btn-copy action d-focus" data-command-id="${escapeAttr(command.id)}" data-tooltip="Copy to clipboard">${icons.copy}</button>
       ${editBtn}
       ${explainBtn}
       ${deleteBtn}

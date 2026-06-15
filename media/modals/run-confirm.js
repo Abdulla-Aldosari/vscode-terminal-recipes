@@ -10,15 +10,15 @@ function renderToggleSwitch3(commandId, varName, currentValue, extraClass) {
   const noWorkspace = !state.workspaceFolder;
 
   // Check which scopes have stored values — used for the indicator dot
-  const localDraft  = getCommandLocalDraft(commandId);
+  const localDraft = getCommandLocalDraft(commandId);
   const globalDraft = getCommandGlobalDraft(commandId);
-  const hasLocal    = localDraft[varName] !== undefined && localDraft[varName] !== "";
-  const hasGlobal   = globalDraft[varName] !== undefined && globalDraft[varName] !== "";
+  const hasLocal = localDraft[varName] !== undefined && localDraft[varName] !== "";
+  const hasGlobal = globalDraft[varName] !== undefined && globalDraft[varName] !== "";
 
   const opts = [
-    { value: "local",  label: "Local",  disabled: noWorkspace, hasValue: hasLocal  },
-    { value: "off",    label: "Off",    disabled: false,        hasValue: false     },
-    { value: "global", label: "Global", disabled: false,        hasValue: hasGlobal },
+    { value: "local", label: "Local", disabled: noWorkspace, hasValue: hasLocal },
+    { value: "off", label: "Off", disabled: false, hasValue: false },
+    { value: "global", label: "Global", disabled: false, hasValue: hasGlobal },
   ];
 
   return `
@@ -27,7 +27,7 @@ function renderToggleSwitch3(commandId, varName, currentValue, extraClass) {
          data-tooltip="Active scope for this variable<br><strong>Local</strong> = use &amp; edit the workspace-local value<br><strong>Global</strong> = use &amp; edit the global value<br><strong>Off</strong> = session-only value (not saved to disk)">
       ${opts
         .map(function (opt) {
-          return `<button type="button" class="toggle-option-3 ${currentValue === opt.value ? "active" : ""}" data-value="${opt.value}" ${opt.disabled ? "disabled" : ""}>${opt.label}<span class="scope-value-dot${opt.hasValue ? " has-value" : ""}"></span></button>`;
+          return `<button type="button" class="toggle-option-3 d-focus ${currentValue === opt.value ? "active" : ""}" data-value="${opt.value}" ${opt.disabled ? "disabled" : ""}>${opt.label}<span class="scope-value-dot${opt.hasValue ? " has-value" : ""}"></span></button>`;
         })
         .join("")}
     </div>
@@ -35,8 +35,7 @@ function renderToggleSwitch3(commandId, varName, currentValue, extraClass) {
 }
 
 function renderShellSelector() {
-  const profiles =
-    (state.terminalProfiles && state.terminalProfiles.profiles) || [];
+  const profiles = (state.terminalProfiles && state.terminalProfiles.profiles) || [];
   if (!profiles.length) {
     return "";
   }
@@ -53,16 +52,13 @@ function renderShellSelector() {
     options,
     selectedShellName,
     "cs-btn-sm", // btnExtraClass
-    true,        // menuUp
+    true // menuUp
   );
 }
 
 function renderRunConfirmModal() {
   // Hide run confirm modal while variable input modal is open (returning to run confirm)
-  if (
-    !runConfirmState.commandId ||
-    (variableInputState.commandId && variableInputState.returnToRunConfirm)
-  ) {
+  if (!runConfirmState.commandId || (variableInputState.commandId && variableInputState.returnToRunConfirm)) {
     return "";
   }
 
@@ -123,19 +119,11 @@ function renderVariableInputModal() {
                     (state.workspaceFolder ? "local" : "global");
               // Show the value for the currently selected scope
               const currentValue =
-                variableInputState.inputValues[name] !== undefined
-                  ? variableInputState.inputValues[name]
-                  : "";
+                variableInputState.inputValues[name] !== undefined ? variableInputState.inputValues[name] : "";
               // Check if this variable has Enum metadata
-              const enumMeta =
-                cmdForMeta &&
-                cmdForMeta.variableMeta &&
-                cmdForMeta.variableMeta[name];
+              const enumMeta = cmdForMeta && cmdForMeta.variableMeta && cmdForMeta.variableMeta[name];
               const isEnum =
-                enumMeta &&
-                enumMeta.type === "enum" &&
-                enumMeta.enumValues &&
-                enumMeta.enumValues.length > 0;
+                enumMeta && enumMeta.type === "enum" && enumMeta.enumValues && enumMeta.enumValues.length > 0;
               // Check if current value is one of the enum values
               const isCustomValue =
                 isEnum &&
@@ -148,17 +136,13 @@ function renderVariableInputModal() {
                 const enumOptions = enumMeta.enumValues
                   .map(function (ev) {
                     return {
-                      value:   ev.value,
-                      label:   ev.value,
+                      value: ev.value,
+                      label: ev.value,
                       tooltip: ev.description || "",
                     };
                   })
-                  .concat([
-                    { value: "__custom__", label: "✏️ Custom value..." },
-                  ]);
-                const enumSelectedVal = isCustomValue
-                  ? "__custom__"
-                  : currentValue;
+                  .concat([{ value: "__custom__", label: "✏️ Custom value..." }]);
+                const enumSelectedVal = isCustomValue ? "__custom__" : currentValue;
                 return `
               <div class="variable-row variable-row-enum">
                 <label class="variable-name">\${${escapeHtml(name)}}</label>
@@ -171,7 +155,7 @@ function renderVariableInputModal() {
                     enumSelectedVal,
                     "cs-btn-sm cs-btn-enum-var", // btnExtraClass
                     false, // menuUp
-                    "cs-wrap-full", //
+                    "cs-wrap-full" //
                   )}
                   <input
                     class="input variable-modal-input variable-modal-custom-input${isCustomValue ? "" : " hidden"}"
