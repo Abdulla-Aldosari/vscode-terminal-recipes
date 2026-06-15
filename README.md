@@ -1,18 +1,14 @@
-<p align="center">
-  <img src="media/icon.png" alt="Terminal Recipes" width="128" />
-</p>
-
-<h1 align="center">Terminal Recipes</h1>
-
 <div align="center">
+
+<img src="media/icon.png" alt="Terminal Recipes" width="128" />
+
+# Terminal Recipes
 
 [![VS Marketplace](https://img.shields.io/visual-studio-marketplace/v/abdulla-aldosari.terminal-recipes?style=flat)](https://marketplace.visualstudio.com/items?itemName=abdulla-aldosari.terminal-recipes) [![Installs](https://img.shields.io/visual-studio-marketplace/i/abdulla-aldosari.terminal-recipes?style=flat)](https://marketplace.visualstudio.com/items?itemName=abdulla-aldosari.terminal-recipes) [![Rating](https://img.shields.io/visual-studio-marketplace/r/abdulla-aldosari.terminal-recipes?style=flat)](https://marketplace.visualstudio.com/items?itemName=abdulla-aldosari.terminal-recipes) [![Tests](https://img.shields.io/github/actions/workflow/status/Abdulla-Aldosari/vscode-terminal-recipes/test.yml?branch=main&style=flat)](https://github.com/Abdulla-Aldosari/vscode-terminal-recipes/actions/workflows/test.yml) [![License](https://img.shields.io/github/license/Abdulla-Aldosari/vscode-terminal-recipes?style=flat)](LICENSE)
 
-</div>
+**Organize, run, and generate terminal commands — with variables, favorites, and a built-in AI assistant.**
 
-<p align="center">
-  <strong>Organize, run, and generate terminal commands — with variables, favorites, and a built-in AI assistant.</strong>
-</p>
+</div>
 
 ---
 
