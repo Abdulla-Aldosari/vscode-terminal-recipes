@@ -5,21 +5,9 @@
 <h1 align="center">Terminal Recipes</h1>
 
 <p align="center">
-  <a href="https://marketplace.visualstudio.com/items?itemName=abdulla-aldosari.terminal-recipes">
-    <img src="https://img.shields.io/visual-studio-marketplace/v/abdulla-aldosari.terminal-recipes?style=flat-square&label=VS%20Marketplace&color=0078d7" alt="Marketplace Version" />
-  </a>
-  <a href="https://marketplace.visualstudio.com/items?itemName=abdulla-aldosari.terminal-recipes">
-    <img src="https://img.shields.io/visual-studio-marketplace/i/abdulla-aldosari.terminal-recipes?style=flat-square&label=Installs&color=brightgreen" alt="Installs" />
-  </a>
-  <a href="https://marketplace.visualstudio.com/items?itemName=abdulla-aldosari.terminal-recipes">
-    <img src="https://img.shields.io/visual-studio-marketplace/r/abdulla-aldosari.terminal-recipes?style=flat-square&label=Rating&color=orange" alt="Rating" />
-  </a>
-  <a href="https://github.com/Abdulla-Aldosari/vscode-terminal-recipes/actions/workflows/test.yml">
-    <img src="https://img.shields.io/github/actions/workflow/status/Abdulla-Aldosari/vscode-terminal-recipes/test.yml?branch=main&style=flat-square&label=Tests" alt="Tests" />
-  </a>
-  <a href="LICENSE">
-    <img src="https://img.shields.io/github/license/Abdulla-Aldosari/vscode-terminal-recipes?style=flat-square&color=lightgrey" alt="MIT License" />
-  </a>
+
+[![VS Marketplace](https://img.shields.io/visual-studio-marketplace/v/abdulla-aldosari.terminal-recipes?style=flat)](https://marketplace.visualstudio.com/items?itemName=abdulla-aldosari.terminal-recipes) [![Installs](https://img.shields.io/visual-studio-marketplace/i/abdulla-aldosari.terminal-recipes?style=flat)](https://marketplace.visualstudio.com/items?itemName=abdulla-aldosari.terminal-recipes) [![Rating](https://img.shields.io/visual-studio-marketplace/r/abdulla-aldosari.terminal-recipes?style=flat)](https://marketplace.visualstudio.com/items?itemName=abdulla-aldosari.terminal-recipes) [![Tests](https://img.shields.io/github/actions/workflow/status/Abdulla-Aldosari/vscode-terminal-recipes/test.yml?branch=main&style=flat)](https://github.com/Abdulla-Aldosari/vscode-terminal-recipes/actions/workflows/test.yml) [![License](https://img.shields.io/github/license/Abdulla-Aldosari/vscode-terminal-recipes?style=flat)](LICENSE)
+
 </p>
 
 <p align="center">
@@ -34,7 +22,7 @@ Terminal Recipes gives you a central panel inside VS Code to store and run your 
 
 ## Previews
 
-> *(Screenshots and GIFs coming soon — stored in `docs/images/`)*
+> _(Screenshots and GIFs coming soon — stored in `docs/images/`)_
 
 ---
 
@@ -46,11 +34,11 @@ Organize commands into **categories** and **groups** (e.g. MySQL → Setup, Buil
 
 ### ⚡ Three Ways to Run a Command
 
-| Action | What it does |
-|---|---|
-| **Run** | Executes the command immediately (with a confirmation dialog) |
-| **Use** | Pastes it into the terminal input so you can review or edit before running |
-| **Copy** | Copies the resolved command to your clipboard |
+| Action   | What it does                                                               |
+| -------- | -------------------------------------------------------------------------- |
+| **Run**  | Executes the command immediately (with a confirmation dialog)              |
+| **Use**  | Pastes it into the terminal input so you can review or edit before running |
+| **Copy** | Copies the resolved command to your clipboard                              |
 
 ### 🔤 Variables — Three Independent Scopes
 
@@ -58,11 +46,11 @@ Add `${variableName}` placeholders to any command template. When you run or use 
 
 Each variable can be saved in one of three independent scopes:
 
-| Scope | Saved to | Best for |
-|---|---|---|
-| **Local** | `.vscode/terminal-recipes.variables.json` | Values that differ per project |
-| **Global** | `~/.vscode-terminal-recipes/variables.json` | Values shared across all projects |
-| **Off** | Session memory only — never written to disk | One-time values you don't need to keep |
+| Scope      | Saved to                                    | Best for                               |
+| ---------- | ------------------------------------------- | -------------------------------------- |
+| **Local**  | `.vscode/terminal-recipes.variables.json`   | Values that differ per project         |
+| **Global** | `~/.vscode-terminal-recipes/variables.json` | Values shared across all projects      |
+| **Off**    | Session memory only — never written to disk | One-time values you don't need to keep |
 
 Switching the scope toggle never deletes the value stored in the other scopes.
 
@@ -114,9 +102,9 @@ To check the full changelog [click here](CHANGELOG.md).
 
 ## Keyboard Shortcut
 
-| Shortcut | Action |
-|---|---|
-| `F4 F4` | Open the Terminal Recipes panel |
+| Shortcut | Action                          |
+| -------- | ------------------------------- |
+| `F4 F4`  | Open the Terminal Recipes panel |
 
 ---
 
