@@ -1372,13 +1372,14 @@ code {
 .commands-table .main-t-description-column,
 .favorites-table .main-t-description-column {
   color: var(--recipes-descriptionForeground);
-  min-width: 200px;
+  min-width: 250px;
 }
 
 /* Template Column */
 .commands-table .main-t-template-column,
 .favorites-table .main-t-template-column {
   min-width: 450px;
+  width: 100%;
 }
 
 /* Groups Column */

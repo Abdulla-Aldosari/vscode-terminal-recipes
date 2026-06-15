@@ -638,8 +638,6 @@ function showNotice(message, icon, type) {
     clearTimeout(noticeTimer);
   }
 
-  return;
-
   noticeTimer = setTimeout(function () {
     uiState.noticeMessage = "";
     uiState.noticeIcon = "";
