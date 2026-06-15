@@ -19,6 +19,7 @@ Include as much of the following as possible:
 
 - A description of the vulnerability and its potential impact
 - Steps to reproduce the issue
+- VS Code version, and operating system
 - Any relevant code snippets, logs, or screenshots
 
 We will review your report and respond with any necessary actions. Thank you for your responsible disclosure.
