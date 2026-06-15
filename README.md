@@ -6,19 +6,19 @@
 
 [![VS Marketplace](https://img.shields.io/visual-studio-marketplace/v/abdulla-aldosari.terminal-recipes?style=flat)](https://marketplace.visualstudio.com/items?itemName=abdulla-aldosari.terminal-recipes) [![Installs](https://img.shields.io/visual-studio-marketplace/i/abdulla-aldosari.terminal-recipes?style=flat)](https://marketplace.visualstudio.com/items?itemName=abdulla-aldosari.terminal-recipes) [![Rating](https://img.shields.io/visual-studio-marketplace/r/abdulla-aldosari.terminal-recipes?style=flat)](https://marketplace.visualstudio.com/items?itemName=abdulla-aldosari.terminal-recipes) [![Tests](https://img.shields.io/github/actions/workflow/status/Abdulla-Aldosari/vscode-terminal-recipes/test.yml?branch=main&style=flat&color=green)](https://github.com/Abdulla-Aldosari/vscode-terminal-recipes/actions/workflows/test.yml) [![License](https://img.shields.io/github/license/Abdulla-Aldosari/vscode-terminal-recipes?style=flat&color=green)](LICENSE)
 
-**Organize, run, and generate terminal commands — with variables, favorites, and a built-in AI assistant.**
+**Organize, run, and generate terminal commands with variables, favorites, and a built-in AI assistant.**
 
 </div>
 
 ---
 
-Terminal Recipes gives you a central panel inside VS Code to store and run your frequently used terminal commands. Organize them by category and group, define reusable variables, and execute them with a single click — across every project you work on.
+Terminal Recipes gives you a central panel inside VS Code to store and run your frequently used terminal commands. Organize them by category and group, define reusable variables, and execute them with a single click across every project you work on.
 
 ---
 
 ## Previews
 
-> _(Screenshots and GIFs coming soon — stored in `docs/images/`)_
+> _(Screenshots and GIFs coming soon - stored in `docs/images/`)_
 
 ---
 
@@ -36,7 +36,7 @@ Organize commands into **categories** and **groups** (e.g. MySQL → Setup, Buil
 | **Use**  | Pastes it into the terminal input so you can review or edit before running |
 | **Copy** | Copies the resolved command to your clipboard                              |
 
-### 🔤 Variables — Three Independent Scopes
+### 🔤 Variables - Three Independent Scopes
 
 Add `${variableName}` placeholders to any command template. When you run or use a command, a dialog prompts you to fill in the values.
 
@@ -46,7 +46,7 @@ Each variable can be saved in one of three independent scopes:
 | ---------- | ------------------------------------------- | -------------------------------------- |
 | **Local**  | `.vscode/terminal-recipes.variables.json`   | Values that differ per project         |
 | **Global** | `~/.vscode-terminal-recipes/variables.json` | Values shared across all projects      |
-| **Off**    | Session memory only — never written to disk | One-time values you don't need to keep |
+| **Off**    | Session memory only - never written to disk | One-time values you don't need to keep |
 
 Switching the scope toggle never deletes the value stored in the other scopes.
 
@@ -57,17 +57,17 @@ Switching the scope toggle never deletes the value stored in the other scopes.
 
 Generate and understand commands without leaving VS Code:
 
-- **Generate** — Describe what you need in plain language and the AI produces a set of ready-to-insert commands.
-- **Explain** — Click the Explain button on any command to get a structured breakdown: what it does, what each part means, practical examples, and warnings.
+- **Generate**: Describe what you need in plain language and the AI produces a set of ready-to-insert commands.
+- **Explain**: Click the Explain button on any command to get a structured breakdown: what it does, what each part means, practical examples, and warnings.
 
 **8 AI providers supported:** Google Gemini · OpenAI · Anthropic Claude · DeepSeek · Groq · Mistral AI · Cohere · StepFun
 
-> Several providers offer **free tiers** — Gemini, DeepSeek, and Groq are good starting points.
+> Several providers offer **free tiers** - Gemini, DeepSeek, and Groq are good starting points.
 
 ### ⭐ Favorites & Recent Commands
 
-- **Favorites** — Mark any command as a favorite with Global or Workspace scope. Quick-add with a single click, or Ctrl+click to manage the scope. Jump back to the original command from the Favorites tab at any time.
-- **Recent** — Every command you run is tracked automatically. Revisit or re-run recent commands without searching the full list.
+- **Favorites**: Mark any command as a favorite with Global or Workspace scope. Quick-add with a single click, or Ctrl+click to manage the scope. Jump back to the original command from the Favorites tab at any time.
+- **Recent**: Every command you run is tracked automatically. Revisit or re-run recent commands without searching the full list.
 
 ---
 
@@ -76,7 +76,7 @@ Generate and understand commands without leaving VS Code:
 - 🤖 AI command generation and explanation with 8 provider options (including free tiers)
 - ⭐ Favorites system with Global and Workspace scope
 - 🔤 Three-scope variable system (Local / Global / Off) with per-variable independent storage
-- 📋 Enum Variables — predefine fixed option lists for any variable
+- 📋 Enum Variables - predefine fixed option lists for any variable
 
 To check the full changelog [click here](CHANGELOG.md).
 
@@ -106,8 +106,8 @@ To check the full changelog [click here](CHANGELOG.md).
 
 ## Documentation
 
-- [Settings Reference](docs/settings.md) — all configuration options explained
-- [Frequently Asked Questions](docs/faqs.md) — common questions and troubleshooting
+- [Settings Reference](docs/settings.md) - all configuration options explained
+- [Frequently Asked Questions](docs/faqs.md) - common questions and troubleshooting
 
 ---
 
