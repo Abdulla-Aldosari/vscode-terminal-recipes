@@ -1,6 +1,6 @@
 <div align="center">
 
-<div><img src="media/icon.png" alt="Terminal Recipes" width="128" /></div>
+<picture><img src="media/icon.png" alt="Terminal Recipes" width="128" /></picture>
 
 # Terminal Recipes
 
