@@ -105,7 +105,7 @@
     "vscode:prepublish": "npm run build",
     "test": "node testing/syntax.test.js && node testing/normalize.test.js && node testing/terminal.test.js && node testing/exports.test.js"
   },
-  "license": "MIT",
+  "license": "Apache-2.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/Abdulla-Aldosari/vscode-terminal-recipes"
