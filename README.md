@@ -4,7 +4,7 @@
 
 # Terminal Recipes
 
-[![VS Marketplace](https://img.shields.io/visual-studio-marketplace/v/abdulla-aldosari.terminal-recipes?style=flat)](https://marketplace.visualstudio.com/items?itemName=abdulla-aldosari.terminal-recipes) [![Tests](https://img.shields.io/github/actions/workflow/status/Abdulla-Aldosari/vscode-terminal-recipes/test.yml?branch=main&style=flat&color=green)](https://github.com/Abdulla-Aldosari/vscode-terminal-recipes/actions/workflows/test.yml) [![License](https://img.shields.io/badge/license-Apache%202.0-green?style=flat)](LICENSE)
+[![VS Marketplace](https://img.shields.io/visual-studio-marketplace/v/abdulla-aldosari.terminal-recipes?style=flat)](https://marketplace.visualstudio.com/items?itemName=abdulla-aldosari.terminal-recipes) [![Tests](https://img.shields.io/github/actions/workflow/status/Abdulla-Aldosari/vscode-terminal-recipes/test.yml?branch=main&style=flat)](https://github.com/Abdulla-Aldosari/vscode-terminal-recipes/actions/workflows/test.yml) [![License](https://img.shields.io/badge/license-Apache%202.0-green?style=flat)](LICENSE)
 
 **Organize, run, and generate terminal commands with variables, favorites, and a built-in AI assistant.**
 
