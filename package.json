@@ -6,7 +6,7 @@
   "publisher": "abdulla-aldosari",
   "icon": "media/icon.png",
   "engines": {
-    "vscode": "^1.86.0"
+    "vscode": "^1.90.0"
   },
   "categories": [
     "Other",
@@ -115,8 +115,8 @@
   "scripts": {
     "check": "node --check extension.js && node --check media/main.js",
     "lint": "eslint extension.js media/main.js lib/",
-    "build": "esbuild extension.js --bundle --outfile=dist/extension.js --external:vscode --platform=node --target=node18 --minify",
-    "watch": "esbuild extension.js --bundle --outfile=dist/extension.js --external:vscode --platform=node --target=node18 --sourcemap --watch",
+    "build": "esbuild extension.js --bundle --outfile=dist/extension.js --external:vscode --external:@opentelemetry/api --platform=node --target=node20 --minify",
+    "watch": "esbuild extension.js --bundle --outfile=dist/extension.js --external:vscode --external:@opentelemetry/api --platform=node --target=node20 --sourcemap --watch",
     "vscode:prepublish": "npm run build",
     "test": "node testing/syntax.test.js && node testing/normalize.test.js && node testing/terminal.test.js && node testing/exports.test.js"
   },
@@ -126,12 +126,12 @@
     "url": "https://github.com/Abdulla-Aldosari/vscode-terminal-recipes"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.52.0",
+    "@anthropic-ai/sdk": "^0.104.2",
     "@google/generative-ai": "^0.24.1",
     "@mistralai/mistralai": "^2.2.5",
     "cohere-ai": "^8.0.0",
     "groq-sdk": "^1.2.1",
-    "openai": "^4.103.0"
+    "openai": "^6.44.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
