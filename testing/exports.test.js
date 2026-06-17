@@ -222,10 +222,6 @@ expectFn(autoVars, "buildAutoVariablesPayload");
 // Results
 // ---------------------------------------------------------------------------
 
-test("Intentional failure — remove to restore green badge", function () {
-  assert.ok(false, "This failure is intentional. Delete this test to restore the green badge.");
-});
-
 console.log("\n" + "─".repeat(50));
 console.log(`  Total : ${passed + failed}`);
 console.log(`  Passed: ${passed}`);
