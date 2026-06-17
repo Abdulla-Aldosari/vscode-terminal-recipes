@@ -552,7 +552,7 @@ function performCommandAction(commandId, action, forceShowVariables) {
   dispatchCommandAction(commandId, action);
 }
 
-function dispatchCommandAction(commandId, action, shellPath, shellName) {
+function dispatchCommandAction(commandId, action, shellPath, shellName, activeFsPath) {
   const command = (state.data.commands || []).find(function (item) {
     return item.id === commandId;
   });
@@ -573,6 +573,7 @@ function dispatchCommandAction(commandId, action, shellPath, shellName) {
       commandVariables,
       ...(shellPath ? { shellPath } : {}),
       ...(shellName ? { shellName } : {}),
+      ...(activeFsPath ? { activeFsPath } : {}),
     },
   });
 }
@@ -885,16 +886,44 @@ function bindCommandActionButtons() {
     render();
   });
 
+  // --- Workspace folder selector (multi-root only) ---
+  if (state.workspaceFolders.length > 1) {
+    // Initialize selectedFsPath from current state if not yet set
+    if (!runConfirmState.selectedFsPath) {
+      runConfirmState.selectedFsPath = state.workspaceFolder || null;
+    }
+
+    // Set initial CSS variable for the command preview prefix
+    var _previewEl = document.querySelector("#run-confirm-overlay .modal-command-preview");
+    if (_previewEl) {
+      var _initFolder = state.workspaceFolders.find(function (f) {
+        return f.fsPath === runConfirmState.selectedFsPath;
+      });
+      if (_initFolder) {
+        _previewEl.style.setProperty("--cmd-preview-prefix", '"' + _initFolder.name + ' > "');
+      }
+    }
+
+    bindCustomSelect("run-confirm-folder-select", "run-confirm-folder-btn", "run-confirm-folder-menu", function (fsPath) {
+      runConfirmState.selectedFsPath = fsPath || null;
+      // Re-render the modal so the command preview resolves ${workspaceFolder} /
+      // ${workspaceName} using the newly selected folder (via withRunConfirmFolderContext)
+      render();
+    });
+  }
+
   if (confirmRunYesButton) {
     confirmRunYesButton.addEventListener("click", function () {
       const commandId = runConfirmState.commandId;
       const shellPath = runConfirmState.selectedShellPath || null;
       const shellName = runConfirmState.selectedShellName || null;
+      const activeFsPath = runConfirmState.selectedFsPath || state.workspaceFolder || null;
       runConfirmState = {
         commandId: null,
         resolvedCommand: "",
         selectedShellPath: shellPath,
         selectedShellName: shellName,
+        selectedFsPath: null,
       };
       render();
 
@@ -902,7 +931,7 @@ function bindCommandActionButtons() {
         return;
       }
 
-      dispatchCommandAction(commandId, "run", shellPath, shellName);
+      dispatchCommandAction(commandId, "run", shellPath, shellName, activeFsPath);
     });
   }
 
@@ -913,6 +942,7 @@ function bindCommandActionButtons() {
         resolvedCommand: "",
         selectedShellPath: runConfirmState.selectedShellPath,
         selectedShellName: runConfirmState.selectedShellName,
+        selectedFsPath: null,
       };
       render();
     });

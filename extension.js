@@ -13,7 +13,8 @@ const {
   readAutoVariablesSettings,
   readGlobalFavorites,
   readWorkspaceFavorites,
-  getFirstWorkspaceFolderPath,
+  getAllWorkspaceFolders,
+  resolveActiveWorkspaceFolder,
   GLOBAL_COMMANDS_FILE,
 } = require("./lib/storage");
 const { getTerminalProfiles } = require("./lib/terminal");
@@ -32,6 +33,49 @@ function activate(context) {
   const loggerOutputChannel = vscode.window.createOutputChannel("Terminal Recipes", "json");
   context.subscriptions.push(loggerOutputChannel);
   initLogger(loggerOutputChannel);
+
+  // ─── postState ────────────────────────────────────────────────────────────────
+  // Defined as a closure inside activate() so it has access to `context`
+  // (needed to read/write workspaceState for multi-root folder persistence).
+  // All handlers call postState(panel) — the closure signature matches.
+  async function postState(targetPanel) {
+    const savedFsPath      = context.workspaceState.get("activeWorkspaceFolder") || null;
+    const workspaceFolder  = resolveActiveWorkspaceFolder(savedFsPath);
+    const workspaceFolders = getAllWorkspaceFolders();
+
+    // Sync workspaceState: if the resolved folder differs from what was saved
+    // (e.g. saved folder was removed from workspace), update to the resolved value.
+    if (workspaceFolder !== savedFsPath) {
+      await context.workspaceState.update("activeWorkspaceFolder", workspaceFolder);
+    }
+
+    const data                   = await readGlobalCommandsData();
+    const commandVariables       = await readWorkspaceVariables(workspaceFolder);
+    const globalCommandVariables = await readGlobalVariables();
+    const terminalProfiles       = getTerminalProfiles();
+    const autoVariablesSettings  = await readAutoVariablesSettings();
+    const autoVariables          = buildAutoVariablesPayload({ workspaceFolder }, autoVariablesSettings);
+    const globalFavorites        = await readGlobalFavorites();
+    const localFavorites         = await readWorkspaceFavorites(workspaceFolder);
+
+    await targetPanel.webview.postMessage({
+      type: "state",
+      payload: {
+        data,
+        globalCommandsFile:    GLOBAL_COMMANDS_FILE,
+        workspaceFolder,
+        workspaceFolders,
+        commandVariables,
+        globalCommandVariables,
+        terminalProfiles,
+        autoVariables,
+        autoVariablesSettings,
+        globalFavorites,
+        localFavorites,
+      },
+    });
+  }
+  // ─────────────────────────────────────────────────────────────────────────────
 
   const openPanelCommand = vscode.commands.registerCommand(
     "terminalRecipes.openPanel",
@@ -104,10 +148,13 @@ function activate(context) {
             return;
           }
           if (message.type === "saveCommandVariables") {
-            await H.handleSaveCommandVariables(panel, message.payload);
+            // Inject activeFsPath so variables are written to the correct .vscode/ folder
+            const activeFsPath = context.workspaceState.get("activeWorkspaceFolder") || null;
+            await H.handleSaveCommandVariables(panel, Object.assign({}, message.payload, { activeFsPath }));
             return;
           }
           if (message.type === "performAction") {
+            // activeFsPath comes from the run-confirm folder dropdown in the webview payload
             await H.handlePerformAction(panel, message.payload, postState);
             return;
           }
@@ -120,7 +167,9 @@ function activate(context) {
             return;
           }
           if (message.type === "openLocalVariablesFile") {
-            await H.openLocalVariablesFile();
+            // Open the local variables file for the currently active workspace folder
+            const activeFsPath = context.workspaceState.get("activeWorkspaceFolder") || null;
+            await H.openLocalVariablesFile(activeFsPath);
             return;
           }
           if (message.type === "openExternalUrl") {
@@ -148,7 +197,9 @@ function activate(context) {
             return;
           }
           if (message.type === "saveFavorites") {
-            await H.handleSaveFavorites(panel, message.payload);
+            // Inject activeFsPath so favorites are written to the correct .vscode/ folder
+            const activeFsPath = context.workspaceState.get("activeWorkspaceFolder") || null;
+            await H.handleSaveFavorites(panel, Object.assign({}, message.payload, { activeFsPath }));
             return;
           }
           if (message.type === "aiListModels") {
@@ -165,6 +216,18 @@ function activate(context) {
           }
           if (message.type === "aiExplain") {
             await H.handleAiExplain(panel, context, message.payload);
+            return;
+          }
+          if (message.type === "setActiveWorkspaceFolder") {
+            // User selected a different folder from the header dropdown.
+            // Persist the choice in workspaceState and refresh the panel state.
+            const fsPath = message.payload && typeof message.payload.fsPath === "string"
+              ? message.payload.fsPath
+              : null;
+            if (fsPath) {
+              await context.workspaceState.update("activeWorkspaceFolder", fsPath);
+            }
+            await postState(panel);
             return;
           }
         },
@@ -195,39 +258,6 @@ function activate(context) {
  * No cleanup is required since VS Code handles subscription disposal automatically.
  */
 function deactivate() {}
-
-/**
- * Collects all application state (commands, variables, terminal profiles, favorites, etc.)
- * and sends it to the webview as a 'state' message.
- * @param {import('vscode').WebviewPanel} panel
- */
-async function postState(panel) {
-  const data = await readGlobalCommandsData();
-  const workspaceFolder = getFirstWorkspaceFolderPath();
-  const commandVariables = await readWorkspaceVariables();
-  const globalCommandVariables = await readGlobalVariables();
-  const terminalProfiles = getTerminalProfiles();
-  const autoVariablesSettings = await readAutoVariablesSettings();
-  const autoVariables = buildAutoVariablesPayload({ workspaceFolder }, autoVariablesSettings);
-  const globalFavorites = await readGlobalFavorites();
-  const localFavorites = await readWorkspaceFavorites();
-
-  await panel.webview.postMessage({
-    type: "state",
-    payload: {
-      data,
-      globalCommandsFile: GLOBAL_COMMANDS_FILE,
-      workspaceFolder,
-      commandVariables,
-      globalCommandVariables,
-      terminalProfiles,
-      autoVariables,
-      autoVariablesSettings,
-      globalFavorites,
-      localFavorites,
-    },
-  });
-}
 
 /**
  * Generates the full HTML content for the extension's webview panel.

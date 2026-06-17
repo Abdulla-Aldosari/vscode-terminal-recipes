@@ -50,8 +50,10 @@ Each variable can be saved in one of three independent scopes:
 
 Switching the scope toggle never deletes the value stored in the other scopes.
 
-**Auto Variables** (`$date`, `$user`, `$workspaceFolder`) resolve automatically without any input.  
+**Auto Variables** (`${date}`, `${username}`, `${workspaceFolder}`, `${workspaceName}`) resolve automatically without any input.  
 **Enum Variables** let you predefine a fixed list of options that appear as a dropdown at run time.
+
+> **Multi-Root Workspaces:** A workspace folder selector appears in the panel header when working with a multi-root workspace. Local variables, local favorites, and auto variables like `${workspaceFolder}` automatically reflect the selected folder. The Run confirmation dialog also includes a per-execution folder override that sets the terminal's working directory.
 
 ### 🤖 AI Assistant
 

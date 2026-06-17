@@ -86,6 +86,10 @@ function postAiDeleteKey(providerName) {
   vscode.postMessage({ type: "aiDeleteKey", payload: { providerName } });
 }
 
+function postSetActiveWorkspaceFolder(fsPath) {
+  vscode.postMessage({ type: "setActiveWorkspaceFolder", payload: { fsPath } });
+}
+
 // ─── Global Helpers ────────────────────────────────────────────────────────────
 
 // Disable right-click context menu unless text is selected

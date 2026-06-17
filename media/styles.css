@@ -51,11 +51,11 @@
     var(--recipes-settings-textInputBackground)
   );
 
-  --recipes-cornerRadius-xSmall: var(--vscode-cornerRadius-xSmall);
-  --recipes-cornerRadius-small: var(--vscode-cornerRadius-small);
-  --recipes-cornerRadius-medium: var(--vscode-cornerRadius-medium);
-  --recipes-cornerRadius-large: var(--vscode-cornerRadius-large);
-  --recipes-cornerRadius-xLarge: var(--vscode-cornerRadius-xLarge);
+  --recipes-cornerRadius-xSmall: var(--vscode-cornerRadius-xSmall); /* 2px or 0px depending on theme */
+  --recipes-cornerRadius-small: var(--vscode-cornerRadius-small); /*   4px or 0px depending on theme */
+  --recipes-cornerRadius-medium: var(--vscode-cornerRadius-medium); /* 6px or 0px depending on theme */
+  --recipes-cornerRadius-large: var(--vscode-cornerRadius-large); /*   8px or 0px depending on theme */
+  --recipes-cornerRadius-xLarge: var(--vscode-cornerRadius-xLarge); /* 10px or 0px depending on theme */
 }
 
 body[data-vscode-theme-id="Abyss"],
@@ -240,6 +240,23 @@ button:focus:not(.d-focus) {
 
 .workspace-label code {
   padding: 3px 6px;
+}
+
+/* ─── Workspace Folder Selector (multi-root) ─────────────────────────────── */
+.workspace-selector-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.workspace-selector-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .card {
@@ -609,10 +626,6 @@ textarea {
   background: var(--recipes-button-secondaryHoverBackground);
 }
 
-.min-w65 {
-  min-width: 65px;
-}
-
 .delete-confirm-command-name {
   font-size: 1rem;
   color: var(--recipes-textLink-foreground);
@@ -796,7 +809,7 @@ td.actions-cell {
   padding: 14px;
   display: grid;
   gap: 12px;
-  min-width: 250px;
+  min-width: min-content;
 }
 
 #variable-input-overlay .modal-box {
@@ -843,7 +856,7 @@ td.actions-cell {
 }
 
 .modal-command-preview::before {
-  content: "> ";
+  content: var(--cmd-preview-prefix, "> ");
   user-select: none;
   opacity: 0.5;
 }
@@ -889,6 +902,10 @@ td.actions-cell {
   margin-right: auto;
 }
 
+.mr-10 {
+  margin-right: 10px;
+}
+
 .opacity-85 {
   opacity: 0.85;
 }
@@ -899,6 +916,10 @@ td.actions-cell {
 
 .width-100 {
   width: 100%;
+}
+
+.min-w65 {
+  min-width: 65px;
 }
 
 .d-grid {
@@ -913,11 +934,15 @@ td.actions-cell {
   gap: 6px;
 }
 
+.f-nowrap {
+  flex-wrap: nowrap !important;
+}
+
 .margin-block-0 {
   margin-block: 0px;
 }
 
-.white-space-nowrap {
+.ws-nowrap {
   white-space: nowrap;
 }
 
@@ -1627,6 +1652,9 @@ input[type="checkbox"]:checked::after {
 
 /* Toggle link */
 .ai-history-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   font-size: 0.78rem;
   text-decoration: none;
   opacity: 0.75;
@@ -1658,7 +1686,7 @@ input[type="checkbox"]:checked::after {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 7px 12px 6px;
+  padding: 7px 10px 8px;
   border-bottom: 1px solid var(--vscode-widget-border, var(--vscode-panel-border));
   font-size: 0.78rem;
   font-weight: 600;
@@ -1671,7 +1699,8 @@ input[type="checkbox"]:checked::after {
 .ai-history-close {
   background: none;
   border: none;
-  padding: 0 2px;
+  border-radius: var(--recipes-cornerRadius-small, 4px);
+  padding: 4px 4px 1px 4px;
   cursor: pointer;
   font-size: 1rem;
   line-height: 1;
@@ -1681,6 +1710,7 @@ input[type="checkbox"]:checked::after {
 }
 .ai-history-close:hover {
   opacity: 1;
+  background-color: #85858538;
 }
 
 /* Popover list */
@@ -1781,7 +1811,7 @@ input[type="checkbox"]:checked::after {
 
 /* AI Results modal */
 .ai-results-box {
-  width: min(1300px, 96vw) !important;
+  width: min(1300px, 100%) !important;
   max-height: 90vh;
   overflow-y: auto;
 }

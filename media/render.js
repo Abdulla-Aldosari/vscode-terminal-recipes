@@ -26,6 +26,7 @@ function hydrateState(payload) {
   state.autoVariablesSettings = payload && payload.autoVariablesSettings ? payload.autoVariablesSettings : {};
   state.globalFavorites = payload && Array.isArray(payload.globalFavorites) ? payload.globalFavorites : [];
   state.localFavorites = payload && Array.isArray(payload.localFavorites) ? payload.localFavorites : [];
+  state.workspaceFolders = payload && Array.isArray(payload.workspaceFolders) ? payload.workspaceFolders : [];
 
   // If no workspace, force scope to 'global'
   if (!state.workspaceFolder && uiState.favoritesScope === "local") {
@@ -115,6 +116,36 @@ function ensureSelectionDefaults() {
 }
 
 /**
+ * Renders the workspace label bar below the header.
+ * - Single-root or no workspace: plain read-only text label (same as before).
+ * - Multi-root workspace: an interactive custom-select dropdown that lets the
+ *   user pick the active folder. The current folder is pre-selected.
+ * @returns {string} HTML string
+ */
+function renderWorkspaceLabel() {
+  if (state.workspaceFolders.length > 1) {
+    const options = state.workspaceFolders.map(function (f) {
+      return { value: f.fsPath, label: f.name };
+    });
+    const currentFsPath = state.workspaceFolder || (state.workspaceFolders[0] && state.workspaceFolders[0].fsPath) || "";
+    return `
+      <div class="workspace-selector-bar">
+        <span class="workspace-selector-label">${icons.folder} Workspace folder:</span>
+        ${renderCustomSelect(
+          "workspace-folder-select",
+          "workspace-folder-btn",
+          "workspace-folder-menu",
+          options,
+          currentFsPath,
+          "cs-btn-sm"
+        )}
+      </div>
+    `;
+  }
+  return `<p class="workspace-label">Workspace: <code>${escapeHtml(state.workspaceFolder || "No workspace open")}</code></p>`;
+}
+
+/**
  * Full re-render of the app. Rebuilds innerHTML of #app and re-binds all events.
  * Called after any state change. Also handles pending scroll highlights.
  */
@@ -151,7 +182,7 @@ function render() {
           <button id="btn-ai-settings" class="btn small secondary ai-settings-btn" data-tooltip="AI Settings">${icons.aiSettings} AI Settings</button>
         </div>
       </header>
-      <p class="workspace-label">Workspace: <code>${escapeHtml(state.workspaceFolder || "No workspace open")}</code></p>
+      ${renderWorkspaceLabel()}
 
       <section class="card tabs-section">
         <div class="tabs">
@@ -430,6 +461,13 @@ function bindTopActions() {
   if (openLocalVariablesFileButton) {
     openLocalVariablesFileButton.addEventListener("click", function () {
       vscode.postMessage({ type: "openLocalVariablesFile" });
+    });
+  }
+
+  // Workspace folder selector — only present in multi-root workspaces
+  if (state.workspaceFolders.length > 1) {
+    bindCustomSelect("workspace-folder-select", "workspace-folder-btn", "workspace-folder-menu", function (fsPath) {
+      vscode.postMessage({ type: "setActiveWorkspaceFolder", payload: { fsPath } });
     });
   }
 }

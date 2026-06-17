@@ -16,6 +16,16 @@ This file is shared across all your VS Code workspaces, so your recipes are alwa
 
 ---
 
+### Does Terminal Recipes support multi-root workspaces?
+
+Yes. When you open a multi-root workspace (a `.code-workspace` file with multiple folders), a **workspace folder selector** dropdown appears below the panel header. You can switch between folders at any time — local variables, local favorites, and auto variables like `${workspaceFolder}` and `${workspaceName}` all update to reflect the selected folder.
+
+The **Run confirmation dialog** also includes a per-execution folder override so you can run a specific command against a different folder without changing the panel's active selection. The terminal will open in the chosen folder's directory.
+
+The folder resolution behavior when opening the panel is controlled by the `terminalRecipes.multiRootFolderResolution` setting. See the [Settings Reference](settings.md) for details.
+
+---
+
 ### Can I back up my commands or share them with my team?
 
 Yes. Simply copy `~/.vscode-terminal-recipes/commands.json` to a safe location or commit it to a shared repository. To restore, replace the file at the same path. Anyone with this file can import your full set of commands by placing it at the same path on their machine.
@@ -54,11 +64,12 @@ Auto Variables are built-in variables that are resolved automatically without an
 
 | Variable | Resolved value |
 |---|---|
-| `$date` | Today's date |
-| `$user` | Your operating system username |
-| `$workspaceFolder` | The full path to the currently open workspace folder |
+| `${date}` | Today's date (configurable format) |
+| `${username}` | Your operating system username |
+| `${workspaceFolder}` | The full path to the active workspace folder. In multi-root workspaces, reflects the folder selected in the panel's workspace selector. |
+| `${workspaceName}` | The folder name (basename) of the active workspace folder. In multi-root workspaces, reflects the selected folder. |
 
-You can also use `${workspaceFolder}` directly in any command template — it resolves to the same value as `$workspaceFolder`.
+> **Multi-root workspaces:** `${workspaceFolder}` and `${workspaceName}` always reflect the folder that is currently active in the panel. Switching the workspace folder dropdown updates these values for all subsequent command executions. You can also override them per-execution in the Run confirmation dialog.
 
 ---
 

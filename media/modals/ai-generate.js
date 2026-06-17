@@ -67,11 +67,14 @@ function renderAiPromptModal() {
   const historyHtml = promptHistory.length
     ? `
             <div class="ai-history-anchor">
-              <a href="#" class="ai-history-toggle muted" id="btn-ai-history-toggle">🕐 Recent prompts (${promptHistory.length})</a>
+              <a href="#" class="ai-history-toggle muted" id="btn-ai-history-toggle">${icons.recent} Recent prompts (${promptHistory.length})</a>
               <div class="ai-history-popover${aiState.promptHistoryOpen ? " open" : ""}" id="ai-history-popover">
                 <div class="ai-history-header">
-                  <span>Recent prompts</span>
-                  <button class="ai-history-close" id="btn-ai-history-close" type="button" aria-label="Close">×</button>
+                  <div class="d-flex align-items-center gap-6">
+                    ${icons.recent}
+                    <span>Recent prompts</span>
+                  </div>
+                  <button class="ai-history-close d-focus" id="btn-ai-history-close" type="button" aria-label="Close">${icons.cancel}</button>
                 </div>
                 <ul class="ai-history-list">${promptHistory
                   .map(function (p, i) {
@@ -88,7 +91,7 @@ function renderAiPromptModal() {
         <h3>${contextLabel}</h3>
         ${aiState.error ? `<p class="ai-error-msg">❌ ${escapeHtml(aiState.error)}</p>` : ""}
         <div class="ai-prompt-label-row">
-          <span>Describe what you need</span>
+          <span class="ws-nowrap mr-10">Describe what you need</span>
           ${shellSelectorHtml}
         </div>
         <div class="ai-prompt-textarea-wrap">

@@ -109,6 +109,7 @@ let runConfirmState = {
   resolvedCommand:  "",
   selectedShellPath: null,
   selectedShellName: null,
+  selectedFsPath:   null, // Active workspace folder for this execution (multi-root only)
 };
 
 let variableInputState = {
@@ -229,4 +230,5 @@ const state = {
   autoVariablesSettings: {},
   globalFavorites:      [],
   localFavorites:       [],
+  workspaceFolders:     [], // Array<{ name: string, fsPath: string }> — all open workspace folders (multi-root)
 };

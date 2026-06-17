@@ -148,6 +148,8 @@ expectConst(storage, "GLOBAL_FAVORITES_FILE");
 // Functions
 expectFn(storage, "fileExists");
 expectFn(storage, "getFirstWorkspaceFolderPath");
+expectFn(storage, "getAllWorkspaceFolders");
+expectFn(storage, "resolveActiveWorkspaceFolder");
 expectFn(storage, "getWorkspaceVariablesFilePath");
 expectFn(storage, "ensureGlobalCommandsFile");
 expectFn(storage, "readGlobalCommandsData");
@@ -163,12 +165,12 @@ expectFn(storage, "readWorkspaceFavorites");
 expectFn(storage, "writeGlobalFavorites");
 expectFn(storage, "writeWorkspaceFavorites");
 
-test("has exactly 21 exports (5 constants + 16 functions)", function () {
+test("has exactly 23 exports (5 constants + 18 functions)", function () {
   const keys = Object.keys(storage);
   assert.strictEqual(
     keys.length,
-    21,
-    `Expected 21 exports, got ${keys.length}: ${keys.join(", ")}`,
+    23,
+    `Expected 23 exports, got ${keys.length}: ${keys.join(", ")}`,
   );
 });
 

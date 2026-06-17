@@ -8,8 +8,6 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-<!-- Add upcoming changes here before the next release. -->
-
 ---
 
 ## [1.0.0] - 2026-06-15
@@ -35,3 +33,5 @@ Versions follow [Semantic Versioning](https://semver.org/).
 - **Open JSON Files** — Open `commands.json`, local variables file, or global variables file directly in the VS Code editor from the panel header.
 - **Keyboard Shortcut** — Open the panel with `F4 F4` (double press).
 - **Command Palette** — Open the panel via `Terminal Recipes: Open Panel`.
+- **Multi-Root Workspace Support** — When opening a multi-root workspace, a workspace folder selector dropdown appears below the panel header. Local variables, local favorites, and auto variables (`${workspaceFolder}`, `${workspaceName}`) all update to reflect the selected folder. The Run confirmation dialog includes a per-execution folder override that also sets the terminal's working directory (`cwd`).
+- **`terminalRecipes.multiRootFolderResolution` setting** — Controls how the active workspace folder is resolved when opening the panel in a multi-root workspace. Accepted values: `"remember"` (default — persists the last selection per workspace), `"followEditor"` (follows the active text editor's folder), `"alwaysFirst"` (always uses the first folder, no selector shown). Has no effect in single-folder workspaces.
