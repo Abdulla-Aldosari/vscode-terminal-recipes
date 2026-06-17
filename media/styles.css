@@ -2653,7 +2653,7 @@ kbd {
   border-radius: 6px;
   display: flex;
   flex-direction: column;
-  width: min(700px, 100%);
+  width: min(1100px, 100%);
   max-height: 82vh;
   overflow: hidden;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
