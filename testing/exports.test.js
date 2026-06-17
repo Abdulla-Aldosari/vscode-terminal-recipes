@@ -55,11 +55,7 @@ function section(name) {
  */
 function expectFn(mod, name) {
   test(`exports "${name}" as a function`, function () {
-    assert.strictEqual(
-      typeof mod[name],
-      "function",
-      `"${name}" should be a function but got ${typeof mod[name]}`,
-    );
+    assert.strictEqual(typeof mod[name], "function", `"${name}" should be a function but got ${typeof mod[name]}`);
   });
 }
 
@@ -70,16 +66,8 @@ function expectFn(mod, name) {
  */
 function expectConst(mod, name) {
   test(`exports "${name}" as a constant (string or object, not undefined)`, function () {
-    assert.notStrictEqual(
-      mod[name],
-      undefined,
-      `"${name}" should be exported but is undefined`,
-    );
-    assert.notStrictEqual(
-      typeof mod[name],
-      "function",
-      `"${name}" should be a constant, not a function`,
-    );
+    assert.notStrictEqual(mod[name], undefined, `"${name}" should be exported but is undefined`);
+    assert.notStrictEqual(typeof mod[name], "function", `"${name}" should be a constant, not a function`);
   });
 }
 
@@ -101,11 +89,7 @@ expectFn(normalize, "normalizeVariableMeta");
 
 test("has exactly 7 exports", function () {
   const keys = Object.keys(normalize);
-  assert.strictEqual(
-    keys.length,
-    7,
-    `Expected 7 exports, got ${keys.length}: ${keys.join(", ")}`,
-  );
+  assert.strictEqual(keys.length, 7, `Expected 7 exports, got ${keys.length}: ${keys.join(", ")}`);
 });
 
 // ---------------------------------------------------------------------------
@@ -123,11 +107,7 @@ expectFn(terminal, "getOrCreateTerminal");
 
 test("has exactly 4 exports", function () {
   const keys = Object.keys(terminal);
-  assert.strictEqual(
-    keys.length,
-    4,
-    `Expected 4 exports, got ${keys.length}: ${keys.join(", ")}`,
-  );
+  assert.strictEqual(keys.length, 4, `Expected 4 exports, got ${keys.length}: ${keys.join(", ")}`);
 });
 
 // ---------------------------------------------------------------------------
@@ -167,39 +147,32 @@ expectFn(storage, "writeWorkspaceFavorites");
 
 test("has exactly 23 exports (5 constants + 18 functions)", function () {
   const keys = Object.keys(storage);
-  assert.strictEqual(
-    keys.length,
-    23,
-    `Expected 23 exports, got ${keys.length}: ${keys.join(", ")}`,
-  );
+  assert.strictEqual(keys.length, 23, `Expected 23 exports, got ${keys.length}: ${keys.join(", ")}`);
 });
 
 // Spot-check path constant values
 test("GLOBAL_DIR contains '.vscode-terminal-recipes'", function () {
-  assert.ok(
-    storage.GLOBAL_DIR.includes(".vscode-terminal-recipes"),
-    `GLOBAL_DIR = "${storage.GLOBAL_DIR}"`,
-  );
+  assert.ok(storage.GLOBAL_DIR.includes(".vscode-terminal-recipes"), `GLOBAL_DIR = "${storage.GLOBAL_DIR}"`);
 });
 
 test("GLOBAL_COMMANDS_FILE ends with 'commands.json'", function () {
   assert.ok(
     storage.GLOBAL_COMMANDS_FILE.endsWith("commands.json"),
-    `GLOBAL_COMMANDS_FILE = "${storage.GLOBAL_COMMANDS_FILE}"`,
+    `GLOBAL_COMMANDS_FILE = "${storage.GLOBAL_COMMANDS_FILE}"`
   );
 });
 
 test("GLOBAL_VARIABLES_FILE ends with 'variables.json'", function () {
   assert.ok(
     storage.GLOBAL_VARIABLES_FILE.endsWith("variables.json"),
-    `GLOBAL_VARIABLES_FILE = "${storage.GLOBAL_VARIABLES_FILE}"`,
+    `GLOBAL_VARIABLES_FILE = "${storage.GLOBAL_VARIABLES_FILE}"`
   );
 });
 
 test("GLOBAL_FAVORITES_FILE ends with 'favorites.json'", function () {
   assert.ok(
     storage.GLOBAL_FAVORITES_FILE.endsWith("favorites.json"),
-    `GLOBAL_FAVORITES_FILE = "${storage.GLOBAL_FAVORITES_FILE}"`,
+    `GLOBAL_FAVORITES_FILE = "${storage.GLOBAL_FAVORITES_FILE}"`
   );
 });
 
@@ -231,11 +204,7 @@ expectFn(handlers, "handleAiExplain");
 
 test("has exactly 17 exports", function () {
   const keys = Object.keys(handlers);
-  assert.strictEqual(
-    keys.length,
-    17,
-    `Expected 17 exports, got ${keys.length}: ${keys.join(", ")}`,
-  );
+  assert.strictEqual(keys.length, 17, `Expected 17 exports, got ${keys.length}: ${keys.join(", ")}`);
 });
 
 // ---------------------------------------------------------------------------
@@ -252,6 +221,10 @@ expectFn(autoVars, "buildAutoVariablesPayload");
 // ---------------------------------------------------------------------------
 // Results
 // ---------------------------------------------------------------------------
+
+test("Intentional failure — remove to restore green badge", function () {
+  assert.ok(false, "This failure is intentional. Delete this test to restore the green badge.");
+});
 
 console.log("\n" + "─".repeat(50));
 console.log(`  Total : ${passed + failed}`);
