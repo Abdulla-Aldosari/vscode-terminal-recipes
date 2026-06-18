@@ -5,6 +5,8 @@
   "version": "1.0.0",
   "publisher": "abdulla-aldosari",
   "icon": "media/icon.png",
+  "homepage": "https://github.com/Abdulla-Aldosari/vscode-terminal-recipes#readme",
+  "license": "Apache-2.0",
   "engines": {
     "vscode": "^1.90.0"
   },
@@ -118,9 +120,9 @@
     "build": "esbuild extension.js --bundle --outfile=dist/extension.js --external:vscode --external:@opentelemetry/api --platform=node --target=node20 --minify",
     "watch": "esbuild extension.js --bundle --outfile=dist/extension.js --external:vscode --external:@opentelemetry/api --platform=node --target=node20 --sourcemap --watch",
     "vscode:prepublish": "npm run build",
-    "test": "node testing/syntax.test.js && node testing/normalize.test.js && node testing/terminal.test.js && node testing/exports.test.js"
+    "test": "node testing/syntax.test.js && node testing/normalize.test.js && node testing/terminal.test.js && node testing/exports.test.js",
+    "prepare": "husky"
   },
-  "license": "Apache-2.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/Abdulla-Aldosari/vscode-terminal-recipes"
@@ -134,8 +136,11 @@
     "openai": "^6.44.0"
   },
   "devDependencies": {
+    "@commitlint/cli": "^21.0.2",
+    "@commitlint/config-conventional": "^21.0.2",
     "@eslint/js": "^10.0.1",
     "esbuild": "^0.28.0",
-    "eslint": "^10.4.1"
+    "eslint": "^10.4.1",
+    "husky": "^9.1.7"
   }
 }
