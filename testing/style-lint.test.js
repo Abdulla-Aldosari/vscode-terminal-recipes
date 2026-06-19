@@ -145,5 +145,5 @@ console.log(`  Failed       : ${failed}`);
 console.log("─".repeat(50));
 
 if (failed > 0) {
-  //process.exit(1);
+  process.exit(1);
 }

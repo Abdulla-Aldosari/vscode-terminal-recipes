@@ -583,7 +583,7 @@ function autoResizeTextarea(el) {
   // Sync highlight div height to match the textarea
   var highlightEl = el.previousElementSibling;
   if (highlightEl && highlightEl.classList.contains("template-highlight")) {
-    highlightEl.style.height = newHeight + "px";
+    highlightEl.style.setProperty("--tr-highlight-h", newHeight + "px");
   }
 }
 

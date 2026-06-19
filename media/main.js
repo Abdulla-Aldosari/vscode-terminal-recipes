@@ -130,9 +130,9 @@ document.addEventListener("contextmenu", function (e) {
     const pos = el.dataset.tooltipPos || "bottom";
 
     // Temporarily attach (hidden) to measure dimensions
-    tip.style.visibility = "hidden";
-    tip.style.left = "0px";
-    tip.style.top = "0px";
+    tip.style.setProperty("--tr-tooltip-visibility", "hidden");
+    tip.style.setProperty("--tr-tooltip-left", "0px");
+    tip.style.setProperty("--tr-tooltip-top", "0px");
     if (!tip.isConnected) document.body.appendChild(tip);
 
     const rect = el.getBoundingClientRect();
@@ -162,10 +162,10 @@ document.addEventListener("contextmenu", function (e) {
     left = Math.max(GAP, Math.min(left, vw - tw - GAP));
     top = Math.max(GAP, Math.min(top, vh - th - GAP));
 
-    tip.style.left = left + "px";
-    tip.style.top = top + "px";
+    tip.style.setProperty("--tr-tooltip-left", left + "px");
+    tip.style.setProperty("--tr-tooltip-top", top + "px");
     tip.dataset.pos = pos; // used by CSS to show the correct arrow direction
-    tip.style.visibility = "";
+    tip.style.setProperty("--tr-tooltip-visibility", "");
   }
 
   function showTooltip(el) {
