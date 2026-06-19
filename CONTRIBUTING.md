@@ -70,7 +70,7 @@ npm test
 - Linting is enforced with ESLint (run `npm run lint` to check)
 - No inline styles - all styling must be defined in `media/styles.css` as CSS classes
 - No native `<select>` elements - use `renderCustomSelect()` + `bindCustomSelect()` from `media/utils.js`
-- Pre-commit hooks automatically lint staged files
+- Pre-commit hooks run automatically on every commit: tests (`npm test`) and Prettier formatting (`lint-staged`)
 
 ## Architecture Overview
 
