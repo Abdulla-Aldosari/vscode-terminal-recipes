@@ -121,7 +121,12 @@
     "watch": "esbuild extension.js --bundle --outfile=dist/extension.js --external:vscode --external:@opentelemetry/api --platform=node --target=node20 --sourcemap --watch",
     "vscode:prepublish": "npm run build",
     "test": "node testing/syntax.test.js && node testing/normalize.test.js && node testing/terminal.test.js && node testing/exports.test.js && node testing/style-lint.test.js",
+    "prettier": "prettier --write .",
+    "prettier:check": "prettier --check .",
     "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{js,json,css,md}": "prettier --write"
   },
   "repository": {
     "type": "git",
@@ -141,6 +146,8 @@
     "@eslint/js": "^10.0.1",
     "esbuild": "^0.28.0",
     "eslint": "^10.4.1",
-    "husky": "^9.1.7"
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.7",
+    "prettier": "^3.8.4"
   }
 }

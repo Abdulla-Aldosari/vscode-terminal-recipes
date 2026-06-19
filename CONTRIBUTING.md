@@ -32,12 +32,14 @@ Thank you for your interest in contributing to the Terminal Recipes VS Code exte
 ### Common Commands
 
 ```bash
-npm install       # Install dependencies
-npm run check     # Syntax check (node --check)
-npm run lint      # Run ESLint
-npm run build     # Bundle and minify the extension
-npm run watch     # Build and watch for changes
-npm test          # Run tests
+npm install             # Install dependencies
+npm run check           # Syntax check (node --check)
+npm run lint            # Run ESLint
+npm run prettier        # Format all files with Prettier
+npm run prettier:check  # Check formatting without modifying files
+npm run build           # Bundle and minify the extension
+npm run watch           # Build and watch for changes
+npm test                # Run tests
 ```
 
 ### Running the Extension
@@ -64,6 +66,7 @@ npm test
 
 ## Code Style
 
+- Code formatting is enforced with Prettier (run `npm run prettier` to format all files)
 - Linting is enforced with ESLint (run `npm run lint` to check)
 - No inline styles - all styling must be defined in `media/styles.css` as CSS classes
 - No native `<select>` elements - use `renderCustomSelect()` + `bindCustomSelect()` from `media/utils.js`
