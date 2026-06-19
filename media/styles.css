@@ -463,7 +463,8 @@ textarea {
   line-height: 1.4;
   padding: 4.7px 4px;
   color: var(--recipes-descriptionForeground);
-  /* height synced to textarea via JS in autoResizeTextarea() */
+  /* height synced to textarea via --tr-highlight-h set by autoResizeTextarea() */
+  height: var(--tr-highlight-h, auto);
 }
 
 /* Textarea becomes transparent so the highlight layer shows through */
@@ -2263,6 +2264,9 @@ tr.row-highlight td {
 .tr-tooltip-hover {
   --tooltip-border-color: #787878;
   position: fixed;
+  left: var(--tr-tooltip-left, 0px);
+  top: var(--tr-tooltip-top, 0px);
+  visibility: var(--tr-tooltip-visibility, visible);
   z-index: 9999;
   padding: 4px 8px;
   border-radius: var(--recipes-cornerRadius-xSmall, 2px);
