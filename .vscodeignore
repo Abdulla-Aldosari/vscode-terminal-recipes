@@ -18,12 +18,13 @@ media/dev/
 # Config and rules
 .gitignore
 .clinerules
+.prettierignore
+.prettierrc
 eslint.config.js
+commitlint.config.js
+.husky/
 
 # Internal documentation (not for users)
-AGENTS.md
-CODEBASE_MAP.md
-AI-SHELL-CONTEXT-TESTS.md
 SECURITY.md
 NOTICE
 docs/
