@@ -170,8 +170,7 @@ document.addEventListener("contextmenu", function (e) {
 
   function showTooltip(el) {
     const tip = getOrCreateTooltip();
-    tip.querySelector(".tr-tooltip-hover-content").innerHTML =
-      el.dataset.tooltip;
+    tip.querySelector(".tr-tooltip-hover-content").innerHTML = el.dataset.tooltip;
     positionTooltip(el);
   }
 
