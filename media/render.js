@@ -127,7 +127,8 @@ function renderWorkspaceLabel() {
     const options = state.workspaceFolders.map(function (f) {
       return { value: f.fsPath, label: f.name };
     });
-    const currentFsPath = state.workspaceFolder || (state.workspaceFolders[0] && state.workspaceFolders[0].fsPath) || "";
+    const currentFsPath =
+      state.workspaceFolder || (state.workspaceFolders[0] && state.workspaceFolders[0].fsPath) || "";
     return `
       <div class="workspace-selector-bar">
         <span class="workspace-selector-label">${icons.folder} Workspace folder:</span>

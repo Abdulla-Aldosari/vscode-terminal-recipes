@@ -45,7 +45,7 @@ module.exports = [
     rules: {
       "no-unused-vars": "warn",
       // Allow empty catch blocks — intentional silent error handling
-      "no-empty": ["error", { "allowEmptyCatch": true }],
+      "no-empty": ["error", { allowEmptyCatch: true }],
       // Disable — flags valid initializer patterns (e.g. var x = ""; then reassign in if/else)
       "no-useless-assignment": "off",
     },
@@ -58,9 +58,9 @@ module.exports = [
       globals: browserGlobals,
     },
     rules: {
-      "no-unused-vars": ["warn", { "varsIgnorePattern": "^post" }],
+      "no-unused-vars": ["warn", { varsIgnorePattern: "^post" }],
       // Allow empty catch blocks — intentional silent error handling (e.g. localStorage access)
-      "no-empty": ["error", { "allowEmptyCatch": true }],
+      "no-empty": ["error", { allowEmptyCatch: true }],
       // Disable — flags valid initializer patterns (e.g. var heading = ""; then reassign in if/else)
       "no-useless-assignment": "off",
     },
