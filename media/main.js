@@ -3,90 +3,9 @@
 // Licensed under the MIT License. See LICENSE in the project root for details.
 
 // media/main.js
-// Entry point — postMessage sender functions + tooltip IIFE.
+// Entry point — global helpers, tooltip IIFE, and initialization signal.
 // All state, icons, utilities, modals, tabs, render, and messages are loaded
 // by earlier <script> tags. This file is loaded last.
-
-// ─── postMessage Sender Functions ─────────────────────────────────────────────
-// Convenience wrappers for all webview → extension messages.
-
-function postReady() {
-  vscode.postMessage({ type: "ready" });
-}
-
-function postRequestState() {
-  vscode.postMessage({ type: "requestState" });
-}
-
-function postSaveData(data) {
-  vscode.postMessage({ type: "saveData", payload: data });
-}
-
-function postPerformAction(payload) {
-  vscode.postMessage({ type: "performAction", payload });
-}
-
-function postOpenCommandsFile() {
-  vscode.postMessage({ type: "openCommandsFile" });
-}
-
-function postOpenGlobalVariablesFile() {
-  vscode.postMessage({ type: "openGlobalVariablesFile" });
-}
-
-function postOpenLocalVariablesFile() {
-  vscode.postMessage({ type: "openLocalVariablesFile" });
-}
-
-function postOpenExternalUrl(url) {
-  vscode.postMessage({ type: "openExternalUrl", payload: { url } });
-}
-
-function postAiGetSettings() {
-  vscode.postMessage({ type: "aiGetSettings" });
-}
-
-function postAiSaveSettings(payload) {
-  vscode.postMessage({ type: "aiSaveSettings", payload });
-}
-
-function postAiGenerate(payload) {
-  vscode.postMessage({ type: "aiGenerate", payload });
-}
-
-function postAiInsert(payload) {
-  vscode.postMessage({ type: "aiInsert", payload });
-}
-
-function postSaveAutoVariablesSettings(payload) {
-  vscode.postMessage({ type: "saveAutoVariablesSettings", payload });
-}
-
-function postSaveFavorites(payload) {
-  vscode.postMessage({ type: "saveFavorites", payload });
-}
-
-function postAiListModels(providerName) {
-  vscode.postMessage({ type: "aiListModels", payload: { providerName } });
-}
-
-function postAiRefreshAllModels() {
-  vscode.postMessage({ type: "aiRefreshAllModels" });
-}
-
-function postAiExplain(payload) {
-  vscode.postMessage({ type: "aiExplain", payload });
-}
-
-function postAiDeleteKey(providerName) {
-  vscode.postMessage({ type: "aiDeleteKey", payload: { providerName } });
-}
-
-function postSetActiveWorkspaceFolder(fsPath) {
-  vscode.postMessage({ type: "setActiveWorkspaceFolder", payload: { fsPath } });
-}
-
-// ─── Global Helpers ────────────────────────────────────────────────────────────
 
 // Disable right-click context menu unless text is selected
 document.addEventListener("contextmenu", function (e) {
@@ -206,4 +125,4 @@ document.addEventListener("contextmenu", function (e) {
 
 // ─── Initialization ────────────────────────────────────────────────────────────
 // Signal the extension that the webview is ready to receive state.
-postReady();
+vscode.postMessage({ type: "ready" });

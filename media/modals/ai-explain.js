@@ -22,7 +22,7 @@ function openAiExplainModal(command) {
   aiExplainState.error = "";
 
   _injectAiExplainModal();
-  postAiExplain({ command });
+  vscode.postMessage({ type: "aiExplain", payload: { command } });
 }
 
 /**

@@ -364,7 +364,7 @@ function bindAiSettingsEvents() {
             aiState.modelsLoading = false;
           } else {
             aiState.modelsLoading = true;
-            postAiListModels(newProvider);
+            vscode.postMessage({ type: "aiListModels", payload: { providerName: newProvider } });
           }
         } else {
           aiState.modelsLoading = false;
@@ -466,7 +466,7 @@ function bindAiSettingsEvents() {
           return;
         }
         aiState.modelsLoading = true;
-        postAiRefreshAllModels();
+        vscode.postMessage({ type: "aiRefreshAllModels" });
         render();
       });
     }
@@ -476,7 +476,7 @@ function bindAiSettingsEvents() {
     if (deleteApiKeyBtn) {
       deleteApiKeyBtn.addEventListener("click", function () {
         clearModelsCache(aiState.settingsProviderName);
-        postAiDeleteKey(aiState.settingsProviderName);
+        vscode.postMessage({ type: "aiDeleteKey", payload: { providerName: aiState.settingsProviderName } });
       });
     }
 

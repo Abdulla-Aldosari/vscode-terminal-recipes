@@ -103,7 +103,7 @@ window.addEventListener("message", function (event) {
           aiState.modelsLoading = false;
         } else {
           aiState.modelsLoading = true;
-          postAiListModels(providerName);
+          vscode.postMessage({ type: "aiListModels", payload: { providerName } });
         }
       } else {
         aiState.modelsLoading = false;
