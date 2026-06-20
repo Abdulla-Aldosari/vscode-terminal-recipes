@@ -35,6 +35,8 @@ function closeAiExplainModal() {
   aiExplainState.error = "";
   aiExplainState.command = "";
 
+  document.removeEventListener("keydown", _onAiExplainEscKey);
+
   var el = document.getElementById("ai-explain-overlay");
   if (el) {
     el.remove();
@@ -158,7 +160,6 @@ function _bindAiExplainCloseBtn() {
 function _onAiExplainEscKey(e) {
   if (e.key === "Escape" && aiExplainState.visible) {
     closeAiExplainModal();
-    document.removeEventListener("keydown", _onAiExplainEscKey);
   }
 }
 
