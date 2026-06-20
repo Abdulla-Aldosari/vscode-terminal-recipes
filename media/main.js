@@ -22,10 +22,6 @@ function postSaveData(data) {
   vscode.postMessage({ type: "saveData", payload: data });
 }
 
-function postSaveCommandVariables(vars) {
-  vscode.postMessage({ type: "saveCommandVariables", payload: vars });
-}
-
 function postPerformAction(payload) {
   vscode.postMessage({ type: "performAction", payload });
 }
