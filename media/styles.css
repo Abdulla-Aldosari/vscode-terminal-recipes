@@ -850,14 +850,14 @@ td.actions-cell {
   padding: 10px;
   white-space: pre-wrap;
   word-break: break-word;
-  max-height: 220px;
+  max-height: 350px;
   overflow: auto;
   font-family: Consolas, monospace;
   font-size: 0.9rem;
 }
 
 .modal-command-preview::before {
-  content: var(--cmd-preview-prefix, "> ");
+  content: "> ";
   user-select: none;
   opacity: 0.5;
 }

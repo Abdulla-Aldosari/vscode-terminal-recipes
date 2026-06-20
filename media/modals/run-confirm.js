@@ -56,66 +56,6 @@ function renderShellSelector() {
   );
 }
 
-/**
- * Renders the workspace folder selector inside the Run Confirm modal.
- * Only rendered in multi-root workspaces (2+ folders).
- * Shows the current execution-target folder and lets the user override it for this run.
- * @returns {string} HTML string — empty if single-root workspace
- */
-function renderRunConfirmFolderSelector() {
-  if (state.workspaceFolders.length < 2) {
-    return "";
-  }
-
-  const currentFsPath =
-    runConfirmState.selectedFsPath ||
-    state.workspaceFolder ||
-    (state.workspaceFolders[0] && state.workspaceFolders[0].fsPath) ||
-    "";
-  const options = state.workspaceFolders.map(function (f) {
-    return { value: f.fsPath, label: f.name };
-  });
-
-  return renderCustomSelect(
-    "run-confirm-folder-select",
-    "run-confirm-folder-btn",
-    "run-confirm-folder-menu",
-    options,
-    currentFsPath,
-    "cs-btn-sm",
-    true // menuUp
-  );
-}
-
-/**
- * Temporarily patches state.autoVariables to reflect the workspace folder
- * selected in the run-confirm modal (runConfirmState.selectedFsPath), calls fn(),
- * then restores the original values. This ensures the command preview in the
- * run-confirm modal resolves ${workspaceFolder} and ${workspaceName} using the
- * folder the user has chosen for this specific execution, not the panel-level folder.
- * @param {function} fn - Zero-arg function to call with the patched context
- * @returns {*} The return value of fn()
- */
-function withRunConfirmFolderContext(fn) {
-  const activeFsPath = runConfirmState.selectedFsPath || state.workspaceFolder || "";
-  // No patching needed if selected folder is the same as the panel's active folder
-  if (!activeFsPath || activeFsPath === state.workspaceFolder) {
-    return fn();
-  }
-
-  const folderName = activeFsPath.split(/[/\\]/).filter(Boolean).pop() || activeFsPath;
-  const original = state.autoVariables;
-  state.autoVariables = original.map(function (v) {
-    if (v.name === "workspaceFolder") return Object.assign({}, v, { currentValue: activeFsPath });
-    if (v.name === "workspaceName") return Object.assign({}, v, { currentValue: folderName });
-    return v;
-  });
-
-  var result = fn();
-  state.autoVariables = original;
-  return result;
-}
-
 function renderRunConfirmModal() {
   // Hide run confirm modal while variable input modal is open (returning to run confirm)
   if (!runConfirmState.commandId || (variableInputState.commandId && variableInputState.returnToRunConfirm)) {
@@ -132,9 +72,7 @@ function renderRunConfirmModal() {
       })
     : false;
 
-  const previewHtml = withRunConfirmFolderContext(function () {
-    return command ? highlightResolvedHtml(command) : escapeHtml(runConfirmState.resolvedCommand);
-  });
+  const previewHtml = command ? highlightResolvedHtml(command) : escapeHtml(runConfirmState.resolvedCommand);
 
   return `
     <div class="modal-overlay" id="run-confirm-overlay" data-dismiss-on-outside-click="false">
@@ -145,7 +83,6 @@ function renderRunConfirmModal() {
         <div class="row justify-content-flex-end f-nowrap">
         ${hasVariables ? `<button class="btn small secondary min-w65" id="btn-confirm-run-variables">Edit Variables</button>` : ""}
           ${renderShellSelector()}
-          ${renderRunConfirmFolderSelector()}
           <button class="btn small success min-w65" id="btn-confirm-run-yes">Run</button>
           <button class="btn small secondary action min-w65" id="btn-confirm-run-no">Cancel</button>
         </div>
