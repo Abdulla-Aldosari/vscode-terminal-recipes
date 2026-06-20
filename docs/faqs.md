@@ -34,11 +34,11 @@ Yes. Simply copy `~/.vscode-terminal-recipes/commands.json` to a safe location o
 
 ### What is the difference between Run, Use, and Copy?
 
-| Action | What it does |
-|---|---|
-| **Run** | Sends the resolved command to the terminal and executes it immediately. A confirmation dialog appears first. |
-| **Use** | Pastes the resolved command into the terminal input without pressing Enter — so you can review or edit it before running. |
-| **Copy** | Copies the resolved command to your clipboard. Nothing is sent to the terminal. |
+| Action   | What it does                                                                                                              |
+| -------- | ------------------------------------------------------------------------------------------------------------------------- |
+| **Run**  | Sends the resolved command to the terminal and executes it immediately. A confirmation dialog appears first.              |
+| **Use**  | Pastes the resolved command into the terminal input without pressing Enter — so you can review or edit it before running. |
+| **Copy** | Copies the resolved command to your clipboard. Nothing is sent to the terminal.                                           |
 
 ---
 
@@ -48,11 +48,11 @@ Yes. Simply copy `~/.vscode-terminal-recipes/commands.json` to a safe location o
 
 Every variable in a command can be saved in one of three independent scopes. The **Local / Off / Global** toggle on each variable row controls which scope is active for that variable:
 
-| Scope | Where the value is saved | When to use it |
-|---|---|---|
-| **Local** | `.vscode/terminal-recipes.variables.json` inside your current project folder | When the value is specific to this project (e.g. a database name, a port number that differs per project) |
-| **Global** | `~/.vscode-terminal-recipes/variables.json` in your home directory | When you use the same value across all your projects (e.g. your username, a shared server address) |
-| **Off** | In memory only — never written to disk | When you want to fill in a value just for this session without saving it anywhere |
+| Scope      | Where the value is saved                                                     | When to use it                                                                                            |
+| ---------- | ---------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| **Local**  | `.vscode/terminal-recipes.variables.json` inside your current project folder | When the value is specific to this project (e.g. a database name, a port number that differs per project) |
+| **Global** | `~/.vscode-terminal-recipes/variables.json` in your home directory           | When you use the same value across all your projects (e.g. your username, a shared server address)        |
+| **Off**    | In memory only — never written to disk                                       | When you want to fill in a value just for this session without saving it anywhere                         |
 
 Switching the toggle does **not** delete the value stored in the other scopes — each scope stores its value independently.
 
@@ -62,12 +62,12 @@ Switching the toggle does **not** delete the value stored in the other scopes �
 
 Auto Variables are built-in variables that are resolved automatically without any input from you:
 
-| Variable | Resolved value |
-|---|---|
-| `${date}` | Today's date (configurable format) |
-| `${username}` | Your operating system username |
+| Variable             | Resolved value                                                                                                                          |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `${date}`            | Today's date (configurable format)                                                                                                      |
+| `${username}`        | Your operating system username                                                                                                          |
 | `${workspaceFolder}` | The full path to the active workspace folder. In multi-root workspaces, reflects the folder selected in the panel's workspace selector. |
-| `${workspaceName}` | The folder name (basename) of the active workspace folder. In multi-root workspaces, reflects the selected folder. |
+| `${workspaceName}`   | The folder name (basename) of the active workspace folder. In multi-root workspaces, reflects the selected folder.                      |
 
 > **Multi-root workspaces:** `${workspaceFolder}` and `${workspaceName}` always reflect the folder that is currently active in the panel. Switching the workspace folder dropdown updates these values for all subsequent command executions. You can also override them per-execution in the Run confirmation dialog.
 
@@ -87,16 +87,16 @@ To define enum options, open the **Edit Command** form for any command and click
 
 Each provider has a free option to get started:
 
-| Provider | Get API Key |
-|---|---|
-| **Google Gemini** | [aistudio.google.com](https://aistudio.google.com/) — free tier available |
-| **DeepSeek** | [platform.deepseek.com](https://platform.deepseek.com/) — free tier + very low cost |
-| **Groq** | [console.groq.com](https://console.groq.com/) — free tier with fast inference |
-| **Mistral AI** | [console.mistral.ai](https://console.mistral.ai/) — free models available |
-| **Cohere** | [dashboard.cohere.com](https://dashboard.cohere.com/) — free trial available |
-| **StepFun** | [platform.stepfun.com](https://platform.stepfun.com/) — free model available |
-| **OpenAI** | [platform.openai.com](https://platform.openai.com/) — paid |
-| **Anthropic** | [console.anthropic.com](https://console.anthropic.com/) — paid |
+| Provider          | Get API Key                                                                         |
+| ----------------- | ----------------------------------------------------------------------------------- |
+| **Google Gemini** | [aistudio.google.com](https://aistudio.google.com/) — free tier available           |
+| **DeepSeek**      | [platform.deepseek.com](https://platform.deepseek.com/) — free tier + very low cost |
+| **Groq**          | [console.groq.com](https://console.groq.com/) — free tier with fast inference       |
+| **Mistral AI**    | [console.mistral.ai](https://console.mistral.ai/) — free models available           |
+| **Cohere**        | [dashboard.cohere.com](https://dashboard.cohere.com/) — free trial available        |
+| **StepFun**       | [platform.stepfun.com](https://platform.stepfun.com/) — free model available        |
+| **OpenAI**        | [platform.openai.com](https://platform.openai.com/) — paid                          |
+| **Anthropic**     | [console.anthropic.com](https://console.anthropic.com/) — paid                      |
 
 Once you have a key, open the panel → click **AI Settings** (⚙️ icon) → select your provider → paste the key → click **Save API Key**.
 

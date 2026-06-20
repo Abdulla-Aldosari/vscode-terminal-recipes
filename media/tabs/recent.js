@@ -83,9 +83,9 @@ function bindRecentTabEvents() {
   if (clearRecentButton) {
     clearRecentButton.addEventListener("click", function () {
       deleteConfirmState = {
-        type:     "clearRecent",
-        id:       null,
-        title:    "All recent history will be cleared.",
+        type: "clearRecent",
+        id: null,
+        title: "All recent history will be cleared.",
         template: "",
       };
       render();

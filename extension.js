@@ -39,8 +39,8 @@ function activate(context) {
   // (needed to read/write workspaceState for multi-root folder persistence).
   // All handlers call postState(panel) — the closure signature matches.
   async function postState(targetPanel) {
-    const savedFsPath      = context.workspaceState.get("activeWorkspaceFolder") || null;
-    const workspaceFolder  = resolveActiveWorkspaceFolder(savedFsPath);
+    const savedFsPath = context.workspaceState.get("activeWorkspaceFolder") || null;
+    const workspaceFolder = resolveActiveWorkspaceFolder(savedFsPath);
     const workspaceFolders = getAllWorkspaceFolders();
 
     // Sync workspaceState: if the resolved folder differs from what was saved
@@ -49,20 +49,20 @@ function activate(context) {
       await context.workspaceState.update("activeWorkspaceFolder", workspaceFolder);
     }
 
-    const data                   = await readGlobalCommandsData();
-    const commandVariables       = await readWorkspaceVariables(workspaceFolder);
+    const data = await readGlobalCommandsData();
+    const commandVariables = await readWorkspaceVariables(workspaceFolder);
     const globalCommandVariables = await readGlobalVariables();
-    const terminalProfiles       = getTerminalProfiles();
-    const autoVariablesSettings  = await readAutoVariablesSettings();
-    const autoVariables          = buildAutoVariablesPayload({ workspaceFolder }, autoVariablesSettings);
-    const globalFavorites        = await readGlobalFavorites();
-    const localFavorites         = await readWorkspaceFavorites(workspaceFolder);
+    const terminalProfiles = getTerminalProfiles();
+    const autoVariablesSettings = await readAutoVariablesSettings();
+    const autoVariables = buildAutoVariablesPayload({ workspaceFolder }, autoVariablesSettings);
+    const globalFavorites = await readGlobalFavorites();
+    const localFavorites = await readWorkspaceFavorites(workspaceFolder);
 
     await targetPanel.webview.postMessage({
       type: "state",
       payload: {
         data,
-        globalCommandsFile:    GLOBAL_COMMANDS_FILE,
+        globalCommandsFile: GLOBAL_COMMANDS_FILE,
         workspaceFolder,
         workspaceFolders,
         commandVariables,
@@ -77,171 +77,154 @@ function activate(context) {
   }
   // ─────────────────────────────────────────────────────────────────────────────
 
-  const openPanelCommand = vscode.commands.registerCommand(
-    "terminalRecipes.openPanel",
-    async function () {
-      if (panel) {
-        panel.reveal(vscode.ViewColumn.One);
-        await postState(panel);
-        return;
-      }
-
-      panel = vscode.window.createWebviewPanel(
-        "terminalRecipesPanel",
-        "Terminal Recipes",
-        vscode.ViewColumn.One,
-        {
-          enableScripts: true,
-          retainContextWhenHidden: true,
-        }
-      );
-
-      panel.iconPath = vscode.Uri.joinPath(context.extensionUri, "media", "icon.png");
-
-      const isDevelopmentMode = context.extensionMode === vscode.ExtensionMode.Development;
-      const hasDevTools = fs.existsSync(
-        path.join(context.extensionPath, "media", "dev", "index.js")
-      );
-      const isDev = isDevelopmentMode && hasDevTools;
-
-      // ─── Dev Tools Modules (Developer Only) ──────────────────────────────────────
-      // This section is exclusively for development and testing purposes.
-      // It dynamically loads developer UI panels (tools) from media/dev/modules/.
-      // Each tool file self-registers into window.devToolsModules[] and appears
-      // automatically as a tab inside the Dev Tools overlay — no manual changes needed here.
-      // These files are never shipped in production (.vscodeignore excludes media/dev/**).
-      let devModuleFiles = [];
-      if (isDev) {
-        const modulesDir = path.join(context.extensionPath, "media", "dev", "modules");
-        if (fs.existsSync(modulesDir)) {
-          devModuleFiles = fs
-            .readdirSync(modulesDir)
-            .filter(function (f) {
-              return f.endsWith(".js");
-            })
-            .sort()
-            .map(function (f) {
-              return ["media", "dev", "modules", f];
-            });
-        }
-      }
-      // ─────────────────────────────────────────────────────────────────────────────
-
-      panel.webview.html = getWebviewHtml(
-        panel.webview,
-        context.extensionUri,
-        isDev,
-        devModuleFiles
-      );
-
-      panel.webview.onDidReceiveMessage(
-        async function (message) {
-          if (!message || typeof message.type !== "string") {
-            return;
-          }
-          if (message.type === "ready" || message.type === "requestState") {
-            await postState(panel);
-            return;
-          }
-          if (message.type === "saveData") {
-            await H.handleSaveData(panel, message.payload, postState);
-            return;
-          }
-          if (message.type === "saveCommandVariables") {
-            // Inject activeFsPath so variables are written to the correct .vscode/ folder
-            const activeFsPath = context.workspaceState.get("activeWorkspaceFolder") || null;
-            await H.handleSaveCommandVariables(panel, Object.assign({}, message.payload, { activeFsPath }));
-            return;
-          }
-          if (message.type === "performAction") {
-            // activeFsPath comes from the run-confirm folder dropdown in the webview payload
-            await H.handlePerformAction(panel, message.payload, postState);
-            return;
-          }
-          if (message.type === "openCommandsFile") {
-            await H.openGlobalCommandsFile();
-            return;
-          }
-          if (message.type === "openGlobalVariablesFile") {
-            await H.openGlobalVariablesFile();
-            return;
-          }
-          if (message.type === "openLocalVariablesFile") {
-            // Open the local variables file for the currently active workspace folder
-            const activeFsPath = context.workspaceState.get("activeWorkspaceFolder") || null;
-            await H.openLocalVariablesFile(activeFsPath);
-            return;
-          }
-          if (message.type === "openExternalUrl") {
-            await H.handleOpenExternalUrl(message.payload);
-            return;
-          }
-          if (message.type === "aiGetSettings") {
-            await H.handleAiGetSettings(panel, context);
-            return;
-          }
-          if (message.type === "aiSaveSettings") {
-            await H.handleAiSaveSettings(panel, context, message.payload);
-            return;
-          }
-          if (message.type === "aiGenerate") {
-            await H.handleAiGenerate(panel, context, message.payload);
-            return;
-          }
-          if (message.type === "aiInsert") {
-            await H.handleAiInsert(panel, message.payload, postState);
-            return;
-          }
-          if (message.type === "saveAutoVariablesSettings") {
-            await H.handleSaveAutoVariablesSettings(panel, message.payload, postState);
-            return;
-          }
-          if (message.type === "saveFavorites") {
-            // Inject activeFsPath so favorites are written to the correct .vscode/ folder
-            const activeFsPath = context.workspaceState.get("activeWorkspaceFolder") || null;
-            await H.handleSaveFavorites(panel, Object.assign({}, message.payload, { activeFsPath }));
-            return;
-          }
-          if (message.type === "aiListModels") {
-            await H.handleAiListModels(panel, context, message.payload);
-            return;
-          }
-          if (message.type === "aiRefreshAllModels") {
-            await H.handleAiRefreshAllModels(panel, context);
-            return;
-          }
-          if (message.type === "aiDeleteKey") {
-            await H.handleAiDeleteKey(panel, context, message.payload);
-            return;
-          }
-          if (message.type === "aiExplain") {
-            await H.handleAiExplain(panel, context, message.payload);
-            return;
-          }
-          if (message.type === "setActiveWorkspaceFolder") {
-            // User selected a different folder from the header dropdown.
-            // Persist the choice in workspaceState and refresh the panel state.
-            const fsPath = message.payload && typeof message.payload.fsPath === "string"
-              ? message.payload.fsPath
-              : null;
-            if (fsPath) {
-              await context.workspaceState.update("activeWorkspaceFolder", fsPath);
-            }
-            await postState(panel);
-            return;
-          }
-        },
-        null,
-        context.subscriptions
-      );
-
-      panel.onDidDispose(function () {
-        panel = null;
-      });
-
+  const openPanelCommand = vscode.commands.registerCommand("terminalRecipes.openPanel", async function () {
+    if (panel) {
+      panel.reveal(vscode.ViewColumn.One);
       await postState(panel);
+      return;
     }
-  );
+
+    panel = vscode.window.createWebviewPanel("terminalRecipesPanel", "Terminal Recipes", vscode.ViewColumn.One, {
+      enableScripts: true,
+      retainContextWhenHidden: true,
+    });
+
+    panel.iconPath = vscode.Uri.joinPath(context.extensionUri, "media", "icon.png");
+
+    const isDevelopmentMode = context.extensionMode === vscode.ExtensionMode.Development;
+    const hasDevTools = fs.existsSync(path.join(context.extensionPath, "media", "dev", "index.js"));
+    const isDev = isDevelopmentMode && hasDevTools;
+
+    // ─── Dev Tools Modules (Developer Only) ──────────────────────────────────────
+    // This section is exclusively for development and testing purposes.
+    // It dynamically loads developer UI panels (tools) from media/dev/modules/.
+    // Each tool file self-registers into window.devToolsModules[] and appears
+    // automatically as a tab inside the Dev Tools overlay — no manual changes needed here.
+    // These files are never shipped in production (.vscodeignore excludes media/dev/**).
+    let devModuleFiles = [];
+    if (isDev) {
+      const modulesDir = path.join(context.extensionPath, "media", "dev", "modules");
+      if (fs.existsSync(modulesDir)) {
+        devModuleFiles = fs
+          .readdirSync(modulesDir)
+          .filter(function (f) {
+            return f.endsWith(".js");
+          })
+          .sort()
+          .map(function (f) {
+            return ["media", "dev", "modules", f];
+          });
+      }
+    }
+    // ─────────────────────────────────────────────────────────────────────────────
+
+    panel.webview.html = getWebviewHtml(panel.webview, context.extensionUri, isDev, devModuleFiles);
+
+    panel.webview.onDidReceiveMessage(
+      async function (message) {
+        if (!message || typeof message.type !== "string") {
+          return;
+        }
+        if (message.type === "ready" || message.type === "requestState") {
+          await postState(panel);
+          return;
+        }
+        if (message.type === "saveData") {
+          await H.handleSaveData(panel, message.payload, postState);
+          return;
+        }
+        if (message.type === "saveCommandVariables") {
+          // Inject activeFsPath so variables are written to the correct .vscode/ folder
+          const activeFsPath = context.workspaceState.get("activeWorkspaceFolder") || null;
+          await H.handleSaveCommandVariables(panel, Object.assign({}, message.payload, { activeFsPath }));
+          return;
+        }
+        if (message.type === "performAction") {
+          // activeFsPath comes from the run-confirm folder dropdown in the webview payload
+          await H.handlePerformAction(panel, message.payload, postState);
+          return;
+        }
+        if (message.type === "openCommandsFile") {
+          await H.openGlobalCommandsFile();
+          return;
+        }
+        if (message.type === "openGlobalVariablesFile") {
+          await H.openGlobalVariablesFile();
+          return;
+        }
+        if (message.type === "openLocalVariablesFile") {
+          // Open the local variables file for the currently active workspace folder
+          const activeFsPath = context.workspaceState.get("activeWorkspaceFolder") || null;
+          await H.openLocalVariablesFile(activeFsPath);
+          return;
+        }
+        if (message.type === "openExternalUrl") {
+          await H.handleOpenExternalUrl(message.payload);
+          return;
+        }
+        if (message.type === "aiGetSettings") {
+          await H.handleAiGetSettings(panel, context);
+          return;
+        }
+        if (message.type === "aiSaveSettings") {
+          await H.handleAiSaveSettings(panel, context, message.payload);
+          return;
+        }
+        if (message.type === "aiGenerate") {
+          await H.handleAiGenerate(panel, context, message.payload);
+          return;
+        }
+        if (message.type === "aiInsert") {
+          await H.handleAiInsert(panel, message.payload, postState);
+          return;
+        }
+        if (message.type === "saveAutoVariablesSettings") {
+          await H.handleSaveAutoVariablesSettings(panel, message.payload, postState);
+          return;
+        }
+        if (message.type === "saveFavorites") {
+          // Inject activeFsPath so favorites are written to the correct .vscode/ folder
+          const activeFsPath = context.workspaceState.get("activeWorkspaceFolder") || null;
+          await H.handleSaveFavorites(panel, Object.assign({}, message.payload, { activeFsPath }));
+          return;
+        }
+        if (message.type === "aiListModels") {
+          await H.handleAiListModels(panel, context, message.payload);
+          return;
+        }
+        if (message.type === "aiRefreshAllModels") {
+          await H.handleAiRefreshAllModels(panel, context);
+          return;
+        }
+        if (message.type === "aiDeleteKey") {
+          await H.handleAiDeleteKey(panel, context, message.payload);
+          return;
+        }
+        if (message.type === "aiExplain") {
+          await H.handleAiExplain(panel, context, message.payload);
+          return;
+        }
+        if (message.type === "setActiveWorkspaceFolder") {
+          // User selected a different folder from the header dropdown.
+          // Persist the choice in workspaceState and refresh the panel state.
+          const fsPath = message.payload && typeof message.payload.fsPath === "string" ? message.payload.fsPath : null;
+          if (fsPath) {
+            await context.workspaceState.update("activeWorkspaceFolder", fsPath);
+          }
+          await postState(panel);
+          return;
+        }
+      },
+      null,
+      context.subscriptions
+    );
+
+    panel.onDidDispose(function () {
+      panel = null;
+    });
+
+    await postState(panel);
+  });
 
   context.subscriptions.push(openPanelCommand);
 
@@ -277,9 +260,7 @@ function getWebviewHtml(webview, extensionUri, isDev = false, devModuleFiles = [
   const utilsUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, "media", "utils.js"));
 
   // 1b. Markdown parser (utility — must load before ai-explain.js)
-  const markdownParserUri = webview.asWebviewUri(
-    vscode.Uri.joinPath(extensionUri, "media", "markdown-parser.js")
-  );
+  const markdownParserUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, "media", "markdown-parser.js"));
 
   // 2. Modals
   const modalsRunConfirmUri = webview.asWebviewUri(
@@ -305,29 +286,17 @@ function getWebviewHtml(webview, extensionUri, isDev = false, devModuleFiles = [
   );
 
   // 3. Tabs
-  const tabsRecentUri = webview.asWebviewUri(
-    vscode.Uri.joinPath(extensionUri, "media", "tabs", "recent.js")
-  );
-  const tabsCommandsUri = webview.asWebviewUri(
-    vscode.Uri.joinPath(extensionUri, "media", "tabs", "commands.js")
-  );
-  const tabsFavoritesUri = webview.asWebviewUri(
-    vscode.Uri.joinPath(extensionUri, "media", "tabs", "favorites.js")
-  );
-  const tabsVariablesUri = webview.asWebviewUri(
-    vscode.Uri.joinPath(extensionUri, "media", "tabs", "variables.js")
-  );
-  const tabsCategoriesUri = webview.asWebviewUri(
-    vscode.Uri.joinPath(extensionUri, "media", "tabs", "categories.js")
-  );
+  const tabsRecentUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, "media", "tabs", "recent.js"));
+  const tabsCommandsUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, "media", "tabs", "commands.js"));
+  const tabsFavoritesUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, "media", "tabs", "favorites.js"));
+  const tabsVariablesUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, "media", "tabs", "variables.js"));
+  const tabsCategoriesUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, "media", "tabs", "categories.js"));
 
   // 4. Render orchestrator
   const renderUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, "media", "render.js"));
 
   // 5. Message handler
-  const messagesUri = webview.asWebviewUri(
-    vscode.Uri.joinPath(extensionUri, "media", "messages.js")
-  );
+  const messagesUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, "media", "messages.js"));
 
   // 6. Entry point
   const mainUri = webview.asWebviewUri(vscode.Uri.joinPath(extensionUri, "media", "main.js"));

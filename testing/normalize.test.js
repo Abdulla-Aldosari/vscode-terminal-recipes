@@ -393,7 +393,7 @@ test("returns default structure for non-object input", function () {
 test("normalizes a valid category correctly", function () {
   const input = {
     categories: [{ id: "devops", title: "DevOps" }],
-    commands:   [],
+    commands: [],
   };
   const result = normalizeCommandsData(input);
   assert.strictEqual(result.categories.length, 1);
@@ -404,7 +404,7 @@ test("normalizes a valid category correctly", function () {
 test("sanitizes category id (lowercase + trim)", function () {
   const input = {
     categories: [{ id: "  MY-CAT  ", title: "My Category" }],
-    commands:   [],
+    commands: [],
   };
   const result = normalizeCommandsData(input);
   assert.strictEqual(result.categories[0].id, "my-cat");
@@ -453,11 +453,11 @@ test("normalizes a valid command correctly", function () {
     categories: [{ id: "git", title: "Git" }],
     commands: [
       {
-        id:          "git-push",
-        title:       "Push",
+        id: "git-push",
+        title: "Push",
         description: "Push to remote",
-        command:     "git push origin {branch}",
-        categoryId:  "git",
+        command: "git push origin {branch}",
+        categoryId: "git",
       },
     ],
   };
@@ -471,9 +471,9 @@ test("drops commands with missing required fields", function () {
   const input = {
     categories: [{ id: "git", title: "Git" }],
     commands: [
-      { id: "no-title",   command: "git status", categoryId: "git" },
-      { id: "no-command", title: "Status",       categoryId: "git" },
-      { id: "no-cat-id",  title: "Push",         command: "git push" },
+      { id: "no-title", command: "git status", categoryId: "git" },
+      { id: "no-command", title: "Status", categoryId: "git" },
+      { id: "no-cat-id", title: "Push", command: "git push" },
     ],
   };
   const result = normalizeCommandsData(input);
@@ -483,9 +483,7 @@ test("drops commands with missing required fields", function () {
 test("drops commands referencing a non-existent categoryId", function () {
   const input = {
     categories: [{ id: "git", title: "Git" }],
-    commands: [
-      { id: "cmd1", title: "Push", command: "git push", categoryId: "nonexistent" },
-    ],
+    commands: [{ id: "cmd1", title: "Push", command: "git push", categoryId: "nonexistent" }],
   };
   const result = normalizeCommandsData(input);
   assert.strictEqual(result.commands.length, 0);
@@ -495,7 +493,7 @@ test("deduplicates commands by id (keeps first)", function () {
   const input = {
     categories: [{ id: "git", title: "Git" }],
     commands: [
-      { id: "cmd", title: "First",  command: "git pull", categoryId: "git" },
+      { id: "cmd", title: "First", command: "git pull", categoryId: "git" },
       { id: "cmd", title: "Second", command: "git push", categoryId: "git" },
     ],
   };
@@ -507,9 +505,7 @@ test("deduplicates commands by id (keeps first)", function () {
 test("drops groupId when the group does not exist in the category", function () {
   const input = {
     categories: [{ id: "git", title: "Git", groups: [{ id: "local", title: "Local" }] }],
-    commands: [
-      { id: "cmd1", title: "Push", command: "git push", categoryId: "git", groupId: "nonexistent" },
-    ],
+    commands: [{ id: "cmd1", title: "Push", command: "git push", categoryId: "git", groupId: "nonexistent" }],
   };
   const result = normalizeCommandsData(input);
   assert.strictEqual(result.commands[0].groupId, "");
@@ -520,11 +516,11 @@ test("resolves groupId from legacy groupIds[] (first valid entry)", function () 
     categories: [{ id: "git", title: "Git", groups: [{ id: "remote", title: "Remote" }] }],
     commands: [
       {
-        id:        "cmd1",
-        title:     "Push",
-        command:   "git push",
+        id: "cmd1",
+        title: "Push",
+        command: "git push",
         categoryId: "git",
-        groupIds:  ["remote"],
+        groupIds: ["remote"],
       },
     ],
   };
@@ -537,9 +533,12 @@ test("preserves lastRunAt and runCount when valid", function () {
     categories: [{ id: "git", title: "Git" }],
     commands: [
       {
-        id: "cmd1", title: "Push", command: "git push", categoryId: "git",
+        id: "cmd1",
+        title: "Push",
+        command: "git push",
+        categoryId: "git",
         lastRunAt: "2026-01-01T00:00:00.000Z",
-        runCount:  5,
+        runCount: 5,
       },
     ],
   };
@@ -561,9 +560,7 @@ test("omits lastRunAt and runCount when not provided", function () {
 test("preserves helpUrl when it is a non-empty string", function () {
   const input = {
     categories: [{ id: "git", title: "Git" }],
-    commands: [
-      { id: "cmd1", title: "Push", command: "git push", categoryId: "git", helpUrl: "https://git-scm.com" },
-    ],
+    commands: [{ id: "cmd1", title: "Push", command: "git push", categoryId: "git", helpUrl: "https://git-scm.com" }],
   };
   const result = normalizeCommandsData(input);
   assert.strictEqual(result.commands[0].helpUrl, "https://git-scm.com");
@@ -572,9 +569,7 @@ test("preserves helpUrl when it is a non-empty string", function () {
 test("omits helpUrl when empty", function () {
   const input = {
     categories: [{ id: "git", title: "Git" }],
-    commands: [
-      { id: "cmd1", title: "Push", command: "git push", categoryId: "git", helpUrl: "" },
-    ],
+    commands: [{ id: "cmd1", title: "Push", command: "git push", categoryId: "git", helpUrl: "" }],
   };
   const result = normalizeCommandsData(input);
   assert.strictEqual(result.commands[0].helpUrl, undefined);
@@ -583,7 +578,7 @@ test("omits helpUrl when empty", function () {
 test("normalizes groups within categories", function () {
   const input = {
     categories: [{ id: "git", title: "Git", groups: ["remote", "local"] }],
-    commands:   [],
+    commands: [],
   };
   const result = normalizeCommandsData(input);
   assert.strictEqual(result.categories[0].groups.length, 2);

@@ -52,10 +52,10 @@ Do NOT mix shell syntaxes. Use only the native built-in commands for the target 
 
 The AI may wrap dynamic values in `${VariableName}` syntax. There are two types:
 
-| Type | Description | Example |
-|------|-------------|---------|
-| **Free Input (A)** | User types any value | `${DirectoryPath}`, `${BranchName}` |
-| **Enum (B)** | Fixed documented options | `--loglevel=${LogLevel}` → `silent\|error\|warn\|...` |
+| Type               | Description              | Example                                               |
+| ------------------ | ------------------------ | ----------------------------------------------------- |
+| **Free Input (A)** | User types any value     | `${DirectoryPath}`, `${BranchName}`                   |
+| **Enum (B)**       | Fixed documented options | `--loglevel=${LogLevel}` → `silent\|error\|warn\|...` |
 
 ---
 
@@ -67,12 +67,12 @@ The following 10 tests were designed to stress-test the model's ability to respe
 
 ### Test 1 — Recursive File Deletion
 
-| Field | Value |
-|-------|-------|
-| **Prompt** | `A command to find all .log files recursively in a directory and delete them` |
-| **Target Shell** | `Git Bash` |
-| **Trap** | This is the "classic trap": a request that sounds perfectly natural in a Unix context. If the model ignores the shell context, it might generate a PowerShell or CMD equivalent. |
-| **Expected Result** | `find` with `-delete` flag — a POSIX command native to Bash environments |
+| Field               | Value                                                                                                                                                                            |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Prompt**          | `A command to find all .log files recursively in a directory and delete them`                                                                                                    |
+| **Target Shell**    | `Git Bash`                                                                                                                                                                       |
+| **Trap**            | This is the "classic trap": a request that sounds perfectly natural in a Unix context. If the model ignores the shell context, it might generate a PowerShell or CMD equivalent. |
+| **Expected Result** | `find` with `-delete` flag — a POSIX command native to Bash environments                                                                                                         |
 
 **AI Response:**
 
@@ -89,12 +89,12 @@ Command: find ${DirectoryPath} -type f -name "*.log" -delete
 
 ### Test 2 — Same Prompt, Different Shell
 
-| Field | Value |
-|-------|-------|
-| **Prompt** | `A command to find all .log files recursively in a directory and delete them` |
-| **Target Shell** | `PowerShell` |
-| **Trap** | Identical prompt to Test 1. The only change is the target shell. This is the most revealing test: if the system works, the output must be syntactically different. |
-| **Expected Result** | `Get-ChildItem` piped into `Remove-Item` — PowerShell native cmdlets |
+| Field               | Value                                                                                                                                                              |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Prompt**          | `A command to find all .log files recursively in a directory and delete them`                                                                                      |
+| **Target Shell**    | `PowerShell`                                                                                                                                                       |
+| **Trap**            | Identical prompt to Test 1. The only change is the target shell. This is the most revealing test: if the system works, the output must be syntactically different. |
+| **Expected Result** | `Get-ChildItem` piped into `Remove-Item` — PowerShell native cmdlets                                                                                               |
 
 **AI Response:**
 
@@ -111,12 +111,12 @@ Command: Get-ChildItem -Path ${DirectoryPath} -Filter "*.log" -Recurse | Remove-
 
 ### Test 3 — Explicit Linux Hint in Prompt
 
-| Field | Value |
-|-------|-------|
-| **Prompt** | `A command to grep for error messages in all .txt files, just like Linux grep` |
-| **Target Shell** | `PowerShell` |
-| **Trap** | The prompt explicitly says "just like Linux grep", nudging the model toward using the `grep` command. The model must ignore this hint and use the PowerShell equivalent. |
-| **Expected Result** | `Select-String` — PowerShell's native text-searching cmdlet |
+| Field               | Value                                                                                                                                                                    |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Prompt**          | `A command to grep for error messages in all .txt files, just like Linux grep`                                                                                           |
+| **Target Shell**    | `PowerShell`                                                                                                                                                             |
+| **Trap**            | The prompt explicitly says "just like Linux grep", nudging the model toward using the `grep` command. The model must ignore this hint and use the PowerShell equivalent. |
+| **Expected Result** | `Select-String` — PowerShell's native text-searching cmdlet                                                                                                              |
 
 **AI Response:**
 
@@ -134,12 +134,12 @@ Command: Get-ChildItem -Path "${DirectoryPath}" -Filter "*.txt" -Recurse
 
 ### Test 4 — "Linux-style" Targeting CMD
 
-| Field | Value |
-|-------|-------|
-| **Prompt** | `A Linux-style command to list all files sorted by size in the current directory` |
-| **Target Shell** | `Command Prompt` |
-| **Trap** | The phrase "Linux-style" is embedded directly in the prompt while the target shell is CMD — the most restricted of all Windows shells. |
-| **Expected Result** | `dir` with a sort flag — a CMD-native listing command |
+| Field               | Value                                                                                                                                  |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| **Prompt**          | `A Linux-style command to list all files sorted by size in the current directory`                                                      |
+| **Target Shell**    | `Command Prompt`                                                                                                                       |
+| **Trap**            | The phrase "Linux-style" is embedded directly in the prompt while the target shell is CMD — the most restricted of all Windows shells. |
+| **Expected Result** | `dir` with a sort flag — a CMD-native listing command                                                                                  |
 
 **AI Response:**
 
@@ -155,12 +155,12 @@ Command: dir /A /O:${SortOrder}
 
 ### Test 5 — Windows Paths in a Unix Shell
 
-| Field | Value |
-|-------|-------|
-| **Prompt** | `A command to copy all PDF files from C:\Users\Documents to C:\Backup` |
-| **Target Shell** | `Git Bash` |
-| **Trap** | The prompt uses Windows-style backslash paths (`C:\Users\...`), which are incompatible with Bash. The model must either abstract the paths into variables or use POSIX-compatible notation. |
-| **Expected Result** | `cp` command (POSIX) with abstracted path variables |
+| Field               | Value                                                                                                                                                                                       |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Prompt**          | `A command to copy all PDF files from C:\Users\Documents to C:\Backup`                                                                                                                      |
+| **Target Shell**    | `Git Bash`                                                                                                                                                                                  |
+| **Trap**            | The prompt uses Windows-style backslash paths (`C:\Users\...`), which are incompatible with Bash. The model must either abstract the paths into variables or use POSIX-compatible notation. |
+| **Expected Result** | `cp` command (POSIX) with abstracted path variables                                                                                                                                         |
 
 **AI Response:**
 
@@ -177,12 +177,12 @@ Command: cp "${SourceDirectory}"/*.pdf "${DestinationDirectory}"
 
 ### Test 6 — Unix Archive Format on Windows
 
-| Field | Value |
-|-------|-------|
-| **Prompt** | `A command to compress a folder into a .tar.gz file` |
-| **Target Shell** | `PowerShell` |
-| **Trap** | `.tar.gz` is a Unix-origin archive format. PowerShell's native `Compress-Archive` only produces `.zip`. Can the model find a correct solution? |
-| **Expected Result** | Either a `tar.exe` invocation (available natively on Windows 10+) or `Compress-Archive` with a note |
+| Field               | Value                                                                                                                                          |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Prompt**          | `A command to compress a folder into a .tar.gz file`                                                                                           |
+| **Target Shell**    | `PowerShell`                                                                                                                                   |
+| **Trap**            | `.tar.gz` is a Unix-origin archive format. PowerShell's native `Compress-Archive` only produces `.zip`. Can the model find a correct solution? |
+| **Expected Result** | Either a `tar.exe` invocation (available natively on Windows 10+) or `Compress-Archive` with a note                                            |
 
 **AI Response:**
 
@@ -199,12 +199,12 @@ Command: tar -czvf "${ArchiveName}.tar.gz" "${FolderName}"
 
 ### Test 7 — Process Analysis in CMD
 
-| Field | Value |
-|-------|-------|
-| **Prompt** | `A command to count the number of running processes and show only the top 5 by memory usage` |
-| **Target Shell** | `Command Prompt` |
-| **Trap** | This request is **natively impossible** in pure CMD — the shell has no built-in process sorting or memory inspection. This tests whether the model can find a practical workaround. |
-| **Expected Result** | Any working solution; CMD alone cannot satisfy this requirement |
+| Field               | Value                                                                                                                                                                               |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Prompt**          | `A command to count the number of running processes and show only the top 5 by memory usage`                                                                                        |
+| **Target Shell**    | `Command Prompt`                                                                                                                                                                    |
+| **Trap**            | This request is **natively impossible** in pure CMD — the shell has no built-in process sorting or memory inspection. This tests whether the model can find a practical workaround. |
+| **Expected Result** | Any working solution; CMD alone cannot satisfy this requirement                                                                                                                     |
 
 **AI Response:**
 
@@ -225,12 +225,12 @@ Command: powershell -Command "$proc = Get-Process; Write-Host 'Total Running
 
 ### Test 8 — Windows PowerShell vs PowerShell
 
-| Field | Value |
-|-------|-------|
-| **Prompt** | `A command to kill all processes named "chrome" using a one-liner` |
-| **Target Shell** | `Windows PowerShell` |
-| **Trap** | Subtle distinction: `Windows PowerShell` (5.x, built into Windows) versus `PowerShell` (7.x, cross-platform). Does the model differentiate between the two? |
-| **Expected Result** | `Stop-Process` cmdlet — valid in both PowerShell versions |
+| Field               | Value                                                                                                                                                       |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Prompt**          | `A command to kill all processes named "chrome" using a one-liner`                                                                                          |
+| **Target Shell**    | `Windows PowerShell`                                                                                                                                        |
+| **Trap**            | Subtle distinction: `Windows PowerShell` (5.x, built into Windows) versus `PowerShell` (7.x, cross-platform). Does the model differentiate between the two? |
+| **Expected Result** | `Stop-Process` cmdlet — valid in both PowerShell versions                                                                                                   |
 
 **AI Response:**
 
@@ -247,12 +247,12 @@ Command: Stop-Process -Name "chrome" -Force
 
 ### Test 9 — Real-Time Log Monitoring
 
-| Field | Value |
-|-------|-------|
-| **Prompt** | `A command to watch a log file in real time and filter lines that contain the word ERROR, similar to what you'd do on a Linux server` |
-| **Target Shell** | `Git Bash` |
-| **Trap** | The phrase "similar to what you'd do on a Linux server" is included to test whether the model uses Git Bash-compatible Unix commands. |
-| **Expected Result** | `tail -f` piped into `grep` — standard Unix tools available in Git Bash |
+| Field               | Value                                                                                                                                 |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| **Prompt**          | `A command to watch a log file in real time and filter lines that contain the word ERROR, similar to what you'd do on a Linux server` |
+| **Target Shell**    | `Git Bash`                                                                                                                            |
+| **Trap**            | The phrase "similar to what you'd do on a Linux server" is included to test whether the model uses Git Bash-compatible Unix commands. |
+| **Expected Result** | `tail -f` piped into `grep` — standard Unix tools available in Git Bash                                                               |
 
 **AI Response:**
 
@@ -277,12 +277,12 @@ Command: tail -f "${LogFilePath}" | grep ${MatchOption} ${CaseOption} "${FilterP
 
 ### Test 10 — Ignoring Explicit Shell Instructions in the Prompt
 
-| Field | Value |
-|-------|-------|
-| **Prompt** | `A command to recursively find all node_modules folders and remove them to free disk space, use rm -rf style` |
-| **Target Shell** | `PowerShell` |
-| **Trap** | The most direct challenge: the user explicitly requests "`rm -rf` style" while the shell is PowerShell. The model must discard the user's stylistic instruction and generate a native PowerShell command. |
-| **Expected Result** | `Get-ChildItem` with `-Directory -Recurse` piped into `Remove-Item -Force -Recurse` |
+| Field               | Value                                                                                                                                                                                                     |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Prompt**          | `A command to recursively find all node_modules folders and remove them to free disk space, use rm -rf style`                                                                                             |
+| **Target Shell**    | `PowerShell`                                                                                                                                                                                              |
+| **Trap**            | The most direct challenge: the user explicitly requests "`rm -rf` style" while the shell is PowerShell. The model must discard the user's stylistic instruction and generate a native PowerShell command. |
+| **Expected Result** | `Get-ChildItem` with `-Directory -Recurse` piped into `Remove-Item -Force -Recurse`                                                                                                                       |
 
 **AI Response:**
 
@@ -300,18 +300,18 @@ Command: Get-ChildItem -Path "${StartPath}" -Filter "node_modules" -Directory
 
 ## Results Summary
 
-| # | Shell | Trap Type | Result |
-|---|-------|-----------|--------|
-| 1 | Git Bash | Classic Unix command request | ✅ Passed |
-| 2 | PowerShell | Identical prompt, different shell | ✅ Passed |
-| 3 | PowerShell | Explicit "Linux grep" mention | ✅ Passed |
-| 4 | CMD | "Linux-style" in prompt | ⚠️ Acceptable |
-| 5 | Git Bash | Windows-style paths | ✅ Passed |
-| 6 | PowerShell | Unix archive format (.tar.gz) | ⚠️ Conditionally correct |
-| 7 | CMD | Impossible in pure CMD | ✅ Pragmatic solution |
-| 8 | Windows PowerShell | Version distinction | ✅ Passed |
-| 9 | Git Bash | "like a Linux server" phrasing | ✅ Passed (variable quality note) |
-| 10 | PowerShell | Explicit "rm -rf style" instruction | ✅ Passed |
+| #   | Shell              | Trap Type                           | Result                            |
+| --- | ------------------ | ----------------------------------- | --------------------------------- |
+| 1   | Git Bash           | Classic Unix command request        | ✅ Passed                         |
+| 2   | PowerShell         | Identical prompt, different shell   | ✅ Passed                         |
+| 3   | PowerShell         | Explicit "Linux grep" mention       | ✅ Passed                         |
+| 4   | CMD                | "Linux-style" in prompt             | ⚠️ Acceptable                     |
+| 5   | Git Bash           | Windows-style paths                 | ✅ Passed                         |
+| 6   | PowerShell         | Unix archive format (.tar.gz)       | ⚠️ Conditionally correct          |
+| 7   | CMD                | Impossible in pure CMD              | ✅ Pragmatic solution             |
+| 8   | Windows PowerShell | Version distinction                 | ✅ Passed                         |
+| 9   | Git Bash           | "like a Linux server" phrasing      | ✅ Passed (variable quality note) |
+| 10  | PowerShell         | Explicit "rm -rf style" instruction | ✅ Passed                         |
 
 **8 full passes · 2 acceptable with notes · 0 failures**
 
@@ -330,5 +330,5 @@ Key observations:
 
 ---
 
-*Generated as part of the Terminal Recipes extension development process.*
-*Shell-aware AI generation feature — `lib/ai/factory.js` · `lib/ai/systemInstruction.js`*
+_Generated as part of the Terminal Recipes extension development process._
+_Shell-aware AI generation feature — `lib/ai/factory.js` · `lib/ai/systemInstruction.js`_

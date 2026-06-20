@@ -904,12 +904,17 @@ function bindCommandActionButtons() {
       }
     }
 
-    bindCustomSelect("run-confirm-folder-select", "run-confirm-folder-btn", "run-confirm-folder-menu", function (fsPath) {
-      runConfirmState.selectedFsPath = fsPath || null;
-      // Re-render the modal so the command preview resolves ${workspaceFolder} /
-      // ${workspaceName} using the newly selected folder (via withRunConfirmFolderContext)
-      render();
-    });
+    bindCustomSelect(
+      "run-confirm-folder-select",
+      "run-confirm-folder-btn",
+      "run-confirm-folder-menu",
+      function (fsPath) {
+        runConfirmState.selectedFsPath = fsPath || null;
+        // Re-render the modal so the command preview resolves ${workspaceFolder} /
+        // ${workspaceName} using the newly selected folder (via withRunConfirmFolderContext)
+        render();
+      }
+    );
   }
 
   if (confirmRunYesButton) {

@@ -39,8 +39,12 @@ function renderMarkdown(md) {
         i++;
       }
       i++; // skip closing ```
-      html += '<pre class="md-pre"><code' + (lang ? ' class="md-lang-' + escapeHtml(lang) + '"' : "") + ">" +
-              escapeHtml(codeLines.join("\n")) + "</code></pre>\n";
+      html +=
+        '<pre class="md-pre"><code' +
+        (lang ? ' class="md-lang-' + escapeHtml(lang) + '"' : "") +
+        ">" +
+        escapeHtml(codeLines.join("\n")) +
+        "</code></pre>\n";
       continue;
     }
 
@@ -66,11 +70,25 @@ function renderMarkdown(md) {
             return inlineMarkdown(cell.trim());
           });
         var tag = idx === 0 ? "th" : "td";
-        var rowTag = idx === 0 ? "thead" : (idx === 1 && /^[|\-:\s]+$/.test(tableRows[1]) ? "" : "");
+        var rowTag = idx === 0 ? "thead" : idx === 1 && /^[|\-:\s]+$/.test(tableRows[1]) ? "" : "";
         if (idx === 0) {
-          html += "<thead><tr>" + cells.map(function (c) { return "<th>" + c + "</th>"; }).join("") + "</tr></thead><tbody>";
-        } else if (!(/^[|\-:\s]+$/.test(row))) {
-          html += "<tr>" + cells.map(function (c) { return "<td>" + c + "</td>"; }).join("") + "</tr>";
+          html +=
+            "<thead><tr>" +
+            cells
+              .map(function (c) {
+                return "<th>" + c + "</th>";
+              })
+              .join("") +
+            "</tr></thead><tbody>";
+        } else if (!/^[|\-:\s]+$/.test(row)) {
+          html +=
+            "<tr>" +
+            cells
+              .map(function (c) {
+                return "<td>" + c + "</td>";
+              })
+              .join("") +
+            "</tr>";
         }
       });
       html += "</tbody></table></div>\n";
@@ -79,7 +97,7 @@ function renderMarkdown(md) {
 
     // ── Unordered list ────────────────────────────────────────────────────
     if (/^[ \t]*[-*+] /.test(line)) {
-      html += "<ul class=\"md-ul\">";
+      html += '<ul class="md-ul">';
       while (i < lines.length && /^[ \t]*[-*+] /.test(lines[i])) {
         html += "<li>" + inlineMarkdown(lines[i].replace(/^[ \t]*[-*+] /, "")) + "</li>";
         i++;
@@ -90,7 +108,7 @@ function renderMarkdown(md) {
 
     // ── Ordered list ──────────────────────────────────────────────────────
     if (/^[ \t]*\d+\. /.test(line)) {
-      html += "<ol class=\"md-ol\">";
+      html += '<ol class="md-ol">';
       while (i < lines.length && /^[ \t]*\d+\. /.test(lines[i])) {
         html += "<li>" + inlineMarkdown(lines[i].replace(/^[ \t]*\d+\. /, "")) + "</li>";
         i++;
@@ -101,7 +119,7 @@ function renderMarkdown(md) {
 
     // ── Blockquote ────────────────────────────────────────────────────────
     if (/^> /.test(line)) {
-      html += "<blockquote class=\"md-blockquote\">";
+      html += '<blockquote class="md-blockquote">';
       while (i < lines.length && /^> /.test(lines[i])) {
         html += "<p>" + inlineMarkdown(lines[i].replace(/^> /, "")) + "</p>";
         i++;
@@ -112,12 +130,12 @@ function renderMarkdown(md) {
 
     // ── Headings ──────────────────────────────────────────────────────────
     if (/^### /.test(line)) {
-      html += "<h3 class=\"md-h3\">" + inlineMarkdown(line.slice(4)) + "</h3>\n";
+      html += '<h3 class="md-h3">' + inlineMarkdown(line.slice(4)) + "</h3>\n";
       i++;
       continue;
     }
     if (/^## /.test(line)) {
-      html += "<h2 class=\"md-h2\">" + inlineMarkdown(line.slice(3)) + "</h2>\n";
+      html += '<h2 class="md-h2">' + inlineMarkdown(line.slice(3)) + "</h2>\n";
       i++;
       continue;
     }
@@ -129,7 +147,7 @@ function renderMarkdown(md) {
     }
 
     // ── Paragraph ─────────────────────────────────────────────────────────
-    html += "<p class=\"md-p\">" + inlineMarkdown(line) + "</p>\n";
+    html += '<p class="md-p">' + inlineMarkdown(line) + "</p>\n";
     i++;
   }
 
@@ -150,7 +168,7 @@ function inlineMarkdown(text) {
   var out = escapeHtml(text);
 
   // `inline code` — must run before bold/italic to protect backtick content
-  out = out.replace(/`([^`]+)`/g, "<code class=\"md-code\">$1</code>");
+  out = out.replace(/`([^`]+)`/g, '<code class="md-code">$1</code>');
 
   // **bold**
   out = out.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");

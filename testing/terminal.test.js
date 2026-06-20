@@ -52,24 +52,15 @@ function section(name) {
 section("fixShellPath");
 
 test("replaces \\Sysnative\\ with \\System32\\ (exact casing)", function () {
-  assert.strictEqual(
-    fixShellPath("C:\\Windows\\Sysnative\\cmd.exe"),
-    "C:\\Windows\\System32\\cmd.exe",
-  );
+  assert.strictEqual(fixShellPath("C:\\Windows\\Sysnative\\cmd.exe"), "C:\\Windows\\System32\\cmd.exe");
 });
 
 test("replaces \\sysnative\\ with \\System32\\ (all lowercase — case-insensitive)", function () {
-  assert.strictEqual(
-    fixShellPath("C:\\Windows\\sysnative\\cmd.exe"),
-    "C:\\Windows\\System32\\cmd.exe",
-  );
+  assert.strictEqual(fixShellPath("C:\\Windows\\sysnative\\cmd.exe"), "C:\\Windows\\System32\\cmd.exe");
 });
 
 test("replaces \\SYSNATIVE\\ with \\System32\\ (all uppercase — case-insensitive)", function () {
-  assert.strictEqual(
-    fixShellPath("C:\\Windows\\SYSNATIVE\\cmd.exe"),
-    "C:\\Windows\\System32\\cmd.exe",
-  );
+  assert.strictEqual(fixShellPath("C:\\Windows\\SYSNATIVE\\cmd.exe"), "C:\\Windows\\System32\\cmd.exe");
 });
 
 test("does not alter a path that already contains System32", function () {

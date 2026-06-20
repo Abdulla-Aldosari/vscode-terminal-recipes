@@ -18,10 +18,14 @@ function renderFavoritesTab() {
     return favoriteIds.includes(cmd.id);
   });
   const validLocalCount = state.localFavorites.filter(function (id) {
-    return allCommands.some(function (cmd) { return cmd.id === id; });
+    return allCommands.some(function (cmd) {
+      return cmd.id === id;
+    });
   }).length;
   const validGlobalCount = state.globalFavorites.filter(function (id) {
-    return allCommands.some(function (cmd) { return cmd.id === id; });
+    return allCommands.some(function (cmd) {
+      return cmd.id === id;
+    });
   }).length;
   const emptyMsg =
     scope === "local"

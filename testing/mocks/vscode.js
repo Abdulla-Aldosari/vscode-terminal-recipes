@@ -13,23 +13,37 @@ const vscode = {
     workspaceFolders: null,
     getConfiguration: function () {
       return {
-        get: function () { return undefined; },
+        get: function () {
+          return undefined;
+        },
       };
     },
   },
   window: {
-    activeTerminal:   null,
-    createTerminal:   function () { return {}; },
-    showInputBox:     async function () { return undefined; },
-    showInformationMessage: async function () { return undefined; },
-    showWarningMessage:     async function () { return undefined; },
-    showErrorMessage:       async function () { return undefined; },
+    activeTerminal: null,
+    createTerminal: function () {
+      return {};
+    },
+    showInputBox: async function () {
+      return undefined;
+    },
+    showInformationMessage: async function () {
+      return undefined;
+    },
+    showWarningMessage: async function () {
+      return undefined;
+    },
+    showErrorMessage: async function () {
+      return undefined;
+    },
   },
   env: {
     openExternal: async function () {},
   },
   Uri: {
-    file: function (p) { return { fsPath: p }; },
+    file: function (p) {
+      return { fsPath: p };
+    },
     joinPath: function (base, ...parts) {
       const path = require("path");
       return { fsPath: path.join(base.fsPath || base, ...parts) };
@@ -39,8 +53,10 @@ const vscode = {
     executeCommand: async function () {},
   },
   SecretStorage: class {
-    async get()    { return undefined; }
-    async store()  {}
+    async get() {
+      return undefined;
+    }
+    async store() {}
     async delete() {}
   },
 };
