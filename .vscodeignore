@@ -10,6 +10,7 @@ lib/
 
 # Development and testing
 .temp/
+.vsenv/
 .vscode/
 .github/
 testing/
