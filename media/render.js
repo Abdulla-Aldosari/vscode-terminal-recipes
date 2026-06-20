@@ -117,7 +117,7 @@ function ensureSelectionDefaults() {
 
 /**
  * Renders the workspace label bar below the header.
- * - Single-root or no workspace: plain read-only text label (same as before).
+ * - Single-root or no workspace: plain read-only text label.
  * - Multi-root workspace: an interactive custom-select dropdown that lets the
  *   user pick the active folder. The current folder is pre-selected.
  * @returns {string} HTML string
