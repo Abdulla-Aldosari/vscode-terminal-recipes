@@ -115,12 +115,12 @@
     }
   },
   "scripts": {
-    "check": "node --check extension.js && node --check media/main.js",
-    "lint": "eslint extension.js media/main.js lib/",
+    "check": "node testing/check-syntax.js",
+    "lint": "eslint extension.js lib/ media/ testing/",
     "build": "esbuild extension.js --bundle --outfile=dist/extension.js --external:vscode --external:@opentelemetry/api --platform=node --target=node20 --minify",
     "watch": "esbuild extension.js --bundle --outfile=dist/extension.js --external:vscode --external:@opentelemetry/api --platform=node --target=node20 --sourcemap --watch",
     "vscode:prepublish": "npm run build",
-    "test": "node testing/syntax.test.js && node testing/normalize.test.js && node testing/terminal.test.js && node testing/exports.test.js && node testing/style-lint.test.js",
+    "test": "node testing/check-syntax.js && node testing/normalize.test.js && node testing/terminal.test.js && node testing/exports.test.js && node testing/style-lint.test.js",
     "prettier": "prettier --write .",
     "prettier:check": "prettier --check .",
     "prepare": "husky"
