@@ -13,6 +13,7 @@
  * @param {object} payload - Data payload from the extension
  */
 function hydrateState(payload) {
+  const prevWorkspaceFolder = state.workspaceFolder;
   state.data = payload && payload.data ? payload.data : state.data;
   state.globalCommandsFile = payload && payload.globalCommandsFile ? payload.globalCommandsFile : "";
   state.workspaceFolder = payload ? payload.workspaceFolder : null;
@@ -47,13 +48,15 @@ function hydrateState(payload) {
     runConfirmState.selectedShellPath = defaultProfileEntry ? defaultProfileEntry.shellPath : null;
   }
 
+  const workspaceFolderChanged = state.workspaceFolder !== prevWorkspaceFolder;
   const localCmds = state.commandVariables.commands || {};
   const globalCmds = state.globalCommandVariables.commands || {};
   const allCommandIds = new Set([...Object.keys(localCmds), ...Object.keys(globalCmds)]);
 
   allCommandIds.forEach(function (commandId) {
     // Initialize local scope draft from workspace variables file
-    if (!uiState.commandLocalDrafts[commandId]) {
+    // Always refresh when workspace folder changes to load the new folder's values
+    if (!uiState.commandLocalDrafts[commandId] || workspaceFolderChanged) {
       uiState.commandLocalDrafts[commandId] = Object.assign({}, localCmds[commandId] || {});
     }
 
@@ -63,7 +66,8 @@ function hydrateState(payload) {
     }
 
     // Initialize scope preference (commandRemember)
-    if (!uiState.commandRemember[commandId]) {
+    // Always refresh when workspace folder changes so local scope prefs reflect new folder's values
+    if (!uiState.commandRemember[commandId] || workspaceFolderChanged) {
       const remembered = {};
       const globalVars = globalCmds[commandId] || {};
       const localVars = localCmds[commandId] || {};
