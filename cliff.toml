@@ -1,0 +1,83 @@
+# git-cliff ~ configuration file
+# https://git-cliff.org/docs/configuration
+
+[remote.github]
+owner = "Abdulla-Aldosari"
+repo = "vscode-terminal-recipes"
+
+[changelog]
+header = """
+# Changelog
+
+All notable changes to **Terminal Recipes** are documented here.
+Versions follow [Semantic Versioning](https://semver.org/).
+
+---
+"""
+body = """
+{%- macro remote_url() -%}
+  https://github.com/{{ remote.github.owner }}/{{ remote.github.repo }}
+{%- endmacro -%}
+
+{%- macro print_commit(commit) -%}
+  - {% if commit.scope %}*({{ commit.scope }})* {% endif %}\
+  {% if commit.breaking %}[**breaking**] {% endif %}\
+  {{ commit.message | upper_first }} \
+  ([`{{ commit.id | truncate(length=7, end="") }}`]({{ self::remote_url() }}/commit/{{ commit.id }}))
+{%- endmacro -%}
+
+{% if version %}\
+  {% if previous.version %}\
+## [{{ version | trim_start_matches(pat="v") }}]({{ self::remote_url() }}/compare/{{ previous.version }}...{{ version }}) - {{ timestamp | date(format="%Y-%m-%d") }}
+  {% else %}\
+## [{{ version | trim_start_matches(pat="v") }}] - {{ timestamp | date(format="%Y-%m-%d") }}
+  {% endif %}\
+{% else %}\
+## [Unreleased]
+{% endif %}\
+
+{% for group, commits in commits | group_by(attribute="group") %}
+### {{ group | striptags | trim }}
+
+{% for commit in commits | filter(attribute="scope") | sort(attribute="scope") %}
+{{ self::print_commit(commit=commit) }}
+{%- endfor %}
+{% for commit in commits %}
+{%- if not commit.scope -%}
+{{ self::print_commit(commit=commit) }}
+{% endif -%}
+{% endfor -%}
+{% endfor -%}
+"""
+trim = true
+footer = ""
+postprocessors = [
+  { pattern = "<REPO>", replace = "https://github.com/Abdulla-Aldosari/vscode-terminal-recipes" },
+]
+
+[git]
+conventional_commits = true
+filter_unconventional = true
+split_commits = false
+
+commit_preprocessors = [
+  { pattern = '\((\w+\s)?#([0-9]+)\)', replace = "([#${2}](<REPO>/issues/${2}))" },
+]
+
+commit_parsers = [
+  # Breaking changes always surface regardless of type
+  { message = "^feat!|^fix!|^refactor!", group = "⚠️ Important Changes" },
+  { message = "^feat",    group = "✨ What's New" },
+  { message = "^fix",     group = "🐛 Bug Fixes" },
+  { message = "^perf",    group = "⚡ Performance" },
+  # Everything else is internal — hidden from the user-facing changelog
+  { message = ".*",       skip = true },
+]
+
+protect_breaking_commits = true
+filter_commits = true
+tag_pattern = "v[0-9].*"
+skip_tags = "beta|alpha"
+ignore_tags = "rc"
+topo_order = false
+sort_commits = "newest"
