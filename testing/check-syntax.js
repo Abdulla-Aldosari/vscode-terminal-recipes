@@ -1,3 +1,10 @@
+/*-------------------------------------------------
+ * Terminal Recipes — VS Code Extension
+ * Copyright (c) 2026 Abdulla Aldosari
+ * Licensed under the Apache License, Version 2.0.
+ * See LICENSE in the project root for details.
+ *-------------------------------------------------*/
+
 // Syntax checker — runs `node --check` on all project JS files.
 // Cross-platform (Node.js only, no shell dependencies).
 

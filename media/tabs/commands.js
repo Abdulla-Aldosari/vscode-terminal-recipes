@@ -1,6 +1,9 @@
-// Terminal Recipes — VS Code Extension
-// Copyright (c) 2026 Abdulla Aldosari
-// Licensed under the MIT License. See LICENSE in the project root for details.
+/*-------------------------------------------------
+ * Terminal Recipes — VS Code Extension
+ * Copyright (c) 2026 Abdulla Aldosari
+ * Licensed under the Apache License, Version 2.0.
+ * See LICENSE in the project root for details.
+ *-------------------------------------------------*/
 
 // media/tabs/commands.js
 // "Commands" tab — category/group filtering, command card list, column visibility, sorting mode.

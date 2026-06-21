@@ -1,14 +1,15 @@
-// Terminal Recipes — VS Code Extension
-// Copyright (c) 2026 Abdulla Aldosari
-// Licensed under the MIT License. See LICENSE in the project root for details.
+/*-------------------------------------------------
+ * Terminal Recipes — VS Code Extension
+ * Copyright (c) 2026 Abdulla Aldosari
+ * Licensed under the Apache License, Version 2.0.
+ * See LICENSE in the project root for details.
+ *-------------------------------------------------*/
 
 // media/tabs/favorites.js
 // "Favorites" tab — global and workspace favorites lists.
 // Loads after commands.js.
 
-/**
- * Renders the Favorites tab.
- */
+// Renders the Favorites tab.
 function renderFavoritesTab() {
   const hasWorkspace = !!state.workspaceFolder;
   const scope = uiState.favoritesScope;
