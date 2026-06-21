@@ -8,10 +8,6 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
----
-
-## [1.0.0] - 2026-06-15
-
 ### Added
 
 - **Command Management** — Create, edit, delete, and browse terminal commands organized by categories and groups.
