@@ -42,6 +42,8 @@ window.addEventListener("message", function (event) {
         icons.circleX,
         "error"
       );
+      // Rollback optimistic render — reload authoritative state from disk
+      vscode.postMessage({ type: "requestState" });
     }
     // Page is already rendered by persistDataThenRender() — just update the notice element
     paintNotice();
