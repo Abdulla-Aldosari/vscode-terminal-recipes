@@ -31,7 +31,7 @@ Two separate execution contexts:
 
 ### `lib/normalize.js`
 
-**Pure data normalization.** No file I/O, no VS Code API, no side effects.
+**Pure data normalization.** No file I/O, no VS Code API.
 
 | Export                             | Description                                                 |
 | ---------------------------------- | ----------------------------------------------------------- |
@@ -115,7 +115,7 @@ Two separate execution contexts:
 | `openLocalVariablesFile(activeFsPath?)`                      | `openLocalVariablesFile`    | Opens workspace variables file for the given folder (or first folder if omitted); prompts to create if missing                                                                       |
 | `handleAiGetSettings(panel, context)`                        | `aiGetSettings`             | Reads AI secrets + provider config; posts `aiSettingsResult`                                                                                                                         |
 | `handleAiSaveSettings(panel, context, payload)`              | `aiSaveSettings`            | Saves API key to `SecretStorage`; posts `aiSaveSettingsResult`                                                                                                                       |
-| `handleAiGenerate(panel, context, payload, aiOutputChannel)` | `aiGenerate`                | Reads `shellName` from payload; passes it to `generateWithAI` to inject shell context; posts `aiGenerateResult`                                                                      |
+| `handleAiGenerate(panel, context, payload)`                  | `aiGenerate`                | Reads `shellName` from payload; passes it to `generateWithAI` to inject shell context; posts `aiGenerateResult`                                                                      |
 | `handleAiInsert(panel, payload, postState)`                  | `aiInsert`                  | Merges AI-generated commands; posts `aiInsertResult`                                                                                                                                 |
 | `handleSaveAutoVariablesSettings(panel, payload, postState)` | `saveAutoVariablesSettings` | Saves auto-variables settings; posts result                                                                                                                                          |
 | `handleSaveFavorites(panel, payload)`                        | `saveFavorites`             | Saves global/workspace favorites; posts `saveFavoritesResult`                                                                                                                        |
@@ -135,6 +135,8 @@ Two separate execution contexts:
 | ---------------------------------------------- | --------------------------------------------------------- |
 | `resolveAutoVariables(settings, context)`      | Resolves all auto-variable values for the current context |
 | `buildAutoVariablesPayload(settings, context)` | Builds the payload sent to the webview                    |
+
+**Dependencies:** `os`, `path` (Node.js built-ins).
 
 ---
 
