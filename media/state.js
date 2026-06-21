@@ -15,12 +15,14 @@ const vscode = acquireVsCodeApi();
 // When a variable holds this value it is passed as "" to the resolved command template.
 const RECIPES_EMPTY_VALUE = "__EMPTY_VALUE__";
 
+// List of tabs whose selections can be saved in `localStorage`
+const PERSISTABLE_TABS = ["recent", "favorites", "categories", "commands", "variables"];
+
 const uiState = {
   activeTab: (function () {
     try {
-      const SAVED_TABS = ["recent", "favorites", "categories", "commands", "variables"];
       const saved = localStorage.getItem("selectedTab");
-      return saved && SAVED_TABS.includes(saved) ? saved : "recent";
+      return saved && PERSISTABLE_TABS.includes(saved) ? saved : "recent";
     } catch {
       return "recent";
     }
@@ -184,6 +186,8 @@ let aiState = {
   promptHistoryOpen: false,
   // If true: return to 'prompt' view after closing AI settings
   returnToPrompt: false,
+  // True while the model list is being fetched from the API
+  modelsLoading: false,
 };
 
 // AI Provider Setup modal state

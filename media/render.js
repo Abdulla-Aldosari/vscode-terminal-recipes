@@ -513,8 +513,7 @@ function bindTabs() {
 
       uiState.activeTab = nextTab;
       // Persist only the main saveable tabs (not 'add' which is a transient form state)
-      const SAVED_TABS = ["recent", "favorites", "categories", "commands", "variables"];
-      if (SAVED_TABS.includes(nextTab)) {
+      if (PERSISTABLE_TABS.includes(nextTab)) {
         try {
           localStorage.setItem("selectedTab", nextTab);
         } catch {}
