@@ -65,11 +65,11 @@ commit_preprocessors = [
 ]
 
 commit_parsers = [
-  # Breaking changes always surface regardless of type
-  { message = "^feat!|^fix!|^refactor!", group = "⚠️ Important Changes" },
-  { message = "^feat",    group = "✨ What's New" },
-  { message = "^fix",     group = "🐛 Bug Fixes" },
-  { message = "^perf",    group = "⚡ Performance" },
+  # Breaking changes: matches type(optional-scope)!: regardless of type
+  { message = "^[a-z]+(\\([^)]*\\))?!:", group = "<!-- 0 -->⚠️ Important Changes" },
+  { message = "^feat",    group = "<!-- 1 -->🚀 What's New" },
+  { message = "^fix",     group = "<!-- 2 -->🐛 Bug Fixes" },
+  { message = "^perf",    group = "<!-- 3 -->⚡ Performance" },
   # Everything else is internal — hidden from the user-facing changelog
   { message = ".*",       skip = true },
 ]
