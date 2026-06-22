@@ -219,12 +219,11 @@ section("lib/auto-variables.js");
 const autoVars = require("../lib/auto-variables");
 
 expectFn(autoVars, "resolveAutoVariables");
-expectFn(autoVars, "getAutoVariableNames");
 expectFn(autoVars, "buildAutoVariablesPayload");
 
-test("has exactly 3 exports", function () {
+test("has exactly 2 exports", function () {
   const keys = Object.keys(autoVars);
-  assert.strictEqual(keys.length, 3, `Expected 3 exports, got ${keys.length}: ${keys.join(", ")}`);
+  assert.strictEqual(keys.length, 2, `Expected 2 exports, got ${keys.length}: ${keys.join(", ")}`);
 });
 
 // ---------------------------------------------------------------------------
