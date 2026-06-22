@@ -12,7 +12,7 @@
 /**
  * Hydrates the global `state` object from the extension payload.
  * Called on every 'state' message from the extension.
- * Also initializes commandDrafts/commandRemember for all known command IDs.
+ * Also initializes scope drafts/commandRemember for all known command IDs.
  * @param {object} payload - Data payload from the extension
  */
 function hydrateState(payload) {

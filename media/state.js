@@ -50,7 +50,6 @@ const uiState = {
   editSourceTab: null,
   pendingScrollCommandId: null,
   pendingSaveMessage: null,
-  commandDrafts: {}, // Kept for backward compat references — primary store is scope drafts below
   commandLocalDrafts: {}, // { [commandId]: { [varName]: value } } — workspace-local scope
   commandGlobalDrafts: {}, // { [commandId]: { [varName]: value } } — global scope
   commandSessionDrafts: {}, // { [commandId]: { [varName]: value } } — session-only (never written to disk)
