@@ -33,9 +33,37 @@ function collectFiles(dir) {
 
 const files = collectFiles(".");
 
-try {
-  execFileSync(process.execPath, ["--check", ...files], { stdio: "inherit" });
-  console.log(`✓ Syntax OK (${files.length} files checked)`);
-} catch {
+// ---------------------------------------------------------------------------
+// Runner
+// ---------------------------------------------------------------------------
+
+let passed = 0;
+let failed = 0;
+
+console.log("\n── Syntax Check ──\n");
+
+for (const file of files) {
+  try {
+    execFileSync(process.execPath, ["--check", file], { stdio: "pipe" });
+    console.log(`  ✓  ${file}`);
+    passed++;
+  } catch (err) {
+    console.error(`  ✗  ${file}`);
+    console.error(`       ${err.stderr.toString().trim()}`);
+    failed++;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Results
+// ---------------------------------------------------------------------------
+
+console.log("\n" + "─".repeat(50));
+console.log(`  Total : ${passed + failed}`);
+console.log(`  Passed: ${passed}`);
+console.log(`  Failed: ${failed}`);
+console.log("─".repeat(50));
+
+if (failed > 0) {
   process.exit(1);
 }

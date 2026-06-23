@@ -142,9 +142,9 @@ for (const file of FILES) {
 // ---------------------------------------------------------------------------
 
 console.log("\n" + "─".repeat(50));
-console.log(`  Files checked: ${passed + failed}`);
-console.log(`  Passed       : ${passed}`);
-console.log(`  Failed       : ${failed}`);
+console.log(`  Total : ${passed + failed}`);
+console.log(`  Passed: ${passed}`);
+console.log(`  Failed: ${failed}`);
 console.log("─".repeat(50));
 
 if (failed > 0) {
