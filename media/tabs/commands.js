@@ -1370,7 +1370,7 @@ function executeDeleteConfirm() {
       }
     }
 
-    persistDataThenRender("Category deleted and saved.");
+    persistDataThenRender("Category deleted.");
     return;
   }
 
@@ -1393,7 +1393,7 @@ function executeDeleteConfirm() {
       uiState.selectedGroupId = "all";
     }
 
-    persistDataThenRender("Group deleted and saved.");
+    persistDataThenRender("Group deleted.");
     return;
   }
 
@@ -1402,7 +1402,6 @@ function executeDeleteConfirm() {
       return command.id !== id;
     });
 
-    delete uiState.commandDrafts[id];
     delete uiState.commandLocalDrafts[id];
     delete uiState.commandGlobalDrafts[id];
     delete uiState.commandSessionDrafts[id];
@@ -1437,7 +1436,8 @@ function executeDeleteConfirm() {
       uiState.activeTab = "commands";
     }
 
-    persistDataThenRender("Command deleted and saved.");
+    persistCommandVariables();
+    persistDataThenRender("Command deleted.");
     return;
   }
 }

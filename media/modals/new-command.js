@@ -466,7 +466,7 @@ function bindAddCommandTabEvents() {
       };
       uiState.activeTab = "commands";
       uiState.pendingScrollCommandId = newCommandId;
-      persistDataThenRender("Command added and saved.");
+      persistDataThenRender("Command added.");
       persistCommandVariables();
     });
   }

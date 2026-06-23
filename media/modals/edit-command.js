@@ -306,7 +306,7 @@ function bindEditTabEvents() {
     uiState.editSourceTab = null;
     uiState.activeTab = returnTab;
     uiState.pendingScrollCommandId = savedCommandId;
-    persistDataThenRender("Command updated and saved.");
+    persistDataThenRender("Command saved.");
     persistCommandVariables();
   });
 

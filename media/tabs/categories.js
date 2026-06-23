@@ -328,7 +328,7 @@ function executeManageModalConfirm() {
     setSelectedCategory(newCategory.id);
     uiState.selectedGroupId = "all";
     categoriesModalState = { visible: false, mode: null, value: "" };
-    persistDataThenRender("Category added and saved.");
+    persistDataThenRender("Category added.");
     return;
   }
 
@@ -338,7 +338,7 @@ function executeManageModalConfirm() {
       category.title = value;
     }
     categoriesModalState = { visible: false, mode: null, value: "" };
-    persistDataThenRender("Category renamed and saved.");
+    persistDataThenRender("Category renamed.");
     return;
   }
 
@@ -356,7 +356,7 @@ function executeManageModalConfirm() {
     selectedCategory.groups.push(newGroup);
     uiState.selectedGroupId = newGroup.id;
     categoriesModalState = { visible: false, mode: null, value: "" };
-    persistDataThenRender("Group added and saved.");
+    persistDataThenRender("Group added.");
     return;
   }
 
@@ -372,7 +372,7 @@ function executeManageModalConfirm() {
       group.title = value;
     }
     categoriesModalState = { visible: false, mode: null, value: "" };
-    persistDataThenRender("Group renamed and saved.");
+    persistDataThenRender("Group renamed.");
     return;
   }
 }
