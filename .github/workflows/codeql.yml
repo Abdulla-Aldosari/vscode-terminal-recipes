@@ -1,5 +1,9 @@
 name: "CodeQL Advanced"
 
+# Status Check Names :
+# - "Analyze (actions)"
+# - "Analyze (javascript-typescript)"
+
 on:
   push:
     branches: ["main"]

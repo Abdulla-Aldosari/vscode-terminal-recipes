@@ -1,5 +1,8 @@
 name: Lint
 
+# Status Check Name :
+# - "lint"
+
 on:
   push:
     branches: ["main"]
