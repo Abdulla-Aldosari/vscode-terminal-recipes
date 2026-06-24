@@ -33,9 +33,9 @@
 
 ## Checklist
 
-- [ ] PR title follows Conventional Commits format (`type: description`)
-- [ ] Commits are atomic and have clear messages
 - [ ] I have read the [CONTRIBUTING](https://github.com/Abdulla-Aldosari/vscode-terminal-recipes/blob/development/CONTRIBUTING.md) guidelines
+- [ ] PR title follows [Conventional Commits](https://www.conventionalcommits.org/) format `type(scope): description`
+- [ ] Commits are `atomic` and have clear messages
 - [ ] My code follows the code style of this project (`npm run lint` passes)
 - [ ] Code is formatted (Prettier runs automatically on commit via `lint-staged`)
 - [ ] I have added/updated tests that prove my fix or feature works
