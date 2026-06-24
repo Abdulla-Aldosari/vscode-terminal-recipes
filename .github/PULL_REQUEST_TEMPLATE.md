@@ -35,9 +35,8 @@
 
 - [ ] PR title follows Conventional Commits format (`type: description`)
 - [ ] Commits are atomic and have clear messages
-- [ ] I have read the [CONTRIBUTING](https://github.com/Abdulla-Aldosari/vscode-terminal-recipes/blob/main/CONTRIBUTING.md) guidelines
+- [ ] I have read the [CONTRIBUTING](https://github.com/Abdulla-Aldosari/vscode-terminal-recipes/blob/development/CONTRIBUTING.md) guidelines
 - [ ] My code follows the code style of this project (`npm run lint` passes)
 - [ ] Code is formatted (Prettier runs automatically on commit via `lint-staged`)
 - [ ] I have added/updated tests that prove my fix or feature works
 - [ ] All new and existing tests pass (`npm test`)
-- [ ] I have updated the [CHANGELOG.md](https://github.com/Abdulla-Aldosari/vscode-terminal-recipes/blob/main/CHANGELOG.md) with a summary of my changes
