@@ -230,11 +230,13 @@ test("has exactly 2 exports", function () {
 // Results
 // ---------------------------------------------------------------------------
 
-console.log("\n" + "─".repeat(50));
+const SEP = "─".repeat(55);
+
+console.log("\n" + SEP);
 console.log(`  Total : ${passed + failed}`);
 console.log(`  Passed: ${passed}`);
 console.log(`  Failed: ${failed}`);
-console.log("─".repeat(50));
+console.log(SEP);
 
 if (failed > 0) {
   process.exit(1);

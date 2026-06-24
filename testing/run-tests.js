@@ -20,18 +20,18 @@ const path = require("path");
 // ---------------------------------------------------------------------------
 
 const TESTS = [
-  { label: "Syntax", file: "testing/check-syntax.js" },
-  { label: "Function", file: "testing/normalize.test.js" },
-  { label: "FixShellPath", file: "testing/terminal.test.js" },
-  { label: "Exports", file: "testing/exports.test.js" },
-  { label: "Inline-Styles", file: "testing/style-lint.test.js" },
+  { label: "Syntax", header: "Syntax test :", file: "testing/check-syntax.js" },
+  { label: "Function", header: "Normalize test :", file: "testing/normalize.test.js" },
+  { label: "FixShellPath", header: "Terminal test :", file: "testing/terminal.test.js" },
+  { label: "Exports", header: "Exports test :", file: "testing/exports.test.js" },
+  { label: "Inline-Styles", header: "Inline Styles test :", file: "testing/style-lint.test.js" },
 ];
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-const SEP = "─".repeat(50);
+const SEP = "─".repeat(55);
 
 /**
  * Extracts Total/Passed/Failed from a test file's stdout.
@@ -61,7 +61,11 @@ function parseResults(output) {
 const results = [];
 let anyFailed = false;
 
-for (const { label, file } of TESTS) {
+for (const { label, header, file } of TESTS) {
+  console.log("\n\n\n" + SEP);
+  console.log("# " + header);
+  console.log(SEP);
+
   const result = spawnSync(process.execPath, [path.resolve(__dirname, "..", file)], {
     stdio: "inherit",
     encoding: "utf8",
@@ -90,11 +94,11 @@ for (const { label, file } of TESTS) {
 // Final summary table
 // ---------------------------------------------------------------------------
 
-const LABEL_WIDTH = Math.max(...results.map((r) => r.label.length));
-
 console.log("\n" + SEP);
-console.log("  Final Result :");
+console.log("# Final Result :");
 console.log(SEP);
+
+const LABEL_WIDTH = Math.max(...results.map((r) => r.label.length));
 
 for (const { label, total, passed, failed } of results) {
   const paddedLabel = label.padEnd(LABEL_WIDTH);
