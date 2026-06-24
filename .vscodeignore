@@ -18,12 +18,13 @@ media/dev/
 
 # Config and rules
 .gitignore
-.clinerules
 .prettierignore
 .prettierrc
+.clinerules
+.husky/
 eslint.config.js
 commitlint.config.js
-.husky/
+cliff.toml
 
 # Internal documentation (not for users)
 SECURITY.md
