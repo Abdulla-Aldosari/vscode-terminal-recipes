@@ -21,20 +21,20 @@ Note that we have a [Code of Conduct](./CODE_OF_CONDUCT.md), please follow it in
 
 2. Clone your forked repository:
 
-```bash
+```sh
 git clone https://github.com/{username}/vscode-terminal-recipes.git
 cd vscode-terminal-recipes
 ```
 
 3. Install dependencies:
 
-```bash
+```sh
 npm install
 ```
 
 4. Build the extension:
 
-```bash
+```sh
 npm run build
 ```
 
@@ -44,7 +44,7 @@ npm run build
 
 1. Create a new branch from `development` for your changes:
 
-```bash
+```sh
 git checkout development
 git checkout -b my-feature-branch
 ```
@@ -55,32 +55,32 @@ git checkout -b my-feature-branch
 
 4. Run the syntax check to catch any errors:
 
-```bash
+```sh
 npm run check
 ```
 
 5. Add or update tests according to your changes, then verify they pass:
 
-```bash
+```sh
 npm test
 ```
 
 6. Run linting and formatting checks before committing:
 
-```bash
+```sh
 npm run lint
 npm run prettier:check
 ```
 
 To auto-fix formatting:
 
-```bash
+```sh
 npm run prettier
 ```
 
 ### Common Commands
 
-```bash
+```sh
 npm install             # Install dependencies
 npm run check           # Syntax check (node --check)
 npm run lint            # Run ESLint
@@ -88,7 +88,33 @@ npm run prettier        # Format all files with Prettier
 npm run prettier:check  # Check formatting without modifying files
 npm run build           # Bundle and minify the extension
 npm run watch           # Build and watch for changes
-npm test                # Run tests
+npm test                # Run all tests
+```
+
+> [!NOTE]
+>
+> `npm test` runs 5 test suites sequentially via `testing/run-tests.js`:
+>
+> - **Syntax** — checks all JS files for syntax errors (`node --check`)
+> - **Function** — unit tests for `lib/normalize.js`
+> - **FixShellPath** — unit tests for `lib/terminal.js`
+> - **Exports** — verifies public exports of all `lib/` modules
+> - **Inline-Styles** — scans `media/` files for forbidden inline styles
+>
+> A unified summary table is printed at the end showing Total / Passed / Failed per suite.
+
+Test summary table
+
+```sh
+───────────────────────────────────────────────────────
+  Final Result:
+───────────────────────────────────────────────────────
+  Syntax         ( Total: 45 / Passed: 45 / Failed: 0 )
+  Function       ( Total: 64 / Passed: 64 / Failed: 0 )
+  FixShellPath   ( Total: 10 / Passed: 10 / Failed: 0 )
+  Exports        ( Total: 62 / Passed: 62 / Failed: 0 )
+  Inline-Styles  ( Total: 18 / Passed: 18 / Failed: 0 )
+───────────────────────────────────────────────────────
 ```
 
 ---
@@ -127,17 +153,19 @@ For a detailed breakdown of every file, export, and message type, see [docs/CODE
 
 > [!NOTE]
 >
-> - `CHANGELOG.md` is generated automatically from commit messages using [git-cliff](https://git-cliff.org/). Do not edit it manually. Only commits of type `feat`, `fix`, `perf`, and breaking changes (`!`) appear in the changelog — all other types are excluded. Write clear, well-formed commit messages as they directly feed into the changelog.
+> - `CHANGELOG.md` is generated automatically from commit messages using [git-cliff](https://git-cliff.org/). Do not edit it manually. Only commits of type `feat`, `fix`, `perf`, and breaking changes `type(scope)!` appear in the changelog — all other types are excluded.
+> - Write clear, well-formed commit messages as they directly feed into the changelog.
+> - Scope is required.
 
 2. Make your changes and ensure tests pass:
 
-```bash
+```sh
 npm test
 ```
 
 3. Run linting and formatting checks:
 
-```bash
+```sh
 npm run lint
 npm run prettier:check
 ```
