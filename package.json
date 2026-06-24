@@ -123,8 +123,7 @@
     "test": "node testing/run-tests.js",
     "prettier": "prettier --write .",
     "prettier:check": "prettier --check .",
-    "prepare": "husky",
-    "changelog": "git-cliff --output CHANGELOG.md"
+    "prepare": "husky"
   },
   "lint-staged": {
     "*.{js,json,css,md}": "prettier --write"
