@@ -1,9 +1,8 @@
-.temp/
-.vsenv/
-media/dev/
 .vscode/settings.json
+.clinerules
+.vsenv
+media/dev/
 dist/
 node_modules/
 AGENTS.md
-.clinerules
 *.vsix

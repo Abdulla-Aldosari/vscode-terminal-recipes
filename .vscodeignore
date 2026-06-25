@@ -9,7 +9,6 @@ extension.js
 lib/
 
 # Development and testing
-.temp/
 .vsenv/
 .vscode/
 .github/
